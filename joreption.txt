@@ -1,0 +1,114 @@
+
+18 May 2026
+
+JorEption
+
+Admin login: admin@joreption.local / x6piEQNSNXBkLpxGXCvZ
+
+========================
+
+Login
+
+root
+5blBkwvazkHFIJFV5Hpu 	20 May 2026
+
+7Y51H7o5GfNSlKFuUlvFP
+
+======================
+
+Contabo
+
+Customer Control Panel (CCP)
+
+You can log in at https://my.contabo.com using your credentials below:
+
+Login: joreption2026@gmail.com
+Password: JHJuwu4Z7bJgyH5BGH22 
+
+IP address 	server type 	Location 	user name 	password
+178.18.244.125 	Cloud VPS 10 SSD 	Hub Europe 	root 	as chosen by you during order process
+
+Cloud VPS 10 SSD
+IP: 178.18.244.125
+IPv6: 2a02:c207:2330:8944::1
+Location: Hub Europe
+VNC: 38.242.239.74:63122
+Host system: 20574
+OS: Ubuntu 24.04
+
+====================================
+
+19 May 2026
+
+🎉 joreption is live
+
+  https://joreption.com
+
+  ┌─────────────────────────────────────────┬───────────────────────────────────────────────────────────┐
+  │                  What                   │                          Status                           │
+  ├─────────────────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ Domain DNS (A records at Namecheap)     │ ✓ Propagated                                              │
+  ├─────────────────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ HTTP → HTTPS redirect                   │ ✓ 301                                                     │
+  ├─────────────────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ TLS certificate                         │ ✓ Let's Encrypt, expires 2026-08-17, auto-renews          │
+  ├─────────────────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ Nginx + PHP 8.3 + MariaDB + Redis       │ ✓ All active                                              │
+  ├─────────────────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ Catalog (Flowbite design)               │ ✓ 200                                                     │
+  ├─────────────────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ Admin (Filament)                        │ ✓ 200 at /admin/login                                     │
+  ├─────────────────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ Products migrated                       │ ✓ 44 (6 seeds + 38 WhatsApp imports)                      │
+  ├─────────────────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ Settings migrated                       │ ✓ JOD/JD currency carried over                            │
+  ├─────────────────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ Admin user migrated                     │ ✓ admin@joreption.local / password                        │
+  ├─────────────────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ Firewall (ufw)                          │ ✓ Only 22, 80, 443                                        │
+  ├─────────────────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ fail2ban                                │ ✓ Active (SSH brute-force protection)                     │
+  ├─────────────────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ Daily DB backup                         │ ✓ 03:00 cron, 14-day retention in /var/backups/joreption/ │
+  ├─────────────────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ Production caches (config/routes/views) │ ✓ Cached                                                  │
+  ├─────────────────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ OPcache                                 │ ✓ On (PHP-FPM default)                                    │
+  └─────────────────────────────────────────┴───────────────────────────────────────────────────────────┘
+
+  Server: Contabo Cloud VPS 10 (4 vCPU / 8 GB RAM, 142 GB free), Ubuntu 24.04 LTS, Asia/Amman timezone. Memory usage: ~684 MB / 7.8
+  GB — lots of headroom.
+
+
+
+ ✅ Adminer is live
+
+  URL: https://joreption.com/_adminer
+  Username: joreption
+  Password: kHFIJFV5Hpu5blBkwvaz
+
+============================================
+
+Field			Value				Notes
+URL			https://joreption.com/_adminer	Web DB admin
+Basic Auth 		Username			joreption	Browser will prompt with this
+Basic Auth 		Password			kHFIJFV5Hpu5blBkwvaz	Browser will prompt with this
+DB System		MySQL				Select on Adminer login screen (works for MariaDB)
+DB Server		127.0.0.1			Use 127.0.0.1 not localhost
+DB Username		joreption			DB user with full access to joreption schema
+DB Password		7dsPAA8Zl96sXRcHO0YgHSEF	Stored on server at /root/.joreption_db_pass
+DB Name	joreption	The schema to log into
+
+======================================
+
+ Adminer:   https://joreption.com/_adminer
+             user: joreption
+             pass: FloFaau2KwNp3B9jaDAYuKng
+
+  Filament:  https://joreption.com/admin/login
+             email: admin@joreption.local
+             pass: iJkQrjFEX8nVkEVs8j
+
+
+
+

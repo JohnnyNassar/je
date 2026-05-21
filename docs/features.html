@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Joreption — Features Overview</title>
+<link rel="icon" type="image/jpeg" href="https://joreption.com/images/logo.jpg">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        brand: { 50:'#effafa', 100:'#d6f1f2', 200:'#b0e2e5', 300:'#7fcfd5', 400:'#4fb6bf', 500:'#329aa4', 600:'#287d88', 700:'#23636e', 800:'#1f525c', 900:'#0f4248', 950:'#08272c' },
+        accent: { 500:'#ef4444', 600:'#dc2626', 700:'#b91c1c' },
+      },
+      fontFamily: { sans: ['Inter','system-ui','sans-serif'] }
+    }
+  }
+}
+</script>
+<link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Inter', system-ui, sans-serif; }
+  .check::before { content: "✓"; color: #0f4248; font-weight: 700; margin-right: 0.5rem; }
+  details > summary { list-style: none; cursor: pointer; }
+  details > summary::-webkit-details-marker { display: none; }
+  details[open] > summary .chev { transform: rotate(90deg); }
+</style>
+</head>
+<body class="bg-gray-50 text-gray-900 antialiased">
+
+<!-- Hero -->
+<header class="bg-brand-900 text-white relative overflow-hidden">
+  <div class="absolute inset-0 opacity-[0.06] pointer-events-none" style="background-image: repeating-linear-gradient(0deg, rgba(255,255,255,1) 0 1px, transparent 1px 8px);"></div>
+  <div class="absolute -top-20 -end-20 w-72 h-72 rounded-full bg-accent-600/30 blur-3xl"></div>
+  <div class="relative max-w-5xl mx-auto px-6 py-12 sm:py-16">
+    <div class="flex items-center gap-4 mb-6">
+      <img src="https://joreption.com/images/logo.jpg" alt="Joreption" class="w-14 h-14 rounded-lg ring-2 ring-white/20 object-cover">
+      <div>
+        <div class="text-xs uppercase tracking-widest text-white/60">Project status</div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold">Joreption — Features delivered</h1>
+      </div>
+    </div>
+    <p class="text-white/80 max-w-2xl leading-relaxed">
+      A bilingual (EN/AR), mobile-first, cash-on-delivery shop migrated from a WhatsApp group to a live production site at
+      <a class="underline hover:text-white" href="https://joreption.com">joreption.com</a>.
+      Built with Laravel 11 + Filament 3 + Tailwind + MariaDB on a Contabo VPS.
+    </p>
+
+    <div class="mt-8 flex flex-wrap gap-3">
+      <span class="inline-flex items-center gap-2 bg-white/10 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">
+        <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> Live
+      </span>
+      <span class="inline-flex items-center gap-2 bg-white/10 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">EN / AR with RTL</span>
+      <span class="inline-flex items-center gap-2 bg-white/10 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">PWA installable</span>
+      <span class="inline-flex items-center gap-2 bg-white/10 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">HTTPS · Let's Encrypt</span>
+    </div>
+  </div>
+</header>
+
+<!-- Quick stats -->
+<section class="max-w-5xl mx-auto px-6 -mt-8 relative z-10">
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm">
+      <div class="text-xs text-gray-500">Customer pages</div>
+      <div class="text-2xl font-bold mt-1">12</div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm">
+      <div class="text-xs text-gray-500">Admin resources</div>
+      <div class="text-2xl font-bold mt-1">5</div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm">
+      <div class="text-xs text-gray-500">Languages</div>
+      <div class="text-2xl font-bold mt-1">EN · AR</div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm">
+      <div class="text-xs text-gray-500">Auth guards</div>
+      <div class="text-2xl font-bold mt-1">2</div>
+    </div>
+  </div>
+</section>
+
+<!-- TOC -->
+<nav class="max-w-5xl mx-auto px-6 mt-10">
+  <div class="bg-white rounded-xl border border-gray-200 p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs sm:text-sm font-medium">
+    <a href="#customer" class="text-brand-700 hover:underline">Customer site</a>
+    <a href="#mobile" class="text-brand-700 hover:underline">Mobile admin</a>
+    <a href="#admin" class="text-brand-700 hover:underline">Admin dashboard</a>
+    <a href="#infra" class="text-brand-700 hover:underline">Infrastructure</a>
+    <a href="#data" class="text-brand-700 hover:underline">Data &amp; tooling</a>
+    <a href="#next" class="text-brand-700 hover:underline">What's next</a>
+  </div>
+</nav>
+
+<main class="max-w-5xl mx-auto px-6 py-10 space-y-10">
+
+  <!-- Customer site -->
+  <section id="customer" class="scroll-mt-4">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-brand-100 text-brand-700 text-xl">🛍️</span>
+      <h2 class="text-2xl font-bold">Customer site</h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Catalog &amp; browsing</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Product grid (4 cols desktop, responsive)</li>
+          <li class="check">Hero banner with brand color + "Browse Catalog" CTA</li>
+          <li class="check">Search box (matches name + description, both languages)</li>
+          <li class="check">Category chip filter (scrollable on mobile)</li>
+          <li class="check">Stock badges ("Out of Stock" / "3 left")</li>
+          <li class="check">Pagination (12 per page)</li>
+          <li class="check">Empty state with "Clear filters"</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Product page</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Breadcrumb &middot; large image &middot; teal stock pill</li>
+          <li class="check">Bilingual name + description (auto-picks locale)</li>
+          <li class="check">Quantity stepper (Alpine.js, ± buttons)</li>
+          <li class="check">"Cash on Delivery" badge</li>
+          <li class="check">Add to Cart with cart icon</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Cart &amp; checkout</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Session-based multi-item cart</li>
+          <li class="check">Inline qty steppers (auto-submit)</li>
+          <li class="check">Remove single item / Clear all</li>
+          <li class="check">Sticky order summary aside</li>
+          <li class="check">3-step indicator (Cart → Shipping → Confirmation)</li>
+          <li class="check">Checkout pre-fills from saved address (when logged in)</li>
+          <li class="check">COD-only payment with amber callout</li>
+          <li class="check">Stock decrement on order, single DB transaction</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Order tracking</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Confirmation page with WhatsApp deep-link to admin</li>
+          <li class="check"><code>/track</code> — order # + phone lookup (no login)</li>
+          <li class="check">Status pill with color (Pending / Confirmed / Delivered / Cancelled)</li>
+          <li class="check">Fuzzy phone matching (strips spaces/dashes)</li>
+          <li class="check">Rate-limited (10 attempts / IP / minute)</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5 md:col-span-2">
+        <h3 class="font-semibold mb-3">Customer accounts (optional)</h3>
+        <ul class="grid md:grid-cols-2 gap-x-6 gap-y-1.5 text-sm text-gray-700">
+          <li class="check">Guest checkout still works (no signup required)</li>
+          <li class="check">Email + password registration with phone capture</li>
+          <li class="check">Login (with "Remember me")</li>
+          <li class="check">Forgot / Reset password (Laravel broker)</li>
+          <li class="check">Smart phone-based merge — registering with an existing-order phone links the orders</li>
+          <li class="check"><code>/my-orders</code> — list + detail with status badges</li>
+          <li class="check">Header avatar dropdown (initial badge → My Orders / Track / Logout)</li>
+          <li class="check">Separate <code>customer</code> auth guard (independent from admin)</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5 md:col-span-2">
+        <h3 class="font-semibold mb-3">Bilingual + branding</h3>
+        <ul class="grid md:grid-cols-2 gap-x-6 gap-y-1.5 text-sm text-gray-700">
+          <li class="check">English + Arabic with full RTL flip (<code>dir="rtl"</code>)</li>
+          <li class="check">Language switcher persisted in session</li>
+          <li class="check">Logical Tailwind utilities (<code>ps-*</code>, <code>me-*</code>, <code>start-*</code>) — no extra plugin</li>
+          <li class="check">Deep teal brand palette matching the logo</li>
+          <li class="check">Red accent for "Deals" / sale moments</li>
+          <li class="check">Inter font (with Figtree fallback)</li>
+          <li class="check">Currency configurable (code/symbol/position — currently JOD / JD / after)</li>
+          <li class="check">"Coming Soon" toggle in settings (admins bypass)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Mobile admin -->
+  <section id="mobile" class="scroll-mt-4">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-accent-600/10 text-accent-600 text-xl">📱</span>
+      <h2 class="text-2xl font-bold">Mobile admin (Quick Add)</h2>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 p-5 grid md:grid-cols-2 gap-x-8 gap-y-1.5 text-sm text-gray-700">
+      <ul class="space-y-1.5">
+        <li class="check">Installable PWA — home-screen icon, fullscreen, native feel</li>
+        <li class="check">Service worker — caches the shell for fast launches</li>
+        <li class="check">Camera capture via <code>capture="environment"</code></li>
+        <li class="check">Client-side compression to 1280px / JPEG 0.85</li>
+        <li class="check">Bilingual name + description fields</li>
+        <li class="check">Voice input — Arabic <code>ar-JO</code> Web Speech</li>
+      </ul>
+      <ul class="space-y-1.5">
+        <li class="check">Category dropdown (remembers last-used in burst)</li>
+        <li class="check">Price + stock inputs with big tap targets</li>
+        <li class="check">Burst queue: pick multiple photos, edit each in turn</li>
+        <li class="check">After publish: full product URL with "📋 Copy link" button</li>
+        <li class="check">URL is ready to paste into the WhatsApp group</li>
+        <li class="check">Dark theme matching brand</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Admin dashboard -->
+  <section id="admin" class="scroll-mt-4">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-brand-100 text-brand-700 text-xl">⚙️</span>
+      <h2 class="text-2xl font-bold">Admin dashboard <span class="text-sm font-normal text-gray-500">/admin (Filament 3)</span></h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Products</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">CRUD with bilingual fields, image upload, stock</li>
+          <li class="check">Active toggle (draft vs live)</li>
+          <li class="check">Category assignment</li>
+          <li class="check">Click-to-copy public URL ("Copy link" → for WhatsApp)</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Orders</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Sortable list with status filter</li>
+          <li class="check">Editable status (pending → confirmed → delivered → cancelled)</li>
+          <li class="check">Items relation manager (line items per order)</li>
+          <li class="check">Pending-orders count badge in sidebar</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Customers</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">List with name, phone (copyable), city</li>
+          <li class="check">Orders count + total spent (sum) per customer</li>
+          <li class="check">"Has orders" filter toggle</li>
+          <li class="check">Detail page with embedded Order History</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Categories</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Bilingual name (auto-slug from English)</li>
+          <li class="check">Drag-to-reorder position</li>
+          <li class="check">Active toggle</li>
+          <li class="check">Product count badge per category</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Settings</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Currency (code / symbol / before-or-after)</li>
+          <li class="check">Admin WhatsApp number</li>
+          <li class="check">Coming Soon mode toggle + custom EN/AR headlines</li>
+          <li class="check">Cached read with per-write invalidation</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Profile &amp; auth</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Admin profile page (change name / email / password)</li>
+          <li class="check"><code>FilamentUser</code> contract enforced in production</li>
+          <li class="check">Sessions distinct from customer guard</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Infrastructure -->
+  <section id="infra" class="scroll-mt-4">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 text-gray-700 text-xl">🔒</span>
+      <h2 class="text-2xl font-bold">Infrastructure &amp; security</h2>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 p-5 grid md:grid-cols-2 gap-x-8 gap-y-1.5 text-sm text-gray-700">
+      <ul class="space-y-1.5">
+        <li class="check">Contabo Cloud VPS 10 — 4 vCPU / 8 GB / NVMe</li>
+        <li class="check">Ubuntu 24.04 LTS, Asia/Amman timezone</li>
+        <li class="check">Nginx + PHP 8.3-FPM + MariaDB 10.11 + Redis 7</li>
+        <li class="check">HTTPS via Let's Encrypt (auto-renew via certbot.timer)</li>
+        <li class="check">DNS at Namecheap → both <code>@</code> and <code>www</code> → IP</li>
+      </ul>
+      <ul class="space-y-1.5">
+        <li class="check">SSH: ed25519 key-only, password auth disabled</li>
+        <li class="check">UFW firewall: only 22 / 80 / 443</li>
+        <li class="check">fail2ban active on SSH</li>
+        <li class="check">Daily DB backup at 03:00, 14-day retention</li>
+        <li class="check">Web DB admin at <code>/_adminer</code> (basic auth)</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Data & tooling -->
+  <section id="data" class="scroll-mt-4">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-brand-100 text-brand-700 text-xl">📦</span>
+      <h2 class="text-2xl font-bold">Data &amp; tooling</h2>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 p-5 grid md:grid-cols-2 gap-x-8 gap-y-1.5 text-sm text-gray-700">
+      <ul class="space-y-1.5">
+        <li class="check">WhatsApp chat importer: <code>php artisan whatsapp:import {path}</code></li>
+        <li class="check">38 products imported from chat export as drafts</li>
+        <li class="check">Image matching by date + chronological cursor</li>
+        <li class="check">Price/stock regex extraction (Arabic "دينار" / "JD")</li>
+        <li class="check">UTF-8 cleanup (handles truncated emoji bytes)</li>
+      </ul>
+      <ul class="space-y-1.5">
+        <li class="check">Session-based <code>App\Services\Cart</code></li>
+        <li class="check"><code>money_format()</code> global helper</li>
+        <li class="check"><code>Setting</code> key/value table with cached reads</li>
+        <li class="check">Production caches: config / routes / views</li>
+        <li class="check">OPcache enabled (deploys reload PHP-FPM)</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- What's next -->
+  <section id="next" class="scroll-mt-4">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-amber-100 text-amber-700 text-xl">🚧</span>
+      <h2 class="text-2xl font-bold">What's next (open backlog)</h2>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 p-5">
+      <ul class="space-y-2 text-sm text-gray-700">
+        <li>📧 <strong>Email provider</strong> — wire up Resend / Brevo / Mailgun so password-reset emails actually send (currently logged only).</li>
+        <li>🔔 <strong>Admin order notifications</strong> — Telegram or email ping when a new COD order arrives.</li>
+        <li>📋 <strong>Activate the 38 imported drafts</strong> — review names, set stocks, assign categories, toggle Active.</li>
+        <li>🖼️ <strong>Visual polish</strong> — brand strip on home, "save X%" discount badges, related products on detail page.</li>
+        <li>📲 <strong>SMS / WhatsApp Business API</strong> — phone-OTP login + outbound order status SMS.</li>
+        <li>🚀 <strong>Push-based deploy</strong> — git remote + <code>deploy.sh</code> on server instead of tar+scp.</li>
+        <li>🎯 <strong>Mobile admin polish</strong> — voice input for English, image swap during edit, draft-only mode.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Links -->
+  <section>
+    <div class="bg-brand-900 text-white rounded-xl p-6">
+      <h2 class="text-lg font-semibold mb-4">Live URLs</h2>
+      <div class="grid sm:grid-cols-2 gap-3 text-sm">
+        <a href="https://joreption.com" class="bg-white/10 hover:bg-white/15 rounded-lg px-4 py-3 transition">
+          <div class="text-white/60 text-xs">Public catalog</div>
+          <div class="font-mono">https://joreption.com</div>
+        </a>
+        <a href="https://joreption.com/admin" class="bg-white/10 hover:bg-white/15 rounded-lg px-4 py-3 transition">
+          <div class="text-white/60 text-xs">Admin dashboard</div>
+          <div class="font-mono">https://joreption.com/admin</div>
+        </a>
+        <a href="https://joreption.com/admin/quick-add" class="bg-white/10 hover:bg-white/15 rounded-lg px-4 py-3 transition">
+          <div class="text-white/60 text-xs">Mobile Quick Add (PWA)</div>
+          <div class="font-mono">https://joreption.com/admin/quick-add</div>
+        </a>
+        <a href="https://joreption.com/track" class="bg-white/10 hover:bg-white/15 rounded-lg px-4 py-3 transition">
+          <div class="text-white/60 text-xs">Order tracking (no login)</div>
+          <div class="font-mono">https://joreption.com/track</div>
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="max-w-5xl mx-auto px-6 pb-10 text-center text-xs text-gray-500">
+  Generated 2026-05-20 · Joreption project status overview
+</footer>
+
+</body>
+</html>

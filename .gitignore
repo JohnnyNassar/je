@@ -1,0 +1,56 @@
+## Composer / npm / build artefacts
+/.phpunit.cache
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/public/css/filament
+/public/js/filament
+/storage/*.key
+/vendor
+.phpunit.result.cache
+npm-debug.log
+yarn-error.log
+
+## Env (never commit)
+.env
+.env.backup
+.env.local
+.env.production
+auth.json
+
+## IDE / editor
+/.fleet
+/.idea
+/.vscode
+/Homestead.json
+/Homestead.yaml
+.DS_Store
+Thumbs.db
+
+## Laravel runtime
+/storage/app/imports
+/storage/app/public/products/*
+/storage/app/public/hero/*
+!/storage/app/public/products/.gitkeep
+!/storage/app/public/hero/.gitkeep
+/storage/debugbar
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*
+!/storage/framework/cache/.gitkeep
+!/storage/framework/sessions/.gitkeep
+!/storage/framework/testing/.gitkeep
+!/storage/framework/views/.gitkeep
+/storage/logs/*
+!/storage/logs/.gitkeep
+
+## Sensitive docs (private data, secrets)
+/docs/chat
+/docs/adminer-credentials.csv
+/docs/*.zip
+/docs/WhatsApp*
+
+## Claude Code project config (local-only)
+/.mcp.json

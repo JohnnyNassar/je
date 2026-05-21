@@ -1,0 +1,39 @@
+{
+  "name": "Joreption Admin",
+  "short_name": "Joreption",
+  "description": "Quick add products on the go",
+  "start_url": "/admin/quick-add",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f4248",
+  "theme_color": "#0f4248",
+  "icons": [
+    {
+      "src": "/images/logo.jpg",
+      "sizes": "640x640",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/logo.jpg",
+      "sizes": "640x640",
+      "type": "image/jpeg",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Product",
+      "short_name": "Add",
+      "url": "/admin/quick-add",
+      "icons": [{ "src": "/images/logo.jpg", "sizes": "640x640" }]
+    },
+    {
+      "name": "Orders",
+      "short_name": "Orders",
+      "url": "/admin/orders",
+      "icons": [{ "src": "/images/logo.jpg", "sizes": "640x640" }]
+    }
+  ]
+}
