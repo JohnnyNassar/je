@@ -25,6 +25,7 @@ class Settings extends Page implements HasForms
 {
     use InteractsWithForms;
     use \App\Concerns\HandlesMediaPicking;
+    use \App\Filament\Concerns\AdminOnly;
 
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
 

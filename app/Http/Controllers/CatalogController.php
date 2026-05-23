@@ -46,6 +46,18 @@ class CatalogController extends Controller
     {
         abort_unless($product->is_active, 404);
 
-        return view('catalog.show', compact('product'));
+        $product->load('variants');
+
+        // Related products: other active items in the same category.
+        $related = $product->category_id
+            ? Product::active()
+                ->where('category_id', $product->category_id)
+                ->whereKeyNot($product->id)
+                ->orderByDesc('created_at')
+                ->take(8)
+                ->get()
+            : collect();
+
+        return view('catalog.show', compact('product', 'related'));
     }
 }

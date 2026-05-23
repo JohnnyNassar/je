@@ -55,6 +55,7 @@ class MediaLibrary extends Page
 
         // Block delete if in use
         $inUse = Product::where('image_path', $relative)->exists()
+            || \App\Models\ProductVariant::where('image_path', $relative)->exists()
             || Setting::get('hero_image_path') === $relative;
         if ($inUse) {
             Notification::make()->title('File is in use — cannot delete')->warning()->send();
@@ -162,11 +163,24 @@ class MediaLibrary extends Page
     private function usageMap(array $paths): array
     {
         if (empty($paths)) return [];
-        return Product::whereIn('image_path', $paths)
+
+        $map = Product::whereIn('image_path', $paths)
             ->selectRaw('image_path, COUNT(*) as c')
             ->groupBy('image_path')
             ->pluck('c', 'image_path')
             ->toArray();
+
+        $variantCounts = \App\Models\ProductVariant::whereIn('image_path', $paths)
+            ->selectRaw('image_path, COUNT(*) as c')
+            ->groupBy('image_path')
+            ->pluck('c', 'image_path')
+            ->toArray();
+
+        foreach ($variantCounts as $path => $count) {
+            $map[$path] = ($map[$path] ?? 0) + $count;
+        }
+
+        return $map;
     }
 
     protected function getViewData(): array

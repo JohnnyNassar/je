@@ -16,6 +16,9 @@ class ItemsRelationManager extends RelationManager
             ->recordTitleAttribute('product_name')
             ->columns([
                 Tables\Columns\TextColumn::make('product_name'),
+                Tables\Columns\TextColumn::make('variant_name')
+                    ->label('Variant')
+                    ->placeholder('—'),
                 Tables\Columns\TextColumn::make('quantity'),
                 Tables\Columns\TextColumn::make('unit_price')->formatStateUsing(fn ($state) => money_format($state)),
                 Tables\Columns\TextColumn::make('line_total')->formatStateUsing(fn ($state) => money_format($state)),

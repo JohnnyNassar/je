@@ -15,10 +15,13 @@ class Order extends Model
         'status',
         'payment_method',
         'total',
+        'discount_total',
+        'coupon_code',
     ];
 
     protected $casts = [
         'total' => 'decimal:2',
+        'discount_total' => 'decimal:2',
     ];
 
     public function customer()

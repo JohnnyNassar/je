@@ -4,7 +4,7 @@ A bilingual (English / Arabic, with RTL) Cash-on-Delivery e-commerce platform mi
 
 Built with Laravel 11 + Filament 3 + Tailwind 3 + Alpine.js + MariaDB 10.11. Hosted on Contabo Cloud VPS 10, Ubuntu 24.04 LTS.
 
-_Last updated: 2026-05-21_
+_Last updated: 2026-05-24_
 
 ---
 
@@ -27,16 +27,21 @@ _Last updated: 2026-05-21_
 - Large image with hover zoom
 - Locale-aware name + description (auto-picks Arabic or English)
 - Live "X left" indicator (green dot)
+- **Variant selector** — when a product has variations, option chips live-swap the price, stock, and image, and set the chosen variant (out-of-stock options disabled)
 - "Cash on Delivery" info pill
 - Alpine.js quantity stepper (− / +)
 - "Add to Cart" CTA with cart icon
+- **"You may also like"** — strip of same-category products at the bottom
 
 ### Cart
-- Session-based multi-item cart (`App\Services\Cart`)
+- Session-based multi-item cart (`App\Services\Cart`) — each line keyed by **product + variant**
 - Per-item quantity stepper (auto-submits on change)
+- Variant label + variant image per line
+- **"Add another option"** — quick-add buttons for a product's other in-stock variants, without leaving the cart
+- **Coupon code** entry (apply / remove) with the discount reflected live
 - Per-item remove button
 - "Clear cart" link
-- Sticky order summary aside (subtotal, payment method, total)
+- Sticky order summary aside (subtotal, discount, payment method, total)
 - 3-step indicator: Cart → Shipping → Confirmation
 
 ### Checkout
@@ -45,8 +50,8 @@ _Last updated: 2026-05-21_
 - Guest checkout (no signup required)
 - Optional sign-in CTA at top: _"Have an account? Sign in for faster checkout, or continue as guest."_
 - Amber "Cash on Delivery" callout
-- Sticky order summary with per-item thumbnails
-- Single DB transaction: order + items + stock decrement
+- Sticky order summary with per-item thumbnails, variant labels, and Subtotal / Discount / Total
+- Single DB transaction: order + items (with variant snapshot) + per-variant stock decrement + coupon usage increment
 
 ### Order confirmation
 - Green checkmark hero with order # + 4-column meta grid (date, total, payment, items)
@@ -149,6 +154,7 @@ _Last updated: 2026-05-21_
 - **Sale price** (`compare_at_price`) — when higher than current price, triggers Save% badge on public site
 - **Featured toggle** — surfaces the product in the Featured strip on the catalog home
 - Category selector (server-side searchable, no preload)
+- **Variations** — collapsible repeater of color/size options, each with its own stock + optional price/image override (drag-to-reorder); product stock auto-sums from them
 - **Copyable public URL** in row ("Copy link" — for WhatsApp sharing)
 
 ### Orders
@@ -168,6 +174,16 @@ _Last updated: 2026-05-21_
 - Drag-to-reorder via position field
 - Active toggle
 - Products-count badge
+
+### Coupons
+- Code (case-insensitive), percentage or fixed amount
+- Optional minimum order, usage limit (shows `used / max`), start / expiry dates, active toggle
+- Applied at checkout from the cart; discount + code recorded on the order
+
+### Staff (admin accounts)
+- Single-seller roles: **admin** (full access) vs **staff** (catalog only — Products, Categories, Media, Quick Add)
+- Admin-only Staff manager to create/edit accounts (name / email / role / password; can't delete your own account)
+- Staff are blocked (hidden nav + 403) from Orders, Customers, Coupons, Settings, and Staff itself
 
 ### Settings
 - Currency (code / symbol / position)
@@ -274,12 +290,14 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 ## Architecture
 
 ### Data model
-- `users` (Filament admins) — separate from `customers`
-- `customers` (public-site accounts) — has nullable email / password
+- `users` (Filament admins) — separate from `customers`; **`role`** (admin | staff)
+- `customers` (public-site accounts) — nullable email / password
 - `categories` — bilingual + slug + position + active
 - `products` — bilingual + price + **compare_at_price** + stock + image + active + **is_featured** + category
-- `orders` — customer + phone + city + address + notes + status + total + COD
-- `order_items` — order + product + product_name + unit_price + quantity + line_total
+- `product_variants` — product + name + stock + optional price/image override + position (product stock = sum of these)
+- `coupons` — code + type (percent | fixed) + value + min order + usage limit/count + start/expiry + active
+- `orders` — customer + phone + city + address + notes + status + total + **discount_total** + **coupon_code** + COD
+- `order_items` — order + product + **variant** (id + name snapshot) + product_name + unit_price + quantity + line_total
 - `settings` — key/value, cached (includes `hero_image_path`, `hero_product_id`, `coming_soon_*`, currency)
 - `password_reset_tokens` — used by both `users` and `customers` brokers
 
@@ -321,9 +339,13 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 - **Email provider** — Resend / Brevo / Mailgun → password-reset emails actually send
 - **Admin order notifications** — Telegram bot or email ping on new COD orders
 - **Activate the 38 imported drafts** — admin reviews names + sets stock + assigns categories + toggles Active
-- **Related products on detail page** — show same-category items below the main product
+- **Bidding / auctions** — design pending (timed auction vs. "make an offer")
+- **Loyalty / rewards** — points for frequent buyers, redeemable as a discount (builds on coupons)
+- **Ad / banner areas** — managed promo slots beyond the single hero
+- **Fuller customer info** — structured address + multiple saved addresses
+- **Variant quick-quantity grid** — set quantities for several variants at once on the product page
 - **SMS / WhatsApp Business API** — phone-OTP login + outbound order status SMS
-- **Mobile admin polish** — voice input for English description, image swap during edit, draft-only mode
+- **Mobile admin polish** — voice input for English description, image swap during edit, draft-only mode; variant entry in Quick Add
 - **Customer wishlist** — save products without ordering
 - **Order CSV export** for admin
 - **Reviews / ratings** on products

@@ -94,5 +94,15 @@
     "Clear filters": "Clear filters",
     "No products match your search.": "No products match your search.",
     "Featured": "Featured",
-    "Save": "Save"
+    "Save": "Save",
+    "You may also like": "You may also like",
+    "Coupon": "Coupon",
+    "Coupon code": "Coupon code",
+    "Apply": "Apply",
+    "Discount": "Discount",
+    "Coupon applied.": "Coupon applied.",
+    "This coupon code is invalid or has expired.": "This coupon code is invalid or has expired.",
+    "This coupon needs a minimum order of :amount.": "This coupon needs a minimum order of :amount.",
+    "Options": "Options",
+    "Add another option": "Add another option"
 }

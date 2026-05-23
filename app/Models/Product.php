@@ -52,6 +52,34 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function variants()
+    {
+        return $this->hasMany(ProductVariant::class)->orderBy('position')->orderBy('id');
+    }
+
+    public function hasVariants(): bool
+    {
+        return $this->variants()->exists();
+    }
+
+    /**
+     * Keep products.stock as the sum of its variants' stock, so all the existing
+     * stock-based queries, scopes, and badges keep working unchanged. No-op when
+     * the product has no variants (its own stock is the source of truth then).
+     */
+    public function syncStockFromVariants(): void
+    {
+        if (! $this->variants()->exists()) {
+            return;
+        }
+
+        $sum = (int) $this->variants()->sum('stock');
+
+        if ((int) $this->stock !== $sum) {
+            $this->forceFill(['stock' => $sum])->saveQuietly();
+        }
+    }
+
     public function isOnSale(): bool
     {
         return $this->compare_at_price !== null

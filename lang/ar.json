@@ -93,5 +93,15 @@
     "Clear filters": "مسح الفلاتر",
     "No products match your search.": "لا توجد منتجات تطابق بحثك.",
     "Featured": "مميزة",
-    "Save": "وفّر"
+    "Save": "وفّر",
+    "You may also like": "قد يعجبك أيضاً",
+    "Coupon": "كوبون",
+    "Coupon code": "رمز الكوبون",
+    "Apply": "تطبيق",
+    "Discount": "الخصم",
+    "Coupon applied.": "تم تطبيق الكوبون.",
+    "This coupon code is invalid or has expired.": "رمز الكوبون غير صالح أو منتهي الصلاحية.",
+    "This coupon needs a minimum order of :amount.": "هذا الكوبون يتطلب حداً أدنى للطلب :amount.",
+    "Options": "الخيارات",
+    "Add another option": "أضف خياراً آخر"
 }

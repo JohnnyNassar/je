@@ -12,6 +12,8 @@ use Filament\Tables\Table;
 
 class OrderResource extends Resource
 {
+    use \App\Filament\Concerns\AdminOnly;
+
     protected static ?string $model = Order::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
@@ -61,6 +63,17 @@ class OrderResource extends Resource
                             ->prefix(\App\Models\Setting::get('currency_symbol'))
                             ->disabled()
                             ->dehydrated(),
+                        Forms\Components\TextInput::make('discount_total')
+                            ->label('Discount')
+                            ->numeric()
+                            ->prefix(\App\Models\Setting::get('currency_symbol'))
+                            ->disabled()
+                            ->dehydrated(),
+                        Forms\Components\TextInput::make('coupon_code')
+                            ->label('Coupon')
+                            ->placeholder('—')
+                            ->disabled()
+                            ->dehydrated(),
                     ]),
             ]);
     }
@@ -83,6 +96,10 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('total')
                     ->formatStateUsing(fn ($state) => money_format($state))
                     ->sortable(),
+                Tables\Columns\TextColumn::make('coupon_code')
+                    ->label('Coupon')
+                    ->placeholder('—')
+                    ->toggleable(),
                 Tables\Columns\SelectColumn::make('status')
                     ->options([
                         'pending' => 'Pending',

@@ -93,10 +93,12 @@
             <ul class="divide-y divide-gray-100">
                 @foreach ($items as $item)
                     @php($product = $item['product'])
+                    @php($variant = $item['variant'])
+                    @php($thumb = $variant && $variant->image_path ? $variant->image_path : $product->image_path)
                     <li class="py-3 flex items-center gap-3">
                         <div class="w-12 h-12 shrink-0 rounded-md overflow-hidden bg-gray-100 relative">
-                            @if ($product->image_path)
-                                <img src="{{ asset('storage/' . $product->image_path) }}" alt="" class="w-full h-full object-cover">
+                            @if ($thumb)
+                                <img src="{{ asset('storage/' . $thumb) }}" alt="" class="w-full h-full object-cover">
                             @endif
                             <span class="absolute -top-1.5 -end-1.5 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-brand-600 rounded-full ring-2 ring-white">
                                 {{ $item['quantity'] }}
@@ -104,13 +106,36 @@
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="text-xs font-medium text-gray-900 line-clamp-1">{{ $product->name }}</div>
+                            @if ($variant)
+                                <div class="text-[11px] text-gray-600">{{ $variant->name }}</div>
+                            @endif
                             <div class="text-[11px] text-gray-500">{{ money_format($item['unit_price']) }}</div>
                         </div>
                         <div class="text-xs font-semibold text-gray-900">{{ money_format($item['line_total']) }}</div>
                     </li>
                 @endforeach
             </ul>
-            <div class="border-t border-gray-100 mt-2 pt-3 flex items-center justify-between">
+            <dl class="border-t border-gray-100 mt-2 pt-3 space-y-2 text-sm">
+                <div class="flex items-center justify-between text-gray-600">
+                    <dt>{{ __('Subtotal') }}</dt>
+                    <dd class="text-gray-900">{{ money_format($subtotal) }}</dd>
+                </div>
+                @if ($coupon)
+                    <div class="flex items-center justify-between text-green-700">
+                        <dt class="flex items-center gap-1.5">
+                            {{ __('Discount') }}
+                            <span class="text-[11px] font-medium text-green-600">({{ $coupon->code }})</span>
+                            <form method="POST" action="{{ route('coupon.remove') }}" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-[11px] text-gray-400 hover:text-red-600 underline">{{ __('Remove') }}</button>
+                            </form>
+                        </dt>
+                        <dd>−{{ money_format($discount) }}</dd>
+                    </div>
+                @endif
+            </dl>
+            <div class="border-t border-gray-100 mt-3 pt-3 flex items-center justify-between">
                 <span class="text-sm font-semibold text-gray-900">{{ __('Total') }}</span>
                 <span class="text-lg font-bold text-gray-900">{{ money_format($total) }}</span>
             </div>

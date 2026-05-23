@@ -51,7 +51,8 @@ class ProductResource extends Resource
                 Forms\Components\TextInput::make('stock')
                     ->required()
                     ->numeric()
-                    ->default(0),
+                    ->default(0)
+                    ->helperText('Total stock. If you add variations below, this is set automatically from their stock.'),
                 Forms\Components\FileUpload::make('image_path')
                     ->image()
                     ->disk('public')
@@ -78,6 +79,47 @@ class ProductResource extends Resource
                     ->label('Featured on home page')
                     ->helperText('Highlights this product at the top of the catalog.')
                     ->default(false),
+                Forms\Components\Section::make('Variations')
+                    ->description('Optional. Add colors/sizes, each with its own stock. When a product has variations, the Stock field above is set automatically from their total.')
+                    ->collapsible()
+                    ->schema([
+                        Forms\Components\Repeater::make('variants')
+                            ->relationship()
+                            ->hiddenLabel()
+                            ->schema([
+                                Forms\Components\TextInput::make('name')
+                                    ->label('Option')
+                                    ->placeholder('e.g. Red / M')
+                                    ->required()
+                                    ->maxLength(120)
+                                    ->columnSpan(2),
+                                Forms\Components\TextInput::make('stock')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default(0)
+                                    ->required(),
+                                Forms\Components\TextInput::make('price')
+                                    ->label('Price override')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->prefix(\App\Models\Setting::get('currency_symbol'))
+                                    ->placeholder('Defaults to product price'),
+                                Forms\Components\FileUpload::make('image_path')
+                                    ->label('Image override')
+                                    ->image()
+                                    ->disk('public')
+                                    ->directory('products')
+                                    ->imagePreviewHeight('90')
+                                    ->columnSpanFull(),
+                            ])
+                            ->columns(4)
+                            ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
+                            ->orderColumn('position')
+                            ->collapsed()
+                            ->collapsible()
+                            ->addActionLabel('Add a variation')
+                            ->defaultItems(0),
+                    ]),
             ]);
     }
 

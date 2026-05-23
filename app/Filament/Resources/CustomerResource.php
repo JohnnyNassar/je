@@ -13,6 +13,8 @@ use Filament\Tables\Table;
 
 class CustomerResource extends Resource
 {
+    use \App\Filament\Concerns\AdminOnly;
+
     protected static ?string $model = Customer::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-users';

@@ -249,6 +249,44 @@ Stack chosen: **Laravel 11 + Filament 3 + Tailwind 3 + Alpine.js + MariaDB 10.11
 
 ---
 
+## Day 5 — 2026-05-23 → 2026-05-24 (related products, coupons, staff roles, variations)
+
+Roadmap push after a planning discussion with the owner — five features shipped in sequence. Built while local MariaDB was down, so each step was verified by PHP lint + class-load + Blade compile; the six migrations were then run and smoke-tested live at the end.
+
+### Customer-auth migration fix
+- The original `2026_05_20_104319_add_auth_to_customers_table` migration was an **empty stub** — `email` / `password` / `email_verified_at` / `remember_token` only existed on the servers because they were added by hand. Customer login crashed on a fresh DB (`Unknown column 'email'`).
+- New idempotent migration `2026_05_23_120000_add_auth_columns_to_customers_table` adds them guarded by `Schema::hasColumn` — no-op where they already exist (prod), correct on a fresh clone.
+
+### Related products
+- `CatalogController::show` loads up to 8 active same-category siblings (excluding current); product page shows a **"You may also like"** strip reusing the featured-strip card style.
+
+### Coupons / discount codes
+- `coupons` table (code, `percent`|`fixed`, value, min order, usage limit + count, start/expiry, active) + `Coupon` model (case-insensitive lookup, `isRedeemable()`, `meetsMinimum()`, `discountFor()`).
+- `orders` gains `discount_total` + `coupon_code` snapshot. `App\Services\CouponService` resolves the session code against the live subtotal — shared by cart + checkout.
+- Coupon entry on the **cart** page (so applying never wipes a half-filled checkout form); cart / checkout / confirmation / my-orders all show Subtotal / Discount / Total. `used_count` increments inside the checkout transaction.
+- Filament `CouponResource` (CRUD, live %/amount suffix, usage shown as `used / max`). Order screens show the code + discount.
+
+### Staff role (single-seller)
+- `users.role` (`admin` | `staff`, existing users default `admin`); `User::isAdmin()` / `isStaff()`.
+- `App\Filament\Concerns\AdminOnly` trait gates a resource/page — hides it from staff nav **and** 403s on direct URL. Admin-only: Orders, Customers, Coupons, Settings, Staff. Both roles: Products, Categories, Media, Quick Add.
+- New admin-only `UserResource` ("Staff") to create accounts (name / email / role / password; can't delete your own account). **Known gap:** nothing yet prevents demoting the last admin.
+
+### Product variations (simple variant rows)
+- `product_variants` (product_id, name, stock, nullable `price` + `image_path` overrides, position); `ProductVariant` with `effectivePrice()` / `effectiveImagePath()`. `order_items` gains `variant_id` + `variant_name` snapshot.
+- `Product::syncStockFromVariants()` keeps `products.stock` as the **sum of variant stock** (fired on variant save/delete via model events, `saveQuietly` to avoid loops) — so every existing stock query / scope / badge keeps working.
+- Detail page branches: variant products get an Alpine selector that live-swaps price / stock / image and the hidden `variant_id`; non-variant products keep the original markup.
+- Cart refactored: each line keyed by **product + variant** (`{pid}` or `{pid}-{vid}`); update/remove now take the line key. Variant label + image flow through cart / checkout / confirmation / my-orders. Checkout snapshots the variant name and decrements **variant** stock.
+- Filament Product form: collapsible **Variations** repeater (relationship-bound, drag-reorder via `position`). Media library now counts variant images as in-use (protected from orphan deletion).
+
+### Cart fixes
+- **`+` / `−` race:** the steppers set `qty` via Alpine then called `form.submit()` synchronously — before `x-model` flushed the new value into the input, so the form posted the *old* quantity ("nothing happens"). Fixed by deferring the submit to `$nextTick`.
+- **Inline variant add:** on the cart page, a line whose product has more variants now shows an **"Add another option"** row of quick-add buttons for the other in-stock, not-yet-in-cart variants (rendered once per product).
+
+### Migrations + live verification
+- Six new migrations run locally. Smoke test confirmed: `customers` has `email`; the owner's `users.role` = `admin`; coupon math (10% of 200 = 20; fixed 5 capped at subtotal 3 = 3); variant stock roll-up (3 + 2 → 5). **Not yet deployed to production** (guarded migrations are safe re-runs; `coupons` + `product_variants` create new tables).
+
+---
+
 ## Lessons learned (worth remembering)
 
 - **OPcache vs deploys.** PHP-FPM had `opcache.validate_timestamps=0` somewhere in its config, so simply replacing PHP files left old bytecode in memory and made my fixes look like they had no effect. **All deploys now `systemctl reload php8.3-fpm`** as the last step.
@@ -267,3 +305,8 @@ Stack chosen: **Laravel 11 + Filament 3 + Tailwind 3 + Alpine.js + MariaDB 10.11
 - **`set -e` + `git remote remove` (missing remote) aborts the script.** Use `git remote remove origin 2>/dev/null || true` to keep going when there's nothing to remove.
 - **`git reset --hard origin/main` is safe for our prod sync.** It removes tracked-but-modified files, but leaves **untracked + gitignored** files alone. So `.env`, `vendor/`, `node_modules/`, uploaded images all survive a hard reset, as long as they're in `.gitignore`.
 - **Filament published assets disappear on reset.** `/public/{js,css}/filament/` are tracked-then-removed if you gitignore them. Mitigation: run `php artisan filament:upgrade` as part of every deploy — it re-publishes them.
+- **Alpine `x-model` + immediate `form.submit()` race.** Setting a bound property then calling native `form.submit()` on the same synchronous line submits the *old* input value — `x-model` flushes to the DOM on a microtask, after the submit. Wrap the submit in `$nextTick(() => …)`. (This is why the cart `+`/`−` "did nothing".)
+- **Editing an already-run migration doesn't re-run it.** A migration recorded in the `migrations` table won't re-execute on `migrate`. To fix a bad/empty one across environments, add a **new** idempotent migration (`Schema::hasColumn` guards) rather than editing the old file in place.
+- **Trait-based `canAccess()` gates Filament cleanly.** Overriding `public static function canAccess(): bool` on a Resource or custom Page both removes it from navigation and 403s on direct URL access — one trait (`AdminOnly`) covers both. Verify trait composition by force-loading the class (`class_exists`) since `php -l` won't catch a trait-method collision.
+- **Derived columns via model events.** Keeping `products.stock` as the sum of variant stock is done in `ProductVariant`'s `saved`/`deleted` events calling `Product::syncStockFromVariants()` with `saveQuietly()` — avoids re-firing the parent's events and keeps every existing stock query working without touching them.
+- **Filament Repeater `->relationship()`** auto-creates/updates/deletes child rows on parent save and fires each child's model events, so the stock roll-up above just works from the admin form too.

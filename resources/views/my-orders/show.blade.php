@@ -53,6 +53,9 @@
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="text-sm font-medium text-gray-900 line-clamp-2 leading-snug">{{ $item->product_name }}</div>
+                            @if ($item->variant_name)
+                                <div class="text-xs text-gray-600 mt-0.5">{{ $item->variant_name }}</div>
+                            @endif
                             <div class="text-xs text-gray-500 mt-1">{{ money_format($item->unit_price) }} <span class="text-gray-400">/ {{ __('each') }}</span></div>
                         </div>
                         <div class="text-end">
@@ -63,9 +66,21 @@
                 @endforeach
             </ul>
 
-            <div class="px-5 sm:px-7 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
-                <span class="text-sm font-semibold text-gray-900">{{ __('Total') }}</span>
-                <span class="text-lg font-bold text-gray-900">{{ money_format($order->total) }}</span>
+            <div class="px-5 sm:px-7 py-4 bg-gray-50 border-t border-gray-100 space-y-2">
+                @if ($order->discount_total > 0)
+                    <div class="flex items-center justify-between text-sm text-gray-600">
+                        <span>{{ __('Subtotal') }}</span>
+                        <span>{{ money_format($order->total + $order->discount_total) }}</span>
+                    </div>
+                    <div class="flex items-center justify-between text-sm text-green-700">
+                        <span>{{ __('Discount') }}@if ($order->coupon_code)<span class="text-[11px] text-green-600 ms-1">({{ $order->coupon_code }})</span>@endif</span>
+                        <span>−{{ money_format($order->discount_total) }}</span>
+                    </div>
+                @endif
+                <div class="flex items-center justify-between {{ $order->discount_total > 0 ? 'pt-2 border-t border-gray-200' : '' }}">
+                    <span class="text-sm font-semibold text-gray-900">{{ __('Total') }}</span>
+                    <span class="text-lg font-bold text-gray-900">{{ money_format($order->total) }}</span>
+                </div>
             </div>
         </div>
 

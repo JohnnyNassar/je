@@ -18,12 +18,15 @@ Route::get('/products/{product}', [CatalogController::class, 'show'])->name('cat
 
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart/{product}', [CartController::class, 'add'])->name('cart.add');
-Route::patch('/cart/{product}', [CartController::class, 'update'])->name('cart.update');
-Route::delete('/cart/{product}', [CartController::class, 'destroy'])->name('cart.remove');
+Route::patch('/cart/{line}', [CartController::class, 'update'])->name('cart.update');
+Route::delete('/cart/{line}', [CartController::class, 'destroy'])->name('cart.remove');
 Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
 
 Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+
+Route::post('/coupon', [CheckoutController::class, 'applyCoupon'])->name('coupon.apply');
+Route::delete('/coupon', [CheckoutController::class, 'removeCoupon'])->name('coupon.remove');
 
 Route::get('/orders/{order}/confirmation', [OrderController::class, 'confirmation'])->name('orders.confirmation');
 
