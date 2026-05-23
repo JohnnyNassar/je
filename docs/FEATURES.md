@@ -4,7 +4,7 @@ A bilingual (English / Arabic, with RTL) Cash-on-Delivery e-commerce platform mi
 
 Built with Laravel 11 + Filament 3 + Tailwind 3 + Alpine.js + MariaDB 10.11. Hosted on Contabo Cloud VPS 10, Ubuntu 24.04 LTS.
 
-_Last updated: 2026-05-20_
+_Last updated: 2026-05-21_
 
 ---
 
@@ -12,10 +12,13 @@ _Last updated: 2026-05-20_
 
 ### Catalog & browsing
 - Product grid: responsive 2 / 3 / 4 columns
-- Hero banner with brand color, "Deals" pill, "Browse Catalog" CTA
+- Hero banner (locked 21:9 on desktop) with brand color, "Deals" pill, "Browse Catalog" CTA
+- Hero background: admin can upload a custom image (with in-browser cropper) OR feature one of the products' images — pick from a server-side searchable dropdown
 - Search box (matches `name_en`, `name_ar`, `description_en`, `description_ar`)
 - Category chip filter (horizontally scrollable on mobile)
+- **"Featured" strip** below the hero — shows up to 8 products marked as featured (horizontal scroll, snap-aligned)
 - Stock badges (`Out of Stock`, `X left`)
+- **"Save X%" red ribbon** on any product where `compare_at_price > price`, plus crossed-out original price on cards + detail
 - Pagination (12 per page)
 - Empty-state with "Clear filters"
 
@@ -140,9 +143,12 @@ _Last updated: 2026-05-20_
 
 ### Products
 - Bilingual name + description (EN / AR)
-- Image upload (stored in `storage/app/public/products/`)
+- Image upload (stored in `storage/app/public/products/`) — auto-resized server-side to max 1600px, JPEG q85 via GD
+- **Pick existing image from media library** as an alternative to upload — opens a 4-column thumbnail grid modal
 - Price + stock + active toggle
-- Category selector
+- **Sale price** (`compare_at_price`) — when higher than current price, triggers Save% badge on public site
+- **Featured toggle** — surfaces the product in the Featured strip on the catalog home
+- Category selector (server-side searchable, no preload)
 - **Copyable public URL** in row ("Copy link" — for WhatsApp sharing)
 
 ### Orders
@@ -167,7 +173,20 @@ _Last updated: 2026-05-20_
 - Currency (code / symbol / position)
 - Admin WhatsApp number
 - Coming Soon mode toggle + custom EN/AR headlines
+- **Landing page hero** — three sources, in priority order:
+  1. Custom upload (FileUpload with built-in in-browser image cropper for 21:9 / 16:5 / 3:1 / 16:9 / free aspect ratios)
+  2. Pick from media library (prominent button — same modal as the product picker)
+  3. Feature any existing product image (server-side searchable Select with live thumbnail preview)
 - Backed by a key/value `settings` table with cached reads (forgotten on save)
+
+### Media Library — `/admin/media-library`
+WordPress-style image manager:
+- **Stats row**: total files, total disk usage, orphan count
+- **Grid**: 6 columns (responsive) of thumbnails from `storage/app/public/products/` + `/hero/`
+- **Filters**: search by filename · all / used / orphans · sort newest/oldest/largest/smallest/name
+- **Each tile**: orphan badge (red) or "N× used" badge (green), filename, size, hover-to-view
+- **Modal**: full preview, copy URL, open full, delete-if-orphan (whitelisted to allowed folders, protected from deleting in-use files)
+- **Pagination**: 48 per page
 
 ### Profile
 - `/admin/profile` — change name, login email, password
@@ -234,6 +253,22 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 - Redis used for sessions + cache (`SESSION_DRIVER=redis`, `CACHE_STORE=redis`)
 - Log driver: `daily` (rotated)
 
+### Deployment (push-based via GitHub)
+- **Repo**: <https://github.com/JohnnyNassar/je> (private)
+- **Local workflow**: edit → `git add . && git commit && git push`
+- **Trigger a deploy**: `ssh root@178.18.244.125 /usr/local/bin/joreption-deploy.sh`
+- **Deploy script** at `/usr/local/bin/joreption-deploy.sh`:
+  - `git fetch --all && git reset --hard origin/main`
+  - `composer install --no-dev --optimize-autoloader`
+  - `npm ci && npm run build` (skippable with `--skip-npm`)
+  - `php artisan filament:upgrade` (republishes Filament's compiled JS/CSS)
+  - `php artisan migrate --force`
+  - Caches config / routes / views
+  - `systemctl reload php8.3-fpm` (clears OPcache)
+- **Server's GitHub access**: ed25519 deploy key at `/root/.ssh/joreption_deploy`, read-only access to the repo, configured via `~/.ssh/config`
+- **Skip flags**: `--skip-npm` (no JS changes) · `--skip-composer` (no composer.lock changes) → ~3× faster
+- **Untracked on server (preserved across deploys)**: `.env`, `vendor/`, `node_modules/`, uploaded images, Filament's published assets
+
 ---
 
 ## Architecture
@@ -242,10 +277,10 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 - `users` (Filament admins) — separate from `customers`
 - `customers` (public-site accounts) — has nullable email / password
 - `categories` — bilingual + slug + position + active
-- `products` — bilingual + price + stock + image + active + category
+- `products` — bilingual + price + **compare_at_price** + stock + image + active + **is_featured** + category
 - `orders` — customer + phone + city + address + notes + status + total + COD
 - `order_items` — order + product + product_name + unit_price + quantity + line_total
-- `settings` — key/value, cached
+- `settings` — key/value, cached (includes `hero_image_path`, `hero_product_id`, `coming_soon_*`, currency)
 - `password_reset_tokens` — used by both `users` and `customers` brokers
 
 ### Auth guards
@@ -268,6 +303,16 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 | `/admin/quick-add` | web (admin) | Mobile Quick Add PWA |
 | `/admin/profile` | filament | Change own password |
 | `/_adminer` | nginx basic auth | Web DB admin |
+| `/admin/media-library` | filament panel | WordPress-style image manager |
+
+---
+
+## Helpers / support classes
+
+- `App\Support\ImageResizer::fit($path, $maxDim, $quality)` — in-place GD-based resize; no-op for files already smaller than the threshold. Called automatically from `Product::saved()` and the Settings hero save.
+- `App\Concerns\HandlesMediaPicking` — Livewire trait providing `pickMediaToState($statePath, $path)`. Used in `Settings`, `EditProduct`, `CreateProduct` pages so the media-picker modal can route picks through `form->fill()` (which triggers FileUpload hydration), then dispatches `close-modal`.
+- `money_format($amount)` — global helper; reads currency settings.
+- Filament render hook: `panels::head.end` injects `<script src="/js/media-picker.js?v=...">` so the Alpine `mediaPicker` component is registered on every admin page (modal-injected content can't run its own `<script>`).
 
 ---
 
@@ -276,10 +321,10 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 - **Email provider** — Resend / Brevo / Mailgun → password-reset emails actually send
 - **Admin order notifications** — Telegram bot or email ping on new COD orders
 - **Activate the 38 imported drafts** — admin reviews names + sets stock + assigns categories + toggles Active
-- **Visual polish** — Metronic extras: brand strip on home, "save X%" discount badges, related-products section on detail page
+- **Related products on detail page** — show same-category items below the main product
 - **SMS / WhatsApp Business API** — phone-OTP login + outbound order status SMS
-- **Push-based deploy** — git remote + `deploy.sh` on server (currently tar + scp)
 - **Mobile admin polish** — voice input for English description, image swap during edit, draft-only mode
 - **Customer wishlist** — save products without ordering
 - **Order CSV export** for admin
 - **Reviews / ratings** on products
+- **Webhook-triggered auto-deploy** — push to GitHub → server auto-pulls (currently a manual SSH command)
