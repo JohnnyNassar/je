@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Joreption — Email Setup Guide</title>
+<style>
+  :root{
+    --brand:#0f4248; --brand-600:#287d88; --brand-50:#effafa; --brand-100:#d6f1f2;
+    --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --amber:#92400e; --amber-bg:#fffbeb; --amber-line:#fde68a;
+    --green:#15803d; --green-bg:#f0fdf4; --green-line:#bbf7d0;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#f3f4f6;color:var(--ink);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;}
+  .wrap{max-width:880px;margin:0 auto;padding:0 20px 64px;}
+  header{background:var(--brand);color:#fff;padding:40px 0;margin-bottom:32px;}
+  header .wrap{padding-bottom:0}
+  header h1{margin:0 0 6px;font-size:30px;font-weight:800;letter-spacing:-.02em;}
+  header p{margin:0;color:#b0e2e5;font-size:15px;}
+  h2{font-size:20px;font-weight:700;color:var(--brand);margin:36px 0 12px;display:flex;align-items:center;gap:10px;}
+  h2 .num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:var(--brand-600);color:#fff;font-size:14px;font-weight:700;flex:none;}
+  h3{font-size:16px;font-weight:700;margin:20px 0 8px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin:0 0 18px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+  ol,ul{margin:8px 0;padding-left:22px;}
+  li{margin:6px 0;}
+  code{background:var(--brand-50);color:var(--brand);padding:1px 6px;border-radius:5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.9em;}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:14px;}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+  th{background:var(--brand-50);color:var(--brand);font-weight:600;}
+  .callout{border-radius:12px;padding:14px 18px;margin:16px 0;font-size:14.5px;}
+  .callout.warn{background:var(--amber-bg);border:1px solid var(--amber-line);color:var(--amber);}
+  .callout.ok{background:var(--green-bg);border:1px solid var(--green-line);color:var(--green);}
+  .pill{display:inline-block;background:var(--brand-100);color:var(--brand);font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;margin-bottom:6px;}
+  .muted{color:var(--muted);font-size:13.5px;}
+  .steps{counter-reset:step;list-style:none;padding-left:0;}
+  .steps>li{position:relative;padding-left:40px;margin:14px 0;}
+  .steps>li::before{counter-increment:step;content:counter(step);position:absolute;left:0;top:0;width:26px;height:26px;border-radius:50%;background:var(--brand-600);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  footer{text-align:center;color:var(--muted);font-size:13px;margin-top:30px;}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Email Setup for joreption.com</h1>
+    <p>How to get real <code style="background:rgba(255,255,255,.15);color:#fff">@joreption.com</code> mailboxes and let the store send email.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <span class="pill">Where things stand</span>
+    <p style="margin:.4em 0 0">The website runs on a <strong>Contabo VPS</strong>, and the domain's DNS is at <strong>Namecheap</strong>. Right now the domain has <strong>no MX records and no email hosting</strong>, so this is a one-time setup. Email hosting is a <strong>separate service</strong> from the website — adding it does not touch the site.</p>
+    <div class="callout warn">
+      <strong>Don't host email on the Contabo VPS.</strong> It's technically possible, but a bad idea: Contabo IPs are often on spam blocklists, outbound port&nbsp;25 is usually blocked/throttled, and running a secure mail server is a constant maintenance burden — your mail would mostly land in spam. Use a dedicated mail host (below) instead.
+    </div>
+  </div>
+
+  <h2><span class="num">?</span> Which option?</h2>
+  <div class="card">
+    <table>
+      <tr><th>&nbsp;</th><th>Mailboxes (recommended)</th><th>Send-only relay</th></tr>
+      <tr><td>Receive mail at @joreption.com</td><td>✅ yes</td><td>❌ no</td></tr>
+      <tr><td>Send from the platform (SMTP)</td><td>✅ yes</td><td>✅ yes</td></tr>
+      <tr><td>Cost</td><td>low (paid)</td><td>free tier</td></tr>
+      <tr><td>Best for</td><td>a real business inbox</td><td>just transactional emails</td></tr>
+    </table>
+    <p class="muted">Option A below sets up real mailboxes. Option B is a free alternative if you only ever need to <em>send</em>.</p>
+  </div>
+
+  <h2><span class="num">A</span> Namecheap Private Email — mailboxes + SMTP</h2>
+  <div class="card">
+    <p class="muted">Easiest path, because the domain already lives at Namecheap, so the MX records auto-configure.</p>
+
+    <h3>1 · Buy Private Email</h3>
+    <ol class="steps">
+      <li>Log in to <strong>namecheap.com</strong> → <strong>Domain List</strong> → <strong>joreption.com</strong>.</li>
+      <li>Open the <strong>Private Email</strong> product and buy a plan for the domain (the Starter / 1-mailbox plan is enough to start).</li>
+    </ol>
+
+    <h3>2 · Let Namecheap add the DNS records</h3>
+    <p>Because DNS is managed by Namecheap, it will offer to <strong>auto-add</strong> the MX + SPF records — accept that. In the Private Email dashboard, also turn on <strong>DKIM</strong> and add the TXT it shows. If you ever add them manually (Domain → <strong>Advanced DNS</strong>):</p>
+    <table>
+      <tr><th>Type</th><th>Host</th><th>Value</th><th>Priority</th></tr>
+      <tr><td>MX</td><td><code>@</code></td><td><code>mx1.privateemail.com</code></td><td>10</td></tr>
+      <tr><td>MX</td><td><code>@</code></td><td><code>mx2.privateemail.com</code></td><td>10</td></tr>
+      <tr><td>TXT (SPF)</td><td><code>@</code></td><td><code>v=spf1 include:spf.privateemail.com ~all</code></td><td>—</td></tr>
+      <tr><td>TXT (DKIM)</td><td><code>default._domainkey</code></td><td>shown in the Private Email dashboard</td><td>—</td></tr>
+    </table>
+    <p class="muted">DNS changes take anywhere from a few minutes to a couple of hours to take effect.</p>
+
+    <h3>3 · Create a mailbox</h3>
+    <ol class="steps">
+      <li>In the Private Email dashboard, create a mailbox such as <code>orders@joreption.com</code> (or <code>info@</code>, <code>noreply@</code>) and set a password. Keep that password handy.</li>
+    </ol>
+
+    <h3>4 · SMTP settings (you'll enter these in the platform)</h3>
+    <table>
+      <tr><th>Field</th><th>Value</th></tr>
+      <tr><td>Host</td><td><code>mail.privateemail.com</code></td></tr>
+      <tr><td>Port</td><td><code>465</code> (SSL) — or <code>587</code> (TLS)</td></tr>
+      <tr><td>Username</td><td>the full email, e.g. <code>orders@joreption.com</code></td></tr>
+      <tr><td>Password</td><td>that mailbox's password</td></tr>
+      <tr><td>Encryption</td><td><strong>SSL</strong> for 465, <strong>TLS</strong> for 587</td></tr>
+      <tr><td>From address</td><td>the same mailbox</td></tr>
+    </table>
+  </div>
+
+  <h2><span class="num">→</span> Plug it into the platform</h2>
+  <div class="card">
+    <ol class="steps">
+      <li>Admin → <strong>Notifications</strong> → <strong>Email</strong> section.</li>
+      <li>Turn on <strong>Enable email</strong>.</li>
+      <li>Set <strong>From name</strong> (e.g. <code>Joreption</code>) and <strong>From address</strong> (your mailbox).</li>
+      <li>Enter the <strong>SMTP host / port / username / password / encryption</strong> from the table above.</li>
+      <li>Click <strong>Save</strong>, then the <strong>"Send test email"</strong> button at the top of the page.</li>
+      <li>Check the inbox you sent the test to — if it arrives, you're done. Password-reset emails will now work too.</li>
+    </ol>
+    <div class="callout ok">If the test fails, the on-screen error tells you why. The usual culprits: a mismatched port/encryption pair (use <strong>465 + SSL</strong> or <strong>587 + TLS</strong>), or a typo in the username/password.</div>
+  </div>
+
+  <h2><span class="num">B</span> Resend — free, send-only (alternative)</h2>
+  <div class="card">
+    <p class="muted">If you only need to <em>send</em> (no inbox), this is free and quick.</p>
+    <ol class="steps">
+      <li>Create an account at <strong>resend.com</strong> and add the domain <code>joreption.com</code>.</li>
+      <li>Add the DNS records Resend shows you at Namecheap → <strong>Advanced DNS</strong> (an SPF TXT, a DKIM TXT, and a return-path record). Wait until Resend shows <strong>Verified</strong>.</li>
+      <li>SMTP: Host <code>smtp.resend.com</code>, Port <code>465</code> (SSL) or <code>587</code> (TLS), Username <code>resend</code>, Password = your <strong>Resend API key</strong>. From: any <code>@joreption.com</code>.</li>
+      <li>Plug into the platform exactly as in the section above.</li>
+    </ol>
+  </div>
+
+  <h2><span class="num">✓</span> When you're ready</h2>
+  <div class="card">
+    <p style="margin:0">Once you've added the DNS records, let your developer know — the MX / SPF / DKIM can be checked for propagation, then the test send can be run from the admin to confirm password-reset emails work end to end.</p>
+  </div>
+
+  <footer>Joreption — internal setup guide</footer>
+</div>
+</body>
+</html>
