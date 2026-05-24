@@ -161,7 +161,10 @@ _Last updated: 2026-05-24_
 
 ### Notifications (admin-only)
 - Config page for channels: **in-app (Dashboard)**, **Email** (SMTP), **SMS** (provider key/secret/from), **WhatsApp** (Cloud API id + token)
-- In-app channel is live (new-order bell alerts); Email/SMS/WhatsApp capture their settings now, sending is wired per channel once provider credentials are supplied
+- In-app channel is live (new-order bell alerts). **Email is wired** — saved SMTP settings drive Laravel mail at runtime, with a "Send test email" button; powers password-reset emails once a relay's credentials are entered. SMS/WhatsApp capture settings now, sending wired per channel once provider credentials are supplied.
+
+### Help & user guide (admin)
+- In-admin **Help** page: a full plain-language guide to every area of the platform, for the owner and staff
 
 ### Products
 - Bilingual name + description (EN / AR)

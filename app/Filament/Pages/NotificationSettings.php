@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\Setting;
+use Filament\Actions\Action;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -139,5 +140,43 @@ class NotificationSettings extends Page implements HasForms
         }
 
         Notification::make()->title('Notification settings saved')->success()->send();
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('sendTestEmail')
+                ->label('Send test email')
+                ->icon('heroicon-o-paper-airplane')
+                ->color('gray')
+                ->requiresConfirmation()
+                ->modalDescription('Sends a test message using your saved email settings. Save first if you just changed them.')
+                ->action(function () {
+                    $to = Setting::get('admin_notify_email') ?: Setting::get('mail_from_address');
+
+                    if (! filter_var(Setting::get('mail_enabled'), FILTER_VALIDATE_BOOLEAN)) {
+                        Notification::make()->title('Enable email and Save before testing.')->warning()->send();
+
+                        return;
+                    }
+
+                    if (! $to) {
+                        Notification::make()->title('Set an admin email (or a from-address) and Save first.')->warning()->send();
+
+                        return;
+                    }
+
+                    try {
+                        \Illuminate\Support\Facades\Mail::raw(
+                            'This is a test email from your Joreption store. If you can read this, your email settings are working.',
+                            fn ($message) => $message->to($to)->subject('Joreption — test email'),
+                        );
+
+                        Notification::make()->title("Test email sent to {$to}")->success()->send();
+                    } catch (\Throwable $e) {
+                        Notification::make()->title('Could not send the test email')->body($e->getMessage())->danger()->send();
+                    }
+                }),
+        ];
     }
 }

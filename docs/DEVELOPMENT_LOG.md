@@ -322,6 +322,10 @@ Polish plus a new pillar feature — all shipped to production the same day.
 - Email / SMS / WhatsApp *sending* is the per-channel follow-up (needs the client's provider credentials); this ships the **configuration UI** now.
 - **Queue must be sync.** Filament's DB notifications are queued and this shop runs no queue worker, so `QUEUE_CONNECTION=sync` (else alerts — and later password-reset emails — sit unprocessed in the `jobs` table). `.env` change, applied on prod too.
 
+### Email wiring + in-app Help guide
+- **Email is driven by the Notifications UI:** `AppServiceProvider::configureMailFromSettings()` applies the saved SMTP settings (host/port/user/pass/encryption/from) over Laravel's mail config at runtime when Email is enabled — no `.env` editing. Added a **"Send test email"** header action to verify creds. Once the owner pastes relay credentials (Resend/Brevo recommended — not the VPS's own mail, for deliverability), password-reset emails send. The override runs **before** the subpath early-return in `boot()`, so it also applies on prod.
+- **Help page:** new admin **Help** page (`/admin` → Help) — a full plain-language user guide covering every area (products, variations, Quick Add, categories, orders, customers, coupons, loyalty, media, notifications, settings, storefront). Visible to admin + staff.
+
 ### Notes worth remembering
 - **Filament's default primary is Amber.** To theme the admin, set `panel->colors(['primary' => Color::hex(...)])` — runtime CSS, so `config:clear` + refresh is enough (php-fpm reload on deploy); no `npm run build`.
 - **A "management section" wants its own nav entry.** Folding loyalty config into the general Settings page was technically fine but didn't match the ask — a dedicated `navigationGroup` reads as a real section and leaves room for reporting/promotions.
