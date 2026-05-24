@@ -100,6 +100,12 @@ class OrderResource extends Resource
                     ->label('Coupon')
                     ->placeholder('—')
                     ->toggleable(),
+                Tables\Columns\TextColumn::make('points_redeemed')
+                    ->label('Pts used')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('points_earned')
+                    ->label('Pts earned')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\SelectColumn::make('status')
                     ->options([
                         'pending' => 'Pending',

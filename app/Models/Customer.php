@@ -19,6 +19,7 @@ class Customer extends Authenticatable implements CanResetPasswordContract
         'city',
         'address',
         'password',
+        'points_balance',
     ];
 
     protected $hidden = [
@@ -37,5 +38,10 @@ class Customer extends Authenticatable implements CanResetPasswordContract
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function loyaltyTransactions()
+    {
+        return $this->hasMany(LoyaltyTransaction::class)->latest();
     }
 }

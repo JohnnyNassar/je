@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Services\Cart;
 use App\Services\CouponService;
+use App\Services\LoyaltyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -15,6 +16,7 @@ class CheckoutController extends Controller
     public function __construct(
         private Cart $cart,
         private CouponService $coupons,
+        private LoyaltyService $loyalty,
     ) {
     }
 
@@ -33,12 +35,30 @@ class CheckoutController extends Controller
             $this->coupons->forget();
         }
 
+        $afterCoupon = round($subtotal - $discount, 2);
+
+        // Loyalty: points the customer will earn, and points they can redeem now.
+        $customer = auth('customer')->user();
+        $loyaltyEnabled = $this->loyalty->enabled();
+        $redeem = ['points' => 0, 'discount' => 0.0];
+        $pointsBalance = 0;
+        if ($loyaltyEnabled && $customer) {
+            $pointsBalance = (int) $customer->points_balance;
+            $redeem = $this->loyalty->maxRedeemable($customer, $afterCoupon);
+        }
+
         return view('checkout.show', [
             'items' => $this->cart->items(),
             'subtotal' => $subtotal,
             'coupon' => $coupon,
             'discount' => $discount,
-            'total' => round($subtotal - $discount, 2),
+            'total' => $afterCoupon,
+            'loyaltyEnabled' => $loyaltyEnabled,
+            'pointsBalance' => $pointsBalance,
+            'pointsEarn' => $loyaltyEnabled ? $this->loyalty->pointsForAmount($afterCoupon) : 0,
+            'redeemPoints' => $redeem['points'],
+            'redeemDiscount' => $redeem['discount'],
+            'totalWithPoints' => round($afterCoupon - $redeem['discount'], 2),
         ]);
     }
 
@@ -63,10 +83,23 @@ class CheckoutController extends Controller
         }
 
         $subtotal = (float) $items->sum('line_total');
-        [$coupon, $discount] = $this->coupons->applied($subtotal);
-        $total = round($subtotal - $discount, 2);
+        [$coupon, $couponDiscount] = $this->coupons->applied($subtotal);
+        $afterCoupon = round($subtotal - $couponDiscount, 2);
 
-        $order = DB::transaction(function () use ($data, $items, $total, $discount, $coupon) {
+        // Loyalty redemption — logged-in customers only, opt-in via the checkbox.
+        $pointsRedeemed = 0;
+        $pointsDiscount = 0.0;
+        $authCustomer = auth('customer')->user();
+        if ($this->loyalty->enabled() && $authCustomer && $request->boolean('redeem_points')) {
+            $r = $this->loyalty->maxRedeemable($authCustomer, $afterCoupon);
+            $pointsRedeemed = $r['points'];
+            $pointsDiscount = $r['discount'];
+        }
+
+        $discountTotal = round($couponDiscount + $pointsDiscount, 2);
+        $total = round($subtotal - $discountTotal, 2);
+
+        $order = DB::transaction(function () use ($data, $items, $total, $discountTotal, $coupon, $couponDiscount, $pointsRedeemed) {
             $authCustomer = auth('customer')->user();
             if ($authCustomer) {
                 $customer = $authCustomer;
@@ -95,8 +128,9 @@ class CheckoutController extends Controller
                 'status' => 'pending',
                 'payment_method' => 'cod',
                 'total' => $total,
-                'discount_total' => $discount,
+                'discount_total' => $discountTotal,
                 'coupon_code' => $coupon?->code,
+                'points_redeemed' => $pointsRedeemed,
             ]);
 
             foreach ($items as $item) {
@@ -121,8 +155,19 @@ class CheckoutController extends Controller
                 }
             }
 
-            if ($coupon && $discount > 0) {
+            if ($coupon && $couponDiscount > 0) {
                 $coupon->increment('used_count');
+            }
+
+            if ($pointsRedeemed > 0) {
+                $customer->decrement('points_balance', $pointsRedeemed);
+                \App\Models\LoyaltyTransaction::create([
+                    'customer_id' => $customer->id,
+                    'order_id' => $order->id,
+                    'points' => -$pointsRedeemed,
+                    'type' => 'redeem',
+                    'description' => "Redeemed on order #{$order->id}",
+                ]);
             }
 
             return $order;

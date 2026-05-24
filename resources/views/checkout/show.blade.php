@@ -22,7 +22,7 @@
         </div>
     @endif
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5" x-data="{ redeem: false }">
         <form method="POST" action="{{ route('checkout.store') }}" class="lg:col-span-2 bg-white border border-gray-200 rounded-xl overflow-hidden">
             @csrf
             <div class="px-5 sm:px-6 py-4 border-b border-gray-100">
@@ -78,6 +78,18 @@
                         <div class="text-brand-800 mt-0.5">{{ __('You will pay when the order is delivered to you.') }}</div>
                     </div>
                 </div>
+
+                @if ($loyaltyEnabled && $redeemPoints > 0)
+                    <label class="flex items-start gap-3 rounded-md bg-green-50 border border-green-200 px-4 py-3 cursor-pointer">
+                        <input type="checkbox" name="redeem_points" value="1" x-model="redeem"
+                               class="mt-0.5 rounded border-gray-300 text-brand-600 focus:ring-brand-500">
+                        <span class="text-xs">
+                            <span class="font-medium text-green-900">{{ __('Redeem :n points', ['n' => number_format($redeemPoints)]) }}</span>
+                            <span class="text-green-800">— {{ __('Save') }} {{ money_format($redeemDiscount) }}</span>
+                            <span class="block text-green-700 mt-0.5">{{ __('You have :n points.', ['n' => number_format($pointsBalance)]) }}</span>
+                        </span>
+                    </label>
+                @endif
             </div>
             <div class="px-5 sm:px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end">
                 <button type="submit"
@@ -134,11 +146,21 @@
                         <dd>−{{ money_format($discount) }}</dd>
                     </div>
                 @endif
+                @if ($loyaltyEnabled && $redeemPoints > 0)
+                    <div class="flex items-center justify-between text-green-700" x-show="redeem" style="display:none">
+                        <dt>{{ __('Points') }} <span class="text-[11px] text-green-600">({{ number_format($redeemPoints) }})</span></dt>
+                        <dd>−{{ money_format($redeemDiscount) }}</dd>
+                    </div>
+                @endif
             </dl>
             <div class="border-t border-gray-100 mt-3 pt-3 flex items-center justify-between">
                 <span class="text-sm font-semibold text-gray-900">{{ __('Total') }}</span>
-                <span class="text-lg font-bold text-gray-900">{{ money_format($total) }}</span>
+                <span class="text-lg font-bold text-gray-900"
+                      @if ($loyaltyEnabled && $redeemPoints > 0) x-text="redeem ? '{{ money_format($totalWithPoints) }}' : '{{ money_format($total) }}'" @endif>{{ money_format($total) }}</span>
             </div>
+            @if ($loyaltyEnabled && $pointsEarn > 0)
+                <p class="mt-3 text-[11px] text-gray-500">{{ __('You will earn :n points on this order.', ['n' => number_format($pointsEarn)]) }}</p>
+            @endif
         </aside>
     </div>
 </x-layouts.shop>

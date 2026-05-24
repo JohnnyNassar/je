@@ -283,7 +283,39 @@ Roadmap push after a planning discussion with the owner — five features shippe
 - **Inline variant add:** on the cart page, a line whose product has more variants now shows an **"Add another option"** row of quick-add buttons for the other in-stock, not-yet-in-cart variants (rendered once per product).
 
 ### Migrations + live verification
-- Six new migrations run locally. Smoke test confirmed: `customers` has `email`; the owner's `users.role` = `admin`; coupon math (10% of 200 = 20; fixed 5 capped at subtotal 3 = 3); variant stock roll-up (3 + 2 → 5). **Not yet deployed to production** (guarded migrations are safe re-runs; `coupons` + `product_variants` create new tables).
+- Six new migrations run locally. Smoke test confirmed: `customers` has `email`; the owner's `users.role` = `admin`; coupon math (10% of 200 = 20; fixed 5 capped at subtotal 3 = 3); variant stock roll-up (3 + 2 → 5). Deployed to production on Day 6 (guarded migrations are safe re-runs; `coupons` + `product_variants` create new tables).
+
+---
+
+## Day 6 — 2026-05-24 (category UX, theming, loyalty / points)
+
+Polish plus a new pillar feature — all shipped to production the same day.
+
+### Category UX (the "categories aren't connected" report)
+- Root cause was data, not wiring: 44 products with **0** assigned to a category, and the product form's category picker had **no preload** (looked empty until you typed).
+- Re-enabled `->preload()` on the category Select (fine for a single-seller shop's small category set) and added a **"Set category" bulk action** on the Products table to assign many products at once (blank option clears it).
+
+### Theming — orange → brand teal
+- Storefront: recolored the Featured-strip icon and the "X left" low-stock badges from amber to the brand palette. Order-status pills and admin warnings left as-is (semantic).
+- Admin: Filament's default primary was `Color::Amber` (the "orange backend"). Set it to the brand teal via `->colors(['primary' => Color::hex('#287d88')])`. Filament applies panel colors as runtime CSS variables — no asset rebuild needed.
+
+### Loyalty / points ("JorEption Points")
+- **Schema:** `loyalty_transactions` ledger (customer, order, points ±, type earn/redeem/adjust, description); `customers.points_balance`; `orders.points_earned` + `points_redeemed`.
+- **`App\Services\LoyaltyService`:** admin-configurable earn rate (points per currency) + redeem value (currency per point) + min-redeem; `pointsForAmount()`, `maxRedeemable()` (capped to the order), and idempotent `awardForOrder()`.
+- **Earning** is credited when an order becomes **delivered** (Order `updated` model event → `awardForOrder`), guarded by `points_earned` so re-saves never double-credit.
+- **Redeeming** is opt-in at checkout for logged-in customers: a "Redeem N points — Save X" checkbox; the summary total updates live (Alpine), the discount **stacks with a coupon** (capped at the order amount), deducted + ledgered inside the checkout transaction.
+- **Customer-facing:** points balance card on My Orders; "you'll earn X points" hint at checkout.
+- **Dedicated Loyalty admin section** (its own `navigationGroup('Loyalty')`, not buried in Settings):
+  - **Points activity** — read-only `LoyaltyTransactionResource` ledger (who / points / type / order, filter by type) — the monitoring view.
+  - **Settings** — `LoyaltySettings` page (enable + rates), moved out of the general Settings page so Loyalty is self-contained.
+  - Per-customer **points** column + manual **"Adjust points"** action on Customers (writes a ledger entry); points columns on Orders.
+  - Structured to grow: reporting, follow-ups, and promotions become additional pages in this same group.
+- **Verified** by a rolled-back smoke test: earn 50 on a delivered 50.00 order; redemption capping (300 pts against a 3.00 window); idempotent re-deliver.
+
+### Notes worth remembering
+- **Filament's default primary is Amber.** To theme the admin, set `panel->colors(['primary' => Color::hex(...)])` — runtime CSS, so `config:clear` + refresh is enough (php-fpm reload on deploy); no `npm run build`.
+- **A "management section" wants its own nav entry.** Folding loyalty config into the general Settings page was technically fine but didn't match the ask — a dedicated `navigationGroup` reads as a real section and leaves room for reporting/promotions.
+- **Local OPcache was a red herring.** This box has `zend_extension=opcache` commented out, so new code runs immediately; "not showing" was loyalty living inside Settings + not being deployed yet.
 
 ---
 

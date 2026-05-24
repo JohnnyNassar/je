@@ -17,11 +17,15 @@ class Order extends Model
         'total',
         'discount_total',
         'coupon_code',
+        'points_earned',
+        'points_redeemed',
     ];
 
     protected $casts = [
         'total' => 'decimal:2',
         'discount_total' => 'decimal:2',
+        'points_earned' => 'integer',
+        'points_redeemed' => 'integer',
     ];
 
     public function customer()
@@ -32,5 +36,15 @@ class Order extends Model
     public function items()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    protected static function booted(): void
+    {
+        // Credit loyalty points when an order becomes delivered (idempotent).
+        static::updated(function (self $order) {
+            if ($order->wasChanged('status') && $order->status === 'delivered') {
+                app(\App\Services\LoyaltyService::class)->awardForOrder($order);
+            }
+        });
     }
 }

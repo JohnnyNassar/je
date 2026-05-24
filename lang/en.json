@@ -104,5 +104,11 @@
     "This coupon code is invalid or has expired.": "This coupon code is invalid or has expired.",
     "This coupon needs a minimum order of :amount.": "This coupon needs a minimum order of :amount.",
     "Options": "Options",
-    "Add another option": "Add another option"
+    "Add another option": "Add another option",
+    "points": "points",
+    "Points": "Points",
+    "Redeem :n points": "Redeem :n points",
+    "You have :n points.": "You have :n points.",
+    "You will earn :n points on this order.": "You will earn :n points on this order.",
+    "Redeem them at checkout for a discount.": "Redeem them at checkout for a discount."
 }

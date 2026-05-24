@@ -67,6 +67,11 @@ class CustomerResource extends Resource
                     ->sum('orders', 'total')
                     ->formatStateUsing(fn ($state) => $state ? money_format($state) : '—')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('points_balance')
+                    ->label('Points')
+                    ->badge()
+                    ->color('success')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Joined')
                     ->date()
@@ -82,6 +87,38 @@ class CustomerResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('adjustPoints')
+                    ->label('Adjust points')
+                    ->icon('heroicon-o-star')
+                    ->color('gray')
+                    ->form([
+                        Forms\Components\TextInput::make('points')
+                            ->label('Points to add (negative subtracts)')
+                            ->numeric()
+                            ->required(),
+                        Forms\Components\TextInput::make('reason')
+                            ->label('Reason (optional)')
+                            ->maxLength(255),
+                    ])
+                    ->action(function (Customer $record, array $data) {
+                        $points = (int) $data['points'];
+                        if ($points === 0) {
+                            return;
+                        }
+                        \Illuminate\Support\Facades\DB::transaction(function () use ($record, $points, $data) {
+                            $record->increment('points_balance', $points);
+                            \App\Models\LoyaltyTransaction::create([
+                                'customer_id' => $record->id,
+                                'points' => $points,
+                                'type' => 'adjust',
+                                'description' => $data['reason'] ?: 'Manual adjustment',
+                            ]);
+                        });
+                        \Filament\Notifications\Notification::make()
+                            ->title('Points adjusted')
+                            ->success()
+                            ->send();
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

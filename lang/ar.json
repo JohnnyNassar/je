@@ -103,5 +103,11 @@
     "This coupon code is invalid or has expired.": "رمز الكوبون غير صالح أو منتهي الصلاحية.",
     "This coupon needs a minimum order of :amount.": "هذا الكوبون يتطلب حداً أدنى للطلب :amount.",
     "Options": "الخيارات",
-    "Add another option": "أضف خياراً آخر"
+    "Add another option": "أضف خياراً آخر",
+    "points": "نقطة",
+    "Points": "النقاط",
+    "Redeem :n points": "استبدل :n نقطة",
+    "You have :n points.": "لديك :n نقطة.",
+    "You will earn :n points on this order.": "ستكسب :n نقطة من هذا الطلب.",
+    "Redeem them at checkout for a discount.": "استبدلها عند الدفع للحصول على خصم."
 }

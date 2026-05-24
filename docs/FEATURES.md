@@ -76,6 +76,12 @@ _Last updated: 2026-05-24_
 - `/my-orders/{id}` — single order detail (auth + ownership-guarded)
 - **Smart phone merge:** registering with an existing-order phone links those guest orders to the new account
 
+### Loyalty points (optional)
+- Earn points automatically when an order is marked **delivered** (rate is admin-configurable)
+- Redeem points at checkout for a discount — opt-in checkbox, live total update, **stacks with a coupon** (capped at the order amount)
+- Points balance card on **My Orders**; "you'll earn X points" hint at checkout
+- Off by default; turned on per shop in the admin **Loyalty → Settings**
+
 ### Header / navigation
 - Sticky navbar with logo + brand name
 - Guest sees: Catalog · Track Order · **Sign in** + **Register**
@@ -185,6 +191,12 @@ _Last updated: 2026-05-24_
 - Admin-only Staff manager to create/edit accounts (name / email / role / password; can't delete your own account)
 - Staff are blocked (hidden nav + 403) from Orders, Customers, Coupons, Settings, and Staff itself
 
+### Loyalty (dedicated nav section, admin-only)
+- **Points activity** — read-only ledger of every earn / redeem / adjust (customer, points, type, order), filterable by type
+- **Settings** — enable toggle, earn rate (points per currency), point value (currency per point), minimum redeem
+- Per-customer **points** column + manual **"Adjust points"** action on Customers (records a ledger entry); points-earned / redeemed columns on Orders
+- Built to grow — reporting, follow-ups, and promotions land in this same section
+
 ### Settings
 - Currency (code / symbol / position)
 - Admin WhatsApp number
@@ -291,13 +303,14 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 
 ### Data model
 - `users` (Filament admins) — separate from `customers`; **`role`** (admin | staff)
-- `customers` (public-site accounts) — nullable email / password
+- `customers` (public-site accounts) — nullable email / password + **points_balance**
 - `categories` — bilingual + slug + position + active
 - `products` — bilingual + price + **compare_at_price** + stock + image + active + **is_featured** + category
 - `product_variants` — product + name + stock + optional price/image override + position (product stock = sum of these)
 - `coupons` — code + type (percent | fixed) + value + min order + usage limit/count + start/expiry + active
-- `orders` — customer + phone + city + address + notes + status + total + **discount_total** + **coupon_code** + COD
+- `orders` — customer + phone + city + address + notes + status + total + **discount_total** + **coupon_code** + **points_earned** + **points_redeemed** + COD
 - `order_items` — order + product + **variant** (id + name snapshot) + product_name + unit_price + quantity + line_total
+- `loyalty_transactions` — customer + order + points (±) + type (earn | redeem | adjust) + description (the points ledger)
 - `settings` — key/value, cached (includes `hero_image_path`, `hero_product_id`, `coming_soon_*`, currency)
 - `password_reset_tokens` — used by both `users` and `customers` brokers
 
@@ -340,7 +353,7 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 - **Admin order notifications** — Telegram bot or email ping on new COD orders
 - **Activate the 38 imported drafts** — admin reviews names + sets stock + assigns categories + toggles Active
 - **Bidding / auctions** — design pending (timed auction vs. "make an offer")
-- **Loyalty / rewards** — points for frequent buyers, redeemable as a discount (builds on coupons)
+- **Loyalty reporting & promotions** — reports, follow-ups, and promo campaigns on top of the points system (the Loyalty section is built; these slot into it)
 - **Ad / banner areas** — managed promo slots beyond the single hero
 - **Fuller customer info** — structured address + multiple saved addresses
 - **Variant quick-quantity grid** — set quantities for several variants at once on the product page
