@@ -206,10 +206,10 @@ _Last updated: 2026-05-24_
 - Staff are blocked (hidden nav + 403) from Orders, Customers, Coupons, Settings, and Staff itself
 
 ### Loyalty (dedicated nav section, admin-only)
-- **Points activity** — read-only ledger of every earn / redeem / adjust (customer, points, type, order), filterable by type
+- **Points activity** — at-a-glance **reports** (points outstanding, their currency **liability value**, earned / redeemed over 30 days, plus a 6-month earned-vs-redeemed chart) above a read-only ledger of every earn / redeem / adjust, filterable by type
+- **Promotions** — time-boxed point boosts: **multiply points** (×2 double, ×3 triple) or **bonus points** per order, with optional minimum-order total and start/end dates, an on/off toggle, and a live Running / Scheduled / Ended / Off status. The best active promo is auto-applied when an order is delivered (and previewed at checkout)
 - **Settings** — enable toggle, earn rate (points per currency), point value (currency per point), minimum redeem
 - Per-customer **points** column + manual **"Adjust points"** action on Customers (records a ledger entry); points-earned / redeemed columns on Orders
-- Built to grow — reporting, follow-ups, and promotions land in this same section
 
 ### Settings
 - Currency (code / symbol / position)
@@ -325,6 +325,7 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 - `orders` — customer + phone + city + address + notes + status + total + **discount_total** + **coupon_code** + **points_earned** + **points_redeemed** + COD
 - `order_items` — order + product + **variant** (id + name snapshot) + product_name + unit_price + quantity + line_total
 - `loyalty_transactions` — customer + order + points (±) + type (earn | redeem | adjust) + description (the points ledger)
+- `loyalty_promotions` — name + type (multiplier | bonus) + multiplier / bonus_points + min_order_total + starts_at / ends_at + active (time-boxed point boosts)
 - `settings` — key/value, cached (includes `hero_image_path`, `hero_product_id`, `coming_soon_*`, currency)
 - `password_reset_tokens` — used by both `users` and `customers` brokers
 
@@ -363,11 +364,10 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 
 ## Roadmap (not yet started)
 
-- **Email provider** — Resend / Brevo / Mailgun → password-reset emails actually send
-- **Admin order notifications** — Telegram bot or email ping on new COD orders
+- **Outbound order notifications** — email / SMS / WhatsApp *sending* on new orders & status changes (in-app alerts + transactional email are now live; per-channel sending needs provider credentials)
 - **Activate the 38 imported drafts** — admin reviews names + sets stock + assigns categories + toggles Active
 - **Bidding / auctions** — design pending (timed auction vs. "make an offer")
-- **Loyalty reporting & promotions** — reports, follow-ups, and promo campaigns on top of the points system (the Loyalty section is built; these slot into it)
+- **Loyalty follow-ups** — proactive customer nudges (e.g. "you have N points") on top of the points system — reporting + promo campaigns now shipped
 - **Ad / banner areas** — managed promo slots beyond the single hero
 - **Fuller customer info** — structured address + multiple saved addresses
 - **Variant quick-quantity grid** — set quantities for several variants at once on the product page

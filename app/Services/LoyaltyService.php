@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Customer;
+use App\Models\LoyaltyPromotion;
 use App\Models\LoyaltyTransaction;
 use App\Models\Order;
 use App\Models\Setting;
@@ -79,6 +80,39 @@ class LoyaltyService
         return ['points' => $points, 'discount' => round($points * $rate, 2)];
     }
 
+    /**
+     * Apply the best active promotion to a base points earn for an order total.
+     *
+     * @return array{points: int, promotion: ?LoyaltyPromotion}
+     */
+    public function applyPromotions(int $basePoints, float $orderTotal, ?\Illuminate\Support\Carbon $at = null): array
+    {
+        $best = ['points' => $basePoints, 'promotion' => null];
+
+        if (! $this->enabled()) {
+            return $best;
+        }
+
+        foreach (LoyaltyPromotion::active($at)->get() as $promotion) {
+            if (! $promotion->appliesTo($orderTotal)) {
+                continue;
+            }
+
+            $points = $promotion->apply($basePoints);
+            if ($points > $best['points']) {
+                $best = ['points' => $points, 'promotion' => $promotion];
+            }
+        }
+
+        return $best;
+    }
+
+    /** Points a purchase of $amount would earn, including any active promotion. */
+    public function estimatedPointsForAmount(float $amount): int
+    {
+        return $this->applyPromotions($this->pointsForAmount($amount), $amount)['points'];
+    }
+
     /** Credit points for a delivered order. Idempotent — safe to call repeatedly. */
     public function awardForOrder(Order $order): void
     {
@@ -91,12 +125,17 @@ class LoyaltyService
             return;
         }
 
-        $points = $this->pointsForAmount((float) $order->total);
+        $base = $this->pointsForAmount((float) $order->total);
+        $result = $this->applyPromotions($base, (float) $order->total);
+        $points = $result['points'];
         if ($points <= 0) {
             return;
         }
 
-        DB::transaction(function () use ($order, $customer, $points) {
+        $promotion = $result['promotion'];
+        $description = "Order #{$order->id} delivered" . ($promotion ? " — {$promotion->name}" : '');
+
+        DB::transaction(function () use ($order, $customer, $points, $description) {
             $order->updateQuietly(['points_earned' => $points]);
             $customer->increment('points_balance', $points);
             LoyaltyTransaction::create([
@@ -104,7 +143,7 @@ class LoyaltyService
                 'order_id' => $order->id,
                 'points' => $points,
                 'type' => 'earn',
-                'description' => "Order #{$order->id} delivered",
+                'description' => $description,
             ]);
         });
     }

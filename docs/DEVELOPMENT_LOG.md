@@ -333,6 +333,32 @@ Polish plus a new pillar feature — all shipped to production the same day.
 
 ---
 
+## Day 7 — 2026-05-24 (loyalty reporting & promotions; email verified)
+
+The Loyalty section gained the reporting + promotions it was structured for, and transactional email was confirmed working end-to-end.
+
+### Email — verified live (Resend)
+- Domain `joreption.com` verified in **Resend** (SPF / DKIM / DMARC + send MX all propagated). SMTP plugged into the **Notifications → Email** UI; **From** = `noreply@joreption.com`, admin-alert recipient = the owner's inbox. Settings entered on **both** local and prod (separate DBs).
+- First "Send test email" reached Resend but not Gmail — cause was the **admin-alert recipient being blank**, so the test fell back to sending *to* the From address (`noreply@`, which has no mailbox). Setting a real recipient fixed it; the test now lands in the inbox, so password-reset + transactional email work.
+- Lesson: the test action falls back to the From address when no recipient is set — a blank "admin email" silently sends mail nowhere readable.
+
+### Loyalty reporting (on Points activity)
+- Two **header widgets** above the ledger: a **stats overview** (points outstanding, their currency **liability value**, earned / redeemed over 30 days) and a **6-month bar chart** (earned vs redeemed, brand teal vs red).
+- Placed under `app/Filament/Resources/LoyaltyTransactionResource/Widgets/` and referenced via the List page's `getHeaderWidgets()` — deliberately **not** in `app/Filament/Widgets/`, so panel auto-discovery doesn't also drop them on the main dashboard.
+
+### Loyalty promotions (new section)
+- **Schema:** `loyalty_promotions` (name, type `multiplier|bonus`, multiplier, bonus_points, min_order_total, starts_at, ends_at, active).
+- **Model:** `scopeActive($at)` (enabled + inside date window), `appliesTo($total)` (min-order gate), `apply($base)` (multiplier → `floor(base × n)`, bonus → `base + n`), and a `running` accessor.
+- **Resource:** full-CRUD `LoyaltyPromotionResource` under the Loyalty group (nav order now Points activity → Promotions → Settings). Type-aware form (multiplier vs bonus fields toggle via `live()`); table shows the reward, the date window, and a **Running / Scheduled / Ended / Off** status badge + inline on/off toggle.
+- **Earning integration:** `LoyaltyService::applyPromotions($base, $total)` picks the **single best** active + applicable promo (max resulting points); `awardForOrder()` uses it and records the promo name in the ledger entry (e.g. *"Order #5 delivered — Double points"*). `estimatedPointsForAmount()` feeds the checkout "you'll earn X" preview so customers see the boost.
+- **Verified** (rolled back): a ×2 promo on a delivered 50.00 order → 100 points credited + balance + ledger line naming the promo; min-order gating (50 → no, 150 → yes); apply math (×2→100, +30→80); all nine new classes autoload.
+
+### Notes worth remembering
+- **Page-scoped widgets:** to show stat/chart widgets on one page but keep them off the dashboard, put them outside `app/Filament/Widgets/` (so `discoverWidgets` skips them) and reference them from the page's `getHeaderWidgets()`.
+- **Redeem points are stored negative** (`type=redeem`, `points = -n`); reporting sums use `abs()` for the redeemed total.
+
+---
+
 ## Lessons learned (worth remembering)
 
 - **OPcache vs deploys.** PHP-FPM had `opcache.validate_timestamps=0` somewhere in its config, so simply replacing PHP files left old bytecode in memory and made my fixes look like they had no effect. **All deploys now `systemctl reload php8.3-fpm`** as the last step.

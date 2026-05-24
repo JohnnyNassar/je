@@ -25,7 +25,7 @@ class LoyaltySettings extends Page implements HasForms
 
     protected static ?string $title = 'Loyalty settings';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
 
     protected static string $view = 'filament.pages.loyalty-settings';
 
