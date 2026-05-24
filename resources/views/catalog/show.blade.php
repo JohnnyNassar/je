@@ -156,7 +156,7 @@
                     </span>
                 @endif
                 @if ($product->stock > 0 && $product->stock <= 3)
-                    <span class="absolute top-3 end-3 inline-flex items-center rounded-md bg-amber-100 text-amber-700 px-2.5 py-1 text-xs font-semibold uppercase tracking-wider">
+                    <span class="absolute top-3 end-3 inline-flex items-center rounded-md bg-brand-50 text-brand-700 px-2.5 py-1 text-xs font-semibold uppercase tracking-wider">
                         {{ $product->stock }} {{ __('left') }}
                     </span>
                 @endif
