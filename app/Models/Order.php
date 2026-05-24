@@ -46,5 +46,30 @@ class Order extends Model
                 app(\App\Services\LoyaltyService::class)->awardForOrder($order);
             }
         });
+
+        // In-app alert to admins on a new order (the "Dashboard" channel).
+        static::created(function (self $order) {
+            $enabled = filter_var(Setting::get('notify_admin_new_order') ?? 'true', FILTER_VALIDATE_BOOLEAN);
+            if (! $enabled) {
+                return;
+            }
+
+            try {
+                $admins = User::where('role', 'admin')->get();
+                if ($admins->isEmpty()) {
+                    return;
+                }
+
+                \Filament\Notifications\Notification::make()
+                    ->title('New order #' . $order->id)
+                    ->body(money_format($order->total) . ' · ' . ($order->phone ?? ''))
+                    ->icon('heroicon-o-shopping-bag')
+                    ->iconColor('success')
+                    ->sendToDatabase($admins);
+            } catch (\Throwable $e) {
+                // A notification failure must never break order creation.
+                report($e);
+            }
+        });
     }
 }

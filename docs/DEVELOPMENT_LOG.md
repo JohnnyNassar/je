@@ -316,6 +316,12 @@ Polish plus a new pillar feature — all shipped to production the same day.
 - New **admin dashboard** (admin-only widgets, gated via `canView`): a stats row (orders + pending, delivered revenue, customers, low-stock), a 14-day orders line chart in brand teal, and a clickable "Latest orders" table. Dropped Filament's promo info widget.
 - **Density pass** (the storefront "felt empty"): shared layout widened `max-w-7xl` → `max-w-screen-2xl`, catalog gains a 5th column at `xl`, the hero shrank from `aspect-[21/9]` (~650px) to ~224px, and section margins / grid gaps tightened. Admin panel set to `maxContentWidth(MaxWidth::Full)` to drop Filament's ~1280px cap. (New Tailwind utilities mean assets must be rebuilt — the deploy's `npm run build` handles prod.)
 
+### Notification channels (WhatsApp / SMS / Email / Dashboard)
+- New admin **Notifications** page (`NotificationSettings`, admin-only) to configure each channel: in-app (Dashboard) alerts + recipient, Email (SMTP host/port/user/pass/from), SMS (provider + key/secret/from), and WhatsApp Cloud API (phone number ID + access token). Stored in the `settings` table; secrets use password inputs.
+- **In-app channel works end-to-end:** enabled Filament database notifications (topbar bell, 30s polling) + a `notifications` table (`char(36)` id for MariaDB-version portability); a new order fires an in-app alert to admins via the Order `created` event → `sendToDatabase`, gated by a toggle (default on), wrapped in try/catch so it can never break checkout.
+- Email / SMS / WhatsApp *sending* is the per-channel follow-up (needs the client's provider credentials); this ships the **configuration UI** now.
+- **Queue must be sync.** Filament's DB notifications are queued and this shop runs no queue worker, so `QUEUE_CONNECTION=sync` (else alerts — and later password-reset emails — sit unprocessed in the `jobs` table). `.env` change, applied on prod too.
+
 ### Notes worth remembering
 - **Filament's default primary is Amber.** To theme the admin, set `panel->colors(['primary' => Color::hex(...)])` — runtime CSS, so `config:clear` + refresh is enough (php-fpm reload on deploy); no `npm run build`.
 - **A "management section" wants its own nav entry.** Folding loyalty config into the general Settings page was technically fine but didn't match the ask — a dedicated `navigationGroup` reads as a real section and leaves room for reporting/promotions.

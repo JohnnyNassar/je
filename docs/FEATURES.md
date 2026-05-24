@@ -157,6 +157,11 @@ _Last updated: 2026-05-24_
 - 14-day orders line chart (brand teal)
 - "Latest orders" table (click through to the order)
 - Full-width admin layout (Filament's default ~1280px cap removed)
+- In-app **notification bell** — admins get an alert on every new order
+
+### Notifications (admin-only)
+- Config page for channels: **in-app (Dashboard)**, **Email** (SMTP), **SMS** (provider key/secret/from), **WhatsApp** (Cloud API id + token)
+- In-app channel is live (new-order bell alerts); Email/SMS/WhatsApp capture their settings now, sending is wired per channel once provider credentials are supplied
 
 ### Products
 - Bilingual name + description (EN / AR)
