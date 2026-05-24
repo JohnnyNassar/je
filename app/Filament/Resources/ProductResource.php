@@ -27,8 +27,9 @@ class ProductResource extends Resource
                     ->label('Category')
                     ->relationship('category', 'name_en')
                     ->searchable(['name_en', 'name_ar', 'slug'])
+                    ->preload()
                     ->placeholder('— uncategorized —')
-                    ->helperText('Start typing to search by English, Arabic name, or slug.'),
+                    ->helperText('Pick a category, or type to search.'),
                 Forms\Components\TextInput::make('name_en')
                     ->required()
                     ->maxLength(255),
@@ -179,6 +180,18 @@ class ProductResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\BulkAction::make('setCategory')
+                        ->label('Set category')
+                        ->icon('heroicon-o-tag')
+                        ->form([
+                            Forms\Components\Select::make('category_id')
+                                ->label('Category')
+                                ->options(fn () => \App\Models\Category::orderBy('position')->orderBy('name_en')->pluck('name_en', 'id'))
+                                ->searchable()
+                                ->placeholder('— remove category —'),
+                        ])
+                        ->action(fn (array $data, \Illuminate\Database\Eloquent\Collection $records) => $records->each->update(['category_id' => $data['category_id'] ?? null]))
+                        ->deselectRecordsAfterCompletion(),
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
