@@ -12,8 +12,8 @@
             }
         }
     @endphp
-    <section class="relative overflow-hidden rounded-2xl mb-8 bg-brand-900 text-white shadow-card-hover
-                    min-h-[14rem] sm:min-h-[18rem] lg:aspect-[21/9] lg:min-h-0 flex">
+    <section class="relative overflow-hidden rounded-2xl mb-5 bg-brand-900 text-white shadow-card-hover
+                    min-h-[10rem] sm:min-h-[12rem] lg:min-h-[14rem] flex">
         @if ($heroImage)
             {{-- Custom hero image with dark overlay for readability --}}
             <div class="absolute inset-0 bg-cover bg-center"
@@ -27,7 +27,7 @@
         {{-- Soft red glow accent --}}
         <div class="absolute -top-24 -end-24 w-80 h-80 rounded-full bg-accent-600/20 blur-3xl pointer-events-none"></div>
 
-        <div class="relative px-6 sm:px-10 lg:px-14 py-10 sm:py-12 lg:py-14 max-w-3xl flex flex-col justify-center">
+        <div class="relative px-6 sm:px-10 lg:px-14 py-6 sm:py-7 lg:py-8 max-w-3xl flex flex-col justify-center">
             <div class="flex items-center gap-2 mb-5">
                 <span class="inline-flex items-center gap-1.5 rounded-full bg-accent-600 text-white px-3 py-1 text-xs font-bold uppercase tracking-wider">
                     <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
@@ -53,7 +53,7 @@
 
     {{-- Featured strip --}}
     @if (($featured ?? collect())->isNotEmpty())
-        <section class="mb-8">
+        <section class="mb-5">
             <div class="flex items-center gap-3 mb-4">
                 <span class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-brand-50 text-brand-600">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -93,7 +93,7 @@
     @endif
 
     {{-- Search + categories --}}
-    <div id="products" class="mb-6 scroll-mt-20">
+    <div id="products" class="mb-4 scroll-mt-20">
         <form method="GET" action="{{ route('catalog.index') }}" class="flex gap-2 mb-4">
             @if ($activeCategory ?? null)
                 <input type="hidden" name="category" value="{{ $activeCategory->slug }}">
@@ -170,7 +170,7 @@
             @endif
         </div>
     @else
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
             @foreach ($products as $product)
                 <a href="{{ route('catalog.show', $product) }}"
                    class="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-card-hover hover:border-gray-300 transition-all duration-200">
@@ -224,7 +224,7 @@
             @endforeach
         </div>
 
-        <div class="mt-10">
+        <div class="mt-6">
             {{ $products->links() }}
         </div>
     @endif

@@ -152,6 +152,12 @@ _Last updated: 2026-05-24_
 
 ## Admin dashboard (`/admin` — Filament 3)
 
+### Dashboard (home, admin-only)
+- Stats row: orders (+ pending count), revenue from delivered orders, customers, low-stock alert
+- 14-day orders line chart (brand teal)
+- "Latest orders" table (click through to the order)
+- Full-width admin layout (Filament's default ~1280px cap removed)
+
 ### Products
 - Bilingual name + description (EN / AR)
 - Image upload (stored in `storage/app/public/products/`) — auto-resized server-side to max 1600px, JPEG q85 via GD

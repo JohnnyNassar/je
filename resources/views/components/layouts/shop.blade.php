@@ -19,7 +19,7 @@
 </head>
 <body class="font-sans antialiased bg-gray-50 text-gray-900 min-h-screen flex flex-col">
     <header class="bg-white border-b border-gray-200 sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-white/95">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex h-16 items-center justify-between gap-4">
                 <a href="{{ route('catalog.index') }}" class="flex items-center gap-2.5 shrink-0">
                     <img src="{{ asset('images/logo.jpg') }}" alt="{{ config('app.name') }}" class="w-9 h-9 rounded-md object-cover ring-1 ring-gray-200">
@@ -104,7 +104,7 @@
     </header>
 
     <main class="flex-1 w-full">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+        <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-7">
             @if (session('status'))
                 <div role="alert" class="mb-6 flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 text-green-800 px-4 py-3">
                     <svg class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -118,8 +118,8 @@
         </div>
     </main>
 
-    <footer class="bg-white border-t border-gray-200 mt-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <footer class="bg-white border-t border-gray-200 mt-8">
+        <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div>
                     <div class="flex items-center gap-2 mb-3">

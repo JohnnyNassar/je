@@ -312,6 +312,10 @@ Polish plus a new pillar feature — all shipped to production the same day.
   - Structured to grow: reporting, follow-ups, and promotions become additional pages in this same group.
 - **Verified** by a rolled-back smoke test: earn 50 on a delivered 50.00 order; redemption capping (300 pts against a 3.00 window); idempotent re-deliver.
 
+### Admin dashboard + UI density
+- New **admin dashboard** (admin-only widgets, gated via `canView`): a stats row (orders + pending, delivered revenue, customers, low-stock), a 14-day orders line chart in brand teal, and a clickable "Latest orders" table. Dropped Filament's promo info widget.
+- **Density pass** (the storefront "felt empty"): shared layout widened `max-w-7xl` → `max-w-screen-2xl`, catalog gains a 5th column at `xl`, the hero shrank from `aspect-[21/9]` (~650px) to ~224px, and section margins / grid gaps tightened. Admin panel set to `maxContentWidth(MaxWidth::Full)` to drop Filament's ~1280px cap. (New Tailwind utilities mean assets must be rebuilt — the deploy's `npm run build` handles prod.)
+
 ### Notes worth remembering
 - **Filament's default primary is Amber.** To theme the admin, set `panel->colors(['primary' => Color::hex(...)])` — runtime CSS, so `config:clear` + refresh is enough (php-fpm reload on deploy); no `npm run build`.
 - **A "management section" wants its own nav entry.** Folding loyalty config into the general Settings page was technically fine but didn't match the ask — a dedicated `navigationGroup` reads as a real section and leaves room for reporting/promotions.
