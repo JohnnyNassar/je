@@ -12,6 +12,8 @@ use Illuminate\Support\Carbon;
  */
 class LoyaltyPromotion extends Model
 {
+    use \App\Concerns\LogsActivity;
+
     protected $fillable = [
         'name',
         'type',

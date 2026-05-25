@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Cache;
 
 class Setting extends Model
 {
+    use \App\Concerns\LogsActivity;
+
     protected $fillable = ['key', 'value'];
 
     public const DEFAULTS = [
@@ -18,6 +20,7 @@ class Setting extends Model
         'coming_soon_message_ar' => 'قريباً جداً.',
         'hero_image_path' => '',
         'hero_product_id' => '',
+        'google_analytics_id' => '',
     ];
 
     public static function get(string $key, ?string $default = null): ?string
@@ -50,5 +53,26 @@ class Setting extends Model
     {
         static::saved(fn () => Cache::forget('settings:all'));
         static::deleted(fn () => Cache::forget('settings:all'));
+    }
+
+    protected function activityDescription(string $event): string
+    {
+        return "Setting '{$this->key}' {$event}";
+    }
+
+    /** Redact secret values (relay password, API keys) from the audit log. */
+    protected function tweakActivityProperties(array $properties): array
+    {
+        $secret = ['mail_password', 'sms_secret', 'sms_key', 'whatsapp_token'];
+
+        if (in_array($this->key, $secret, true)) {
+            foreach (['old', 'attributes'] as $group) {
+                if (array_key_exists('value', $properties[$group] ?? [])) {
+                    $properties[$group]['value'] = '••••••';
+                }
+            }
+        }
+
+        return $properties;
     }
 }

@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
+    use \App\Concerns\LogsActivity;
+
     protected $fillable = [
         'customer_id',
         'phone',

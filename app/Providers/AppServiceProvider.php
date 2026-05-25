@@ -16,6 +16,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureMailFromSettings();
+        $this->registerActivityAuthLog();
 
         $prefix = trim((string) parse_url((string) config('app.url'), PHP_URL_PATH), '/');
 
@@ -66,5 +67,44 @@ class AppServiceProvider extends ServiceProvider
         } catch (\Throwable $e) {
             // Settings table not ready (e.g. before migrations) — fall back to .env mail config.
         }
+    }
+
+    /**
+     * Record admin/staff sign-in events to the activity log (web guard only).
+     */
+    private function registerActivityAuthLog(): void
+    {
+        $write = function (string $event, string $description, $user = null, array $properties = []): void {
+            try {
+                \App\Models\ActivityLog::create([
+                    'log_name' => 'auth',
+                    'event' => $event,
+                    'description' => $description,
+                    'causer_type' => $user?->getMorphClass(),
+                    'causer_id' => $user?->getKey(),
+                    'properties' => $properties ?: null,
+                ]);
+            } catch (\Throwable $e) {
+                // Never block authentication on a logging failure.
+            }
+        };
+
+        \Illuminate\Support\Facades\Event::listen(\Illuminate\Auth\Events\Login::class, function ($e) use ($write) {
+            if (($e->guard ?? null) === 'web') {
+                $write('login', 'Logged in', $e->user);
+            }
+        });
+
+        \Illuminate\Support\Facades\Event::listen(\Illuminate\Auth\Events\Logout::class, function ($e) use ($write) {
+            if (($e->guard ?? null) === 'web') {
+                $write('logout', 'Logged out', $e->user);
+            }
+        });
+
+        \Illuminate\Support\Facades\Event::listen(\Illuminate\Auth\Events\Failed::class, function ($e) use ($write) {
+            if (($e->guard ?? null) === 'web') {
+                $write('failed_login', 'Failed login', null, ['email' => $e->credentials['email'] ?? null]);
+            }
+        });
     }
 }

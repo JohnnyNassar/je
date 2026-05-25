@@ -7,6 +7,8 @@ use Illuminate\Support\Str;
 
 class Category extends Model
 {
+    use \App\Concerns\LogsActivity;
+
     protected $fillable = [
         'name_en',
         'name_ar',

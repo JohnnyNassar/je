@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
     use HasFactory;
+    use \App\Concerns\LogsActivity;
 
     protected $fillable = [
         'category_id',

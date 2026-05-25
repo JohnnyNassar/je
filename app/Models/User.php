@@ -11,6 +11,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable implements FilamentUser
 {
     use HasFactory, Notifiable;
+    use \App\Concerns\LogsActivity;
 
     protected $fillable = [
         'name',

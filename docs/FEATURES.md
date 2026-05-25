@@ -77,10 +77,12 @@ _Last updated: 2026-05-24_
 - **Smart phone merge:** registering with an existing-order phone links those guest orders to the new account
 
 ### Loyalty points (optional)
-- Earn points automatically when an order is marked **delivered** (rate is admin-configurable)
-- Redeem points at checkout for a discount — opt-in checkbox, live total update, **stacks with a coupon** (capped at the order amount)
-- Points balance card on **My Orders**; "you'll earn X points" hint at checkout
-- Off by default; turned on per shop in the admin **Loyalty → Settings**
+A per-customer rewards program: **every customer has their own points balance and a full earn / redeem history** (ledger), tied to their orders.
+- **Earning** — credited automatically when an order is marked **delivered** (`order total × earn rate`, plus any active promotion). Every order is attached to a customer — their account, or a record auto-created from their phone for guest checkouts — so guests accrue points too
+- **Redeeming** — at checkout a **logged-in** customer can opt in (checkbox, live total update) to spend points for a discount; **stacks with a coupon**, capped at the order amount and the minimum-redeem setting. Guests must sign in to spend (the phone-merge then links their prior orders to the account)
+- **Promotions** — admin-run boosts (double / triple, or bonus points; optionally for a date window or above a minimum order) automatically increase what an order earns
+- Points balance card on **My Orders**; "you'll earn X points" hint at checkout (reflects active promotions)
+- Off by default; rates, promotions and reports live in the admin **Loyalty** section
 
 ### Header / navigation
 - Sticky navbar with logo + brand name
@@ -215,11 +217,18 @@ _Last updated: 2026-05-24_
 - Currency (code / symbol / position)
 - Admin WhatsApp number
 - Coming Soon mode toggle + custom EN/AR headlines
+- **Google Analytics (GA4)** — paste your Measurement ID (`G-XXXX`) to load Google's tag on the storefront + Coming Soon page for visitor tracking
 - **Landing page hero** — three sources, in priority order:
   1. Custom upload (FileUpload with built-in in-browser image cropper for 21:9 / 16:5 / 3:1 / 16:9 / free aspect ratios)
   2. Pick from media library (prominent button — same modal as the product picker)
   3. Feature any existing product image (server-side searchable Select with live thumbnail preview)
 - Backed by a key/value `settings` table with cached reads (forgotten on save)
+
+### Activity log (System → Activity log, admin-only)
+- An audit trail of **deliberate admin/staff actions**: create / update / delete on products, orders, coupons, promotions, categories, settings and staff accounts — each with **who did it**, the **before → after** values, and a timestamp
+- Also logs **admin/staff logins, logouts and failed logins**
+- Secret values (mail password, API keys) are **redacted**; storefront/customer-driven writes are not logged, keeping it a clean accountability trail
+- Read-only page, filterable by event type — a lightweight built-in (no third-party package)
 
 ### Media Library — `/admin/media-library`
 WordPress-style image manager:
@@ -326,7 +335,8 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 - `order_items` — order + product + **variant** (id + name snapshot) + product_name + unit_price + quantity + line_total
 - `loyalty_transactions` — customer + order + points (±) + type (earn | redeem | adjust) + description (the points ledger)
 - `loyalty_promotions` — name + type (multiplier | bonus) + multiplier / bonus_points + min_order_total + starts_at / ends_at + active (time-boxed point boosts)
-- `settings` — key/value, cached (includes `hero_image_path`, `hero_product_id`, `coming_soon_*`, currency)
+- `settings` — key/value, cached (includes `hero_image_path`, `hero_product_id`, `coming_soon_*`, currency, `google_analytics_id`)
+- `activity_logs` — audit trail: log_name + event + description + subject (morph) + causer (morph) + properties (old/new) + timestamp
 - `password_reset_tokens` — used by both `users` and `customers` brokers
 
 ### Auth guards

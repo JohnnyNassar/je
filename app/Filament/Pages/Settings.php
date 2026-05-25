@@ -47,6 +47,7 @@ class Settings extends Page implements HasForms
             'coming_soon_message_ar' => Setting::get('coming_soon_message_ar'),
             'hero_image_path' => Setting::get('hero_image_path'),
             'hero_product_id' => Setting::get('hero_product_id'),
+            'google_analytics_id' => Setting::get('google_analytics_id'),
         ]);
     }
 
@@ -209,6 +210,15 @@ class Settings extends Page implements HasForms
                             ->label('Admin WhatsApp number (with country code, no +)')
                             ->placeholder('962790000000')
                             ->helperText('Used on the order confirmation page and Coming Soon page.')
+                            ->maxLength(20),
+                    ]),
+                Section::make('Analytics')
+                    ->description('Track visitor traffic with Google Analytics (GA4). Create a free property at analytics.google.com and paste its Measurement ID below.')
+                    ->schema([
+                        TextInput::make('google_analytics_id')
+                            ->label('Google Analytics Measurement ID')
+                            ->placeholder('G-XXXXXXXXXX')
+                            ->helperText('GA4 → Admin → Data Streams → your web stream. Leave blank to turn tracking off.')
                             ->maxLength(20),
                     ]),
             ])

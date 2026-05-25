@@ -356,6 +356,29 @@ The Loyalty section gained the reporting + promotions it was structured for, and
 ### Notes worth remembering
 - **Page-scoped widgets:** to show stat/chart widgets on one page but keep them off the dashboard, put them outside `app/Filament/Widgets/` (so `discoverWidgets` skips them) and reference them from the page's `getHeaderWidgets()`.
 - **Redeem points are stored negative** (`type=redeem`, `points = -n`); reporting sums use `abs()` for the redeemed total.
+- **Who participates:** every order is attached to a customer (their account, or a `firstOrCreate`-by-phone record for guests), so points are *earned* on delivery for everyone — but *redeeming* requires a logged-in account (`auth('customer')`). A guest builds a balance against their phone record and can spend it once they sign in (the phone-merge links their prior orders).
+
+---
+
+## Day 8 — 2026-05-25 (coming-soon check, visitor analytics, audit log)
+
+### Coming Soon — working as designed
+- Reported "not working": the owner toggled it on but still saw the store. Root cause is intentional — the `ComingSoonMode` middleware lets admins through (`auth()->check()` / `admin*` / `livewire*`), so a logged-in admin always sees the real site. Verified the **public** view with an anonymous fetch of the live site (returned the Coming Soon page) and confirmed `coming_soon_enabled='true'` directly in the prod DB. Nothing to fix; preview in an incognito window.
+
+### Visitor analytics (Google Analytics GA4)
+- New **Settings → Analytics** field (`google_analytics_id`). A shared partial `resources/views/partials/analytics.blade.php` renders the GA4 `gtag.js` snippet only when the ID is set, and is `@include`d in both the storefront layout and the Coming Soon page (captures pre-launch interest too). The admin panel is deliberately not tracked. The ID is entered per-environment (paste it into the **live** admin, like the email settings).
+
+### Audit / activity log (built-in, not Spatie)
+- Composer isn't available on the dev machine and a new runtime dependency + `composer.lock` churn wasn't worth it, so this is a lightweight in-house build with the same "full" capability.
+- **Schema:** `activity_logs` (log_name, event, description, subject morph, causer morph, properties JSON, timestamps).
+- **`App\Concerns\LogsActivity` trait** on Product / Order / Coupon / LoyaltyPromotion / Category / Setting / User: hooks `created` / `updated` / `deleted` and records before→after (`getChanges` / `getOriginal`) — **but only when an authenticated web-guard user (admin/staff) did it**, so storefront/customer writes and console scripts don't pollute the log. `password` / `remember_token` are excluded; models can override `activityDescription()` and `tweakActivityProperties()` (Setting redacts secrets like the mail password / API keys and labels the entry with the setting key).
+- **Auth events:** `Login` / `Logout` / `Failed` listeners in `AppServiceProvider` (registered **before** the subpath early-return so they run on prod) log admin/staff sign-ins (web guard only), wrapped in try/catch.
+- **Viewer:** read-only `ActivityLogResource` under a new **System** nav group (admin-only) — who / event / item / action / changes, filterable by event + type.
+- **Verified** (rolled back): no-auth write → not logged; admin login logged; admin create → 1 entry with causer; update captured 15→25; `mail_password` stored as `••••••`; GA4 partial renders the tag only when the ID is set.
+
+### Notes worth remembering
+- **Audit causer gating.** Keying activity logging on `auth('web')->user()` turns it from a write firehose into a clean "who-did-what in the admin" trail — storefront stock decrements and customer order creation are intentionally excluded.
+- **Per-environment settings.** Like email, the GA4 ID and Coming Soon toggle live in each environment's DB — set them on the **live** admin, not local.
 
 ---
 

@@ -16,6 +16,7 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('partials.analytics')
 </head>
 <body class="font-sans antialiased bg-gray-50 text-gray-900 min-h-screen flex flex-col">
     <header class="bg-white border-b border-gray-200 sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-white/95">
