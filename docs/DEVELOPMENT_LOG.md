@@ -383,6 +383,7 @@ The Loyalty section gained the reporting + promotions it was structured for, and
 ### Notes worth remembering
 - **Audit causer gating.** Keying activity logging on `auth('web')->user()` turns it from a write firehose into a clean "who-did-what in the admin" trail — storefront stock decrements and customer order creation are intentionally excluded.
 - **Per-environment settings.** Like email, the GA4 ID and Coming Soon toggle live in each environment's DB — set them on the **live** admin, not local.
+- **Roadmap reviewed (2026-05-25):** next priorities ordered as launch-readiness → SEO / Search Console → outbound WhatsApp/SMS sending → more features (see the Roadmap in `FEATURES.md`).
 
 ---
 

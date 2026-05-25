@@ -375,16 +375,29 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 
 ## Roadmap (not yet started)
 
-- **Outbound order notifications** — email / SMS / WhatsApp *sending* on new orders & status changes (in-app alerts + transactional email are now live; per-channel sending needs provider credentials)
-- **Activate the 38 imported drafts** — admin reviews names + sets stock + assigns categories + toggles Active
+Prioritised after the 2026-05-25 review — the platform is feature-complete and live behind Coming Soon.
+
+### 1. Launch readiness (go-live)
+- Review & **activate the imported product drafts** — names, stock, categories, Active toggle
+- Set the **WhatsApp number, branding and hero** on the live site
+- **Test the full Cash-on-Delivery checkout** end-to-end on production
+- Flip **Coming Soon off** and announce to the WhatsApp group
+
+### 2. SEO & discoverability
+- Verify **Google Search Console** + submit a sitemap
+- Per-page **titles / meta descriptions** + Open Graph / Twitter social-share tags
+
+### 3. Outbound order notifications (needs provider accounts)
+- **WhatsApp Business API** (Meta Cloud API) and/or an **SMS gateway** for order + status messages — the config UI already exists; this wires the actual sending. Optional phone-OTP login.
+
+### 4. More features
+- **Promo / banner areas** — managed promo slots beyond the single hero
+- **Fuller customer info** — structured + multiple saved addresses
 - **Bidding / auctions** — design pending (timed auction vs. "make an offer")
-- **Loyalty follow-ups** — proactive customer nudges (e.g. "you have N points") on top of the points system — reporting + promo campaigns now shipped
-- **Ad / banner areas** — managed promo slots beyond the single hero
-- **Fuller customer info** — structured address + multiple saved addresses
+- **Loyalty follow-ups** — proactive "you have N points" nudges (reporting + promo campaigns already shipped)
 - **Variant quick-quantity grid** — set quantities for several variants at once on the product page
-- **SMS / WhatsApp Business API** — phone-OTP login + outbound order status SMS
-- **Mobile admin polish** — voice input for English description, image swap during edit, draft-only mode; variant entry in Quick Add
-- **Customer wishlist** — save products without ordering
-- **Order CSV export** for admin
-- **Reviews / ratings** on products
+- **Customer wishlist** · **product reviews / ratings** · **order CSV export**
+- **Mobile admin polish** — voice input for EN description, image swap during edit, draft-only mode; variant entry in Quick Add
+
+### Infrastructure
 - **Webhook-triggered auto-deploy** — push to GitHub → server auto-pulls (currently a manual SSH command)
