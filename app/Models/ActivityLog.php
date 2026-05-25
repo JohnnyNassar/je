@@ -20,12 +20,35 @@ class ActivityLog extends Model
         'subject_id',
         'causer_type',
         'causer_id',
+        'ip_address',
+        'user_agent',
         'properties',
     ];
 
     protected $casts = [
         'properties' => 'array',
     ];
+
+    /**
+     * Stamp every entry with the request origin (client IP + user agent) unless
+     * a caller already supplied them. Skipped outside an HTTP request — e.g.
+     * console/queue writes have no client IP — so nothing bogus is recorded.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (self $log) {
+            $request = request();
+            $ip = $request?->ip();
+            if (! $ip) {
+                return;
+            }
+
+            $log->ip_address ??= $ip;
+            if ($log->user_agent === null && $request->userAgent()) {
+                $log->user_agent = mb_substr($request->userAgent(), 0, 500);
+            }
+        });
+    }
 
     public function subject()
     {

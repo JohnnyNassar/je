@@ -47,6 +47,7 @@ class ActivityLogResource extends Resource
                     ->badge()
                     ->color(fn (?string $state): string => match ($state) {
                         'created' => 'success',
+                        'placed' => 'success',
                         'updated' => 'info',
                         'deleted' => 'danger',
                         'failed_login' => 'warning',
@@ -84,11 +85,21 @@ class ActivityLogResource extends Resource
 
                         return implode('; ', $lines);
                     }),
+                Tables\Columns\TextColumn::make('ip_address')
+                    ->label('IP')
+                    ->searchable()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('user_agent')
+                    ->label('Device')
+                    ->limit(30)
+                    ->tooltip(fn (?string $state): ?string => $state)
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('event')
                     ->options([
                         'created' => 'Created',
+                        'placed' => 'Order placed',
                         'updated' => 'Updated',
                         'deleted' => 'Deleted',
                         'login' => 'Login',

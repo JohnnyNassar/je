@@ -173,6 +173,33 @@ class CheckoutController extends Controller
             return $order;
         });
 
+        // Storefront orders aren't captured by the LogsActivity trait (no admin
+        // is behind them), so record the placement explicitly. The ActivityLog
+        // model stamps the client IP + user agent automatically.
+        try {
+            $order->loadMissing('customer');
+            \App\Models\ActivityLog::create([
+                'log_name' => 'storefront',
+                'event' => 'placed',
+                'description' => "Order #{$order->id} placed by {$data['name']}"
+                    . ($authCustomer ? '' : ' (guest)'),
+                'subject_type' => $order->getMorphClass(),
+                'subject_id' => $order->getKey(),
+                'causer_type' => $order->customer?->getMorphClass(),
+                'causer_id' => $order->customer?->getKey(),
+                'properties' => [
+                    'attributes' => [
+                        'total' => (float) $order->total,
+                        'items' => $items->count(),
+                        'name' => $data['name'],
+                        'phone' => $data['phone'],
+                    ],
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            report($e); // auditing must never break order placement
+        }
+
         $this->cart->clear();
         $this->coupons->forget();
 
