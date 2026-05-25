@@ -17,7 +17,7 @@ class ComingSoonMode
             return $next($request);
         }
 
-        if ($request->is('admin*') || $request->is('livewire*') || auth()->check()) {
+        if ($request->is('admin*') || $request->is('livewire*') || $request->is('privacy') || auth()->check()) {
             return $next($request);
         }
 

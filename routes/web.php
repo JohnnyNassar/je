@@ -33,6 +33,8 @@ Route::get('/orders/{order}/confirmation', [OrderController::class, 'confirmatio
 Route::get('/track', [\App\Http\Controllers\TrackOrderController::class, 'show'])->name('track.show');
 Route::post('/track', [\App\Http\Controllers\TrackOrderController::class, 'lookup'])->name('track.lookup');
 
+Route::view('/privacy', 'legal.privacy')->name('privacy');
+
 // Customer auth (guest-accessible)
 Route::middleware('guest:customer')->group(function () {
     Route::get('/login', [\App\Http\Controllers\CustomerAuth\LoginController::class, 'show'])->name('customer.login');

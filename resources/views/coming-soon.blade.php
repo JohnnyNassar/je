@@ -68,5 +68,7 @@
     <footer class="text-center text-xs text-white/40 pb-6">
         &copy; {{ date('Y') }} {{ config('app.name') }}
     </footer>
+
+    @include('partials.cookie-notice')
 </body>
 </html>

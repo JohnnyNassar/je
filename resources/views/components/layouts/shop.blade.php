@@ -137,6 +137,7 @@
                         <li><a href="{{ route('catalog.index') }}" class="hover:text-brand-600">{{ __('Catalog') }}</a></li>
                         <li><a href="{{ route('cart.index') }}" class="hover:text-brand-600">{{ __('Cart') }}</a></li>
                         <li><a href="{{ route('track.show') }}" class="hover:text-brand-600">{{ __('Track Order') }}</a></li>
+                        <li><a href="{{ route('privacy') }}" class="hover:text-brand-600">{{ app()->getLocale() === 'ar' ? 'سياسة الخصوصية' : 'Privacy Policy' }}</a></li>
                     </ul>
                 </div>
                 <div>
@@ -151,5 +152,7 @@
             </div>
         </div>
     </footer>
+
+    @include('partials.cookie-notice')
 </body>
 </html>

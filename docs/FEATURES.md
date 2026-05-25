@@ -218,6 +218,7 @@ A per-customer rewards program: **every customer has their own points balance an
 - Admin WhatsApp number
 - Coming Soon mode toggle + custom EN/AR headlines
 - **Google Analytics (GA4)** — paste your Measurement ID (`G-XXXX`) to load Google's tag on the storefront + Coming Soon page for visitor tracking
+- **Privacy Policy page** (`/privacy`, bilingual) + a dismissible **cookie notice** — reachable even while Coming Soon is on, and linked in the footer
 - **Landing page hero** — three sources, in priority order:
   1. Custom upload (FileUpload with built-in in-browser image cropper for 21:9 / 16:5 / 3:1 / 16:9 / free aspect ratios)
   2. Pick from media library (prominent button — same modal as the product picker)

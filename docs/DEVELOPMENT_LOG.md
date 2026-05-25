@@ -376,6 +376,10 @@ The Loyalty section gained the reporting + promotions it was structured for, and
 - **Viewer:** read-only `ActivityLogResource` under a new **System** nav group (admin-only) — who / event / item / action / changes, filterable by event + type.
 - **Verified** (rolled back): no-auth write → not logged; admin login logged; admin create → 1 entry with causer; update captured 15→25; `mail_password` stored as `••••••`; GA4 partial renders the tag only when the ID is set.
 
+### Privacy policy + cookie notice
+- Bilingual **`/privacy`** page (`Route::view` → `legal.privacy`, EN/AR via locale) covering order data, accounts, cookies, Google Analytics, sharing, retention and contact (WhatsApp). Linked in the storefront footer and **exempted from the Coming Soon middleware** so it's reachable pre-launch.
+- A dismissible **cookie notice** (`partials/cookie-notice.blade.php`) — plain JS (no Alpine, so it also works on the Coming Soon page, which doesn't load app.js), choice stored in `localStorage`, links to the policy. Included in both the shop layout and the Coming Soon page. Informational model (GA loads regardless) — appropriate for Jordan; can be upgraded to consent-gated later.
+
 ### Notes worth remembering
 - **Audit causer gating.** Keying activity logging on `auth('web')->user()` turns it from a write firehose into a clean "who-did-what in the admin" trail — storefront stock decrements and customer order creation are intentionally excluded.
 - **Per-environment settings.** Like email, the GA4 ID and Coming Soon toggle live in each environment's DB — set them on the **live** admin, not local.
