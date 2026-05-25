@@ -70,14 +70,17 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Record admin/staff sign-in events to the activity log (web guard only).
+     * Record sign-in events to the activity log: admin/staff on the web guard
+     * (login/logout/failed) and customers on the storefront guard (login/logout).
+     * Customer failed logins are intentionally not logged — a public storefront
+     * attracts bot credential-stuffing that would flood the log.
      */
     private function registerActivityAuthLog(): void
     {
-        $write = function (string $event, string $description, $user = null, array $properties = []): void {
+        $write = function (string $event, string $description, $user = null, array $properties = [], string $logName = 'auth'): void {
             try {
                 \App\Models\ActivityLog::create([
-                    'log_name' => 'auth',
+                    'log_name' => $logName,
                     'event' => $event,
                     'description' => $description,
                     'causer_type' => $user?->getMorphClass(),
@@ -92,12 +95,16 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\Event::listen(\Illuminate\Auth\Events\Login::class, function ($e) use ($write) {
             if (($e->guard ?? null) === 'web') {
                 $write('login', 'Logged in', $e->user);
+            } elseif (($e->guard ?? null) === 'customer') {
+                $write('login', 'Customer logged in', $e->user, [], 'customer-auth');
             }
         });
 
         \Illuminate\Support\Facades\Event::listen(\Illuminate\Auth\Events\Logout::class, function ($e) use ($write) {
             if (($e->guard ?? null) === 'web') {
                 $write('logout', 'Logged out', $e->user);
+            } elseif (($e->guard ?? null) === 'customer') {
+                $write('logout', 'Customer logged out', $e->user, [], 'customer-auth');
             }
         });
 
