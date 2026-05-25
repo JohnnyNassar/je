@@ -55,7 +55,7 @@ class CheckoutController extends Controller
             'total' => $afterCoupon,
             'loyaltyEnabled' => $loyaltyEnabled,
             'pointsBalance' => $pointsBalance,
-            'pointsEarn' => $loyaltyEnabled ? $this->loyalty->estimatedPointsForAmount($afterCoupon) : 0,
+            'pointsEarn' => $loyaltyEnabled ? $this->loyalty->estimatedPointsForCustomer($customer, $afterCoupon) : 0,
             'redeemPoints' => $redeem['points'],
             'redeemDiscount' => $redeem['discount'],
             'totalWithPoints' => round($afterCoupon - $redeem['discount'], 2),

@@ -38,9 +38,18 @@ class User extends Authenticatable implements FilamentUser
         return true;
     }
 
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
+    }
+
+    /**
+     * Back-office access: both super admins (owner) and admins. Used to gate
+     * everything except owner-only areas (see SuperAdminOnly). Staff are excluded.
+     */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return in_array($this->role, ['admin', 'super_admin'], true);
     }
 
     public function isStaff(): bool

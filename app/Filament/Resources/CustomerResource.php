@@ -34,6 +34,11 @@ class CustomerResource extends Resource
                     ->maxLength(255),
                 Forms\Components\TextInput::make('city')
                     ->maxLength(255),
+                Forms\Components\Select::make('tier')
+                    ->options(Customer::TIERS)
+                    ->default('regular')
+                    ->required()
+                    ->native(false),
                 Forms\Components\Textarea::make('address')
                     ->columnSpanFull(),
             ]);
@@ -56,6 +61,15 @@ class CustomerResource extends Resource
                 Tables\Columns\TextColumn::make('city')
                     ->searchable()
                     ->toggleable(),
+                Tables\Columns\TextColumn::make('tier')
+                    ->badge()
+                    ->formatStateUsing(fn (?string $state) => Customer::TIERS[$state] ?? 'Regular')
+                    ->color(fn (?string $state) => match ($state) {
+                        'vip' => 'warning',
+                        'wholesale' => 'info',
+                        default => 'gray',
+                    })
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('orders_count')
                     ->label('Orders')
                     ->counts('orders')
@@ -79,6 +93,8 @@ class CustomerResource extends Resource
                     ->toggleable(),
             ])
             ->filters([
+                Tables\Filters\SelectFilter::make('tier')
+                    ->options(Customer::TIERS),
                 Tables\Filters\Filter::make('has_orders')
                     ->label('Has orders')
                     ->query(fn ($query) => $query->whereHas('orders'))

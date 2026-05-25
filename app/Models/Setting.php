@@ -21,6 +21,9 @@ class Setting extends Model
         'hero_image_path' => '',
         'hero_product_id' => '',
         'google_analytics_id' => '',
+        // Customer-tier perks (see App\Services\CustomerTierService).
+        'tier_wholesale_discount_percent' => '10',
+        'tier_vip_points_multiplier' => '2',
     ];
 
     public static function get(string $key, ?string $default = null): ?string

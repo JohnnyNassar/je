@@ -90,8 +90,12 @@ class Cart
         $productIds = collect($raw)->pluck('product_id')->unique()->all();
         $products = Product::with('variants')->whereIn('id', $productIds)->get()->keyBy('id');
 
+        // Tier pricing: a logged-in wholesale customer pays discounted unit prices.
+        $customer = auth('customer')->user();
+        $tiers = app(\App\Services\CustomerTierService::class);
+
         return collect($raw)
-            ->map(function ($line, $key) use ($products) {
+            ->map(function ($line, $key) use ($products, $customer, $tiers) {
                 $product = $products->get($line['product_id']);
 
                 if (! $product) {
@@ -113,7 +117,8 @@ class Cart
                     return null;
                 }
 
-                $unitPrice = $variant ? $variant->effectivePrice() : (float) $product->price;
+                $retailPrice = $variant ? $variant->effectivePrice() : (float) $product->price;
+                $unitPrice = $tiers->priceFor($customer, $retailPrice);
 
                 return [
                     'key' => (string) $key,

@@ -57,7 +57,7 @@ class Order extends Model
             }
 
             try {
-                $admins = User::where('role', 'admin')->get();
+                $admins = User::whereIn('role', ['admin', 'super_admin'])->get();
                 if ($admins->isEmpty()) {
                     return;
                 }

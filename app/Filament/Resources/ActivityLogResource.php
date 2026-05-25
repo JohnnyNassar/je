@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Concerns\AdminOnly;
+use App\Filament\Concerns\SuperAdminOnly;
 use App\Filament\Resources\ActivityLogResource\Pages;
 use App\Models\ActivityLog;
 use Filament\Resources\Resource;
@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 
 class ActivityLogResource extends Resource
 {
-    use AdminOnly;
+    use SuperAdminOnly;
 
     protected static ?string $model = ActivityLog::class;
 

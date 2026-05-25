@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Concerns\AdminOnly;
+use App\Filament\Concerns\SuperAdminOnly;
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
 use Filament\Forms;
@@ -13,7 +13,7 @@ use Filament\Tables\Table;
 
 class UserResource extends Resource
 {
-    use AdminOnly;
+    use SuperAdminOnly;
 
     protected static ?string $model = User::class;
 
@@ -44,11 +44,13 @@ class UserResource extends Resource
                             ->maxLength(255),
                         Forms\Components\Select::make('role')
                             ->options([
-                                'admin' => 'Administrator (full access)',
+                                'super_admin' => 'Super Admin (owner — full access)',
+                                'admin' => 'Administrator (everyday ops)',
                                 'staff' => 'Staff (catalog only)',
                             ])
                             ->default('staff')
-                            ->required(),
+                            ->required()
+                            ->helperText('Super Admin can manage staff, settings and the activity log. Administrator handles orders, customers, coupons and loyalty. Staff manage the catalog only.'),
                         Forms\Components\TextInput::make('password')
                             ->password()
                             ->revealable()
@@ -73,8 +75,16 @@ class UserResource extends Resource
                     ->copyable(),
                 Tables\Columns\TextColumn::make('role')
                     ->badge()
-                    ->formatStateUsing(fn (?string $state) => $state === 'admin' ? 'Administrator' : 'Staff')
-                    ->color(fn (?string $state) => $state === 'admin' ? 'success' : 'gray'),
+                    ->formatStateUsing(fn (?string $state) => match ($state) {
+                        'super_admin' => 'Super Admin',
+                        'admin' => 'Administrator',
+                        default => 'Staff',
+                    })
+                    ->color(fn (?string $state) => match ($state) {
+                        'super_admin' => 'success',
+                        'admin' => 'info',
+                        default => 'gray',
+                    }),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

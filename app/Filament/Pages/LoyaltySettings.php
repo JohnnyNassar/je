@@ -15,7 +15,7 @@ use Filament\Pages\Page;
 class LoyaltySettings extends Page implements HasForms
 {
     use InteractsWithForms;
-    use \App\Filament\Concerns\AdminOnly;
+    use \App\Filament\Concerns\SuperAdminOnly;
 
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
 
@@ -38,6 +38,7 @@ class LoyaltySettings extends Page implements HasForms
             'loyalty_earn_rate' => Setting::get('loyalty_earn_rate'),
             'loyalty_redeem_value' => Setting::get('loyalty_redeem_value'),
             'loyalty_min_redeem' => Setting::get('loyalty_min_redeem'),
+            'tier_vip_points_multiplier' => Setting::get('tier_vip_points_multiplier'),
         ]);
     }
 
@@ -71,6 +72,18 @@ class LoyaltySettings extends Page implements HasForms
                             ->numeric()
                             ->minValue(0)
                             ->default(0),
+                    ]),
+                Section::make('VIP tier')
+                    ->description('VIP customers earn loyalty points faster. The multiplier is applied to the base points before any active promotion.')
+                    ->schema([
+                        TextInput::make('tier_vip_points_multiplier')
+                            ->label('VIP points multiplier')
+                            ->numeric()
+                            ->minValue(1)
+                            ->step('0.1')
+                            ->default(2)
+                            ->suffix('×')
+                            ->helperText('e.g. 2 means VIP customers earn double points. 1 disables the boost.'),
                     ]),
             ])
             ->statePath('data');

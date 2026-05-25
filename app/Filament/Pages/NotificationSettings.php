@@ -17,7 +17,7 @@ use Filament\Pages\Page;
 class NotificationSettings extends Page implements HasForms
 {
     use InteractsWithForms;
-    use \App\Filament\Concerns\AdminOnly;
+    use \App\Filament\Concerns\SuperAdminOnly;
 
     protected static ?string $navigationIcon = 'heroicon-o-bell';
 

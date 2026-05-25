@@ -15,6 +15,10 @@ use Illuminate\Support\Facades\DB;
  */
 class LoyaltyService
 {
+    public function __construct(private CustomerTierService $tiers)
+    {
+    }
+
     public function enabled(): bool
     {
         return filter_var(Setting::get('loyalty_enabled'), FILTER_VALIDATE_BOOLEAN);
@@ -40,6 +44,12 @@ class LoyaltyService
     public function pointsForAmount(float $amount): int
     {
         return (int) floor(max(0, $amount) * $this->earnRate());
+    }
+
+    /** Base points for an amount, after the customer's tier multiplier (VIP). */
+    public function pointsForCustomerAmount(?Customer $customer, float $amount): int
+    {
+        return (int) floor($this->pointsForAmount($amount) * $this->tiers->pointsMultiplierFor($customer));
     }
 
     public function valueOfPoints(int $points): float
@@ -113,6 +123,12 @@ class LoyaltyService
         return $this->applyPromotions($this->pointsForAmount($amount), $amount)['points'];
     }
 
+    /** Points a customer would earn on $amount — tier multiplier + best promotion. */
+    public function estimatedPointsForCustomer(?Customer $customer, float $amount): int
+    {
+        return $this->applyPromotions($this->pointsForCustomerAmount($customer, $amount), $amount)['points'];
+    }
+
     /** Credit points for a delivered order. Idempotent — safe to call repeatedly. */
     public function awardForOrder(Order $order): void
     {
@@ -125,7 +141,7 @@ class LoyaltyService
             return;
         }
 
-        $base = $this->pointsForAmount((float) $order->total);
+        $base = $this->pointsForCustomerAmount($customer, (float) $order->total);
         $result = $this->applyPromotions($base, (float) $order->total);
         $points = $result['points'];
         if ($points <= 0) {

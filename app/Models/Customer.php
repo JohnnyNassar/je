@@ -12,6 +12,16 @@ class Customer extends Authenticatable implements CanResetPasswordContract
 {
     use Notifiable, CanResetPassword;
 
+    /**
+     * Customer tiers, value => label. Single source of truth used by the admin
+     * form/table and anywhere tier logic is applied (e.g. pricing, loyalty).
+     */
+    public const TIERS = [
+        'regular' => 'Regular',
+        'vip' => 'VIP',
+        'wholesale' => 'Wholesale',
+    ];
+
     protected $fillable = [
         'name',
         'email',
@@ -20,11 +30,16 @@ class Customer extends Authenticatable implements CanResetPasswordContract
         'address',
         'password',
         'points_balance',
+        'tier',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
+    ];
+
+    protected $attributes = [
+        'tier' => 'regular',
     ];
 
     protected function casts(): array
@@ -33,6 +48,11 @@ class Customer extends Authenticatable implements CanResetPasswordContract
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function getTierLabelAttribute(): string
+    {
+        return self::TIERS[$this->tier] ?? self::TIERS['regular'];
     }
 
     public function orders()

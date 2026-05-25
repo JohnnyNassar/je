@@ -25,7 +25,7 @@ class Settings extends Page implements HasForms
 {
     use InteractsWithForms;
     use \App\Concerns\HandlesMediaPicking;
-    use \App\Filament\Concerns\AdminOnly;
+    use \App\Filament\Concerns\SuperAdminOnly;
 
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
 
@@ -48,6 +48,7 @@ class Settings extends Page implements HasForms
             'hero_image_path' => Setting::get('hero_image_path'),
             'hero_product_id' => Setting::get('hero_product_id'),
             'google_analytics_id' => Setting::get('google_analytics_id'),
+            'tier_wholesale_discount_percent' => Setting::get('tier_wholesale_discount_percent'),
         ]);
     }
 
@@ -203,6 +204,18 @@ class Settings extends Page implements HasForms
                                 'after' => 'After amount (100.00 JD)',
                             ])
                             ->required(),
+                    ]),
+                Section::make('Customer tiers')
+                    ->description('Wholesale customers automatically pay a discounted unit price on every product (in the cart, checkout and their orders). Set the VIP points multiplier under Loyalty → Settings.')
+                    ->schema([
+                        TextInput::make('tier_wholesale_discount_percent')
+                            ->label('Wholesale discount')
+                            ->numeric()
+                            ->minValue(0)
+                            ->maxValue(100)
+                            ->default(10)
+                            ->suffix('%')
+                            ->helperText('Percentage off retail prices for customers in the Wholesale tier. 0 disables wholesale pricing.'),
                     ]),
                 Section::make('WhatsApp')
                     ->schema([
