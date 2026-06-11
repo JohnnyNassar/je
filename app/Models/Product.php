@@ -17,6 +17,7 @@ class Product extends Model
         'description_en',
         'description_ar',
         'price',
+        'cost_price',
         'compare_at_price',
         'stock',
         'image_path',
@@ -26,6 +27,7 @@ class Product extends Model
 
     protected $casts = [
         'price' => 'decimal:2',
+        'cost_price' => 'decimal:2',
         'compare_at_price' => 'decimal:2',
         'stock' => 'integer',
         'is_active' => 'boolean',
@@ -94,6 +96,29 @@ class Product extends Model
         }
         $diff = (float) $this->compare_at_price - (float) $this->price;
         return (int) round(($diff / (float) $this->compare_at_price) * 100);
+    }
+
+    /**
+     * Profit per unit (price − cost). Null when no cost has been recorded.
+     */
+    public function getProfitAttribute(): ?float
+    {
+        if ($this->cost_price === null) {
+            return null;
+        }
+        return round((float) $this->price - (float) $this->cost_price, 2);
+    }
+
+    /**
+     * Profit margin as a percentage of the selling price. Null when no cost
+     * has been recorded or the price is zero.
+     */
+    public function getMarginPercentageAttribute(): ?int
+    {
+        if ($this->cost_price === null || (float) $this->price <= 0) {
+            return null;
+        }
+        return (int) round(($this->profit / (float) $this->price) * 100);
     }
 
     public function scopeActive($query)

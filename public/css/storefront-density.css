@@ -1,0 +1,13 @@
+/*
+ * Storefront density pass (build-free, linked from components/layouts/shop.blade.php).
+ *
+ * Tailwind sizes text and spacing in rem, so scaling the root font-size makes the
+ * whole customer-facing shop a bit more compact — fonts and padding shrink together.
+ * Tweak the ONE number below to taste:
+ *   100% = original · 94% = gently tighter · 90% = noticeably smaller.
+ *
+ * Kept gentle on purpose: the storefront is read on phones, so don't go too small.
+ */
+:root {
+    font-size: 94% !important; /* ~15px base (browser default is 16px) */
+}

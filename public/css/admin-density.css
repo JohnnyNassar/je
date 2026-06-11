@@ -1,0 +1,88 @@
+/*
+ * Admin density pass (build-free, loaded via AdminPanelProvider renderHook).
+ *
+ * Filament sizes nearly everything in rem, so scaling the root font-size shrinks
+ * text AND padding/spacing together — the whole back-office gets more compact
+ * without breaking layout. Tweak the ONE number below to taste:
+ *   100% = Filament default · 90% = noticeably tighter · 85% = very dense.
+ */
+:root {
+    font-size: 90% !important; /* ~14.4px base (browser default is 16px) */
+}
+
+/* Extra trim on the areas that feel the most padded, on top of the global
+ * scale above. These are stable Filament 3 classes; if a future upgrade renames
+ * one, the rule simply no-ops (no breakage). */
+
+/* --- List pages / tables (the bulkiest screens) --- */
+
+/* Tighter row height. The real vertical padding lives on the INNER content
+ * wrapper (Filament gives it Tailwind `py-4` ≈ 29px), not on .fi-ta-cell — so
+ * we target that wrapper. The `.fi-ta-cell .py-4` rule also catches the checkbox
+ * and action cells, which use the same utility. */
+.fi-ta-text,
+.fi-ta-cell .py-4,
+.fi-ta-actions {
+    padding-top: 0.3rem !important;
+    padding-bottom: 0.3rem !important;
+}
+.fi-ta-header-cell {
+    padding-top: 0.4rem !important;
+    padding-bottom: 0.4rem !important;
+}
+
+/* Smaller thumbnails in table image columns (was ~2.5rem, the main row-height driver) */
+.fi-ta-image,
+.fi-ta-image img,
+.fi-ta-cell img {
+    height: 1.75rem !important;
+    width: 1.75rem !important;
+}
+
+/* Slimmer toolbar above the table (search / column toggle / filters) */
+.fi-ta-header-toolbar {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+}
+
+/* --- Page chrome (this is where most of the empty space lives) --- */
+
+/* Slimmer topbar (was h-16 / ~58px — uses a fixed height, so override height) */
+.fi-topbar nav {
+    height: 3rem !important;
+    min-height: 3rem !important;
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+}
+
+/* Smaller page heading + much less gap above/below it */
+.fi-header {
+    margin-bottom: 0.5rem !important;
+    gap: 0.25rem !important;
+}
+.fi-header-heading {
+    font-size: 1.25rem !important;
+}
+
+/* Trim the generous gutter around page content (top band before the table) */
+.fi-main {
+    padding-top: 0.6rem !important;
+    padding-bottom: 0.9rem !important;
+    row-gap: 0.5rem !important;
+}
+
+/* The page content wrapper has `py-8` + `gap-y-8` (≈29px each) — the single
+ * biggest source of the empty band between the header and the table. */
+.fi-page {
+    gap: 0.5rem !important;
+}
+.fi-page > div {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    row-gap: 0.6rem !important;
+}
+
+/* --- Forms --- */
+.fi-section-content {
+    padding: 1rem !important;
+}

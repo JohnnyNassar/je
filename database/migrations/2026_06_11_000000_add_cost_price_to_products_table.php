@@ -1,0 +1,27 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('products', function (Blueprint $table) {
+            if (! Schema::hasColumn('products', 'cost_price')) {
+                // What you paid per unit. Admin-only; never shown on the storefront.
+                $table->decimal('cost_price', 10, 2)->nullable()->after('price');
+            }
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('products', function (Blueprint $table) {
+            if (Schema::hasColumn('products', 'cost_price')) {
+                $table->dropColumn('cost_price');
+            }
+        });
+    }
+};

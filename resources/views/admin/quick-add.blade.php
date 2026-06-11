@@ -1,5 +1,6 @@
 @php
     $defaultCurrency = \App\Models\Setting::get('currency_symbol', '$');
+    $canViewCost = auth()->user()?->canViewCost();
     $currencyPos = \App\Models\Setting::get('currency_position', 'before');
 @endphp
 <!DOCTYPE html>
@@ -149,6 +150,24 @@
                                class="w-full rounded-xl bg-white/5 border-white/10 text-white text-lg font-semibold focus:bg-white/10 focus:border-brand-400 focus:ring-0">
                     </div>
                 </div>
+
+                @if($canViewCost)
+                {{-- Cost price (gated — never shown to customers) --}}
+                <div>
+                    <label class="block text-xs text-white/60 mb-1.5">Cost price <span class="text-white/40">(what you paid — admin only)</span></label>
+                    <div class="relative">
+                        <input type="number" x-model="current.cost_price" min="0" step="0.01" dir="ltr"
+                               class="w-full rounded-xl bg-white/5 border-white/10 text-white focus:bg-white/10 focus:border-brand-400 focus:ring-0 ps-12">
+                        <span class="absolute top-1/2 -translate-y-1/2 start-3 text-white/60 text-sm">{{ $defaultCurrency }}</span>
+                    </div>
+                    <template x-if="current.cost_price && Number(current.cost_price) > 0 && Number(current.price) > 0">
+                        <div class="mt-1.5 text-xs font-semibold"
+                             :class="Number(current.price) - Number(current.cost_price) < 0 ? 'text-accent-400' : 'text-brand-300'">
+                            <span x-text="'Profit: ' + ((Number(current.price) - Number(current.cost_price)).toFixed(2)) + ' (' + Math.round(((Number(current.price) - Number(current.cost_price)) / Number(current.price)) * 100) + '%)'"></span>
+                        </div>
+                    </template>
+                </div>
+                @endif
 
                 {{-- Compare-at price (optional, for Save% badge) --}}
                 <div>
@@ -320,6 +339,7 @@ function quickAdd() {
                         description_ar: '',
                         description_en: '',
                         price: '',
+                        cost_price: '',
                         compare_at_price: '',
                         stock: 1,
                         is_active: true,
@@ -477,6 +497,9 @@ function quickAdd() {
             fd.append('description_ar', this.current.description_ar || '');
             fd.append('description_en', this.current.description_en || '');
             fd.append('price', this.current.price || 0);
+            if (this.current.cost_price && Number(this.current.cost_price) > 0) {
+                fd.append('cost_price', this.current.cost_price);
+            }
             if (this.current.compare_at_price && Number(this.current.compare_at_price) > 0) {
                 fd.append('compare_at_price', this.current.compare_at_price);
             }

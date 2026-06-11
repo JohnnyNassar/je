@@ -64,6 +64,12 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 \Filament\View\PanelsRenderHook::HEAD_END,
                 fn (): string => '<script src="' . asset('js/media-picker.js') . '?v=' . filemtime(public_path('js/media-picker.js')) . '"></script>'
+            )
+            // Density pass — proportionally shrinks the whole back-office. Tweak the
+            // root font-size knob in public/css/admin-density.css to adjust.
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::HEAD_END,
+                fn (): string => '<link rel="stylesheet" href="' . asset('css/admin-density.css') . '?v=' . filemtime(public_path('css/admin-density.css')) . '">'
             );
     }
 }

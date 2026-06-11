@@ -44,6 +44,13 @@ class ProductResource extends Resource
                     ->required()
                     ->numeric()
                     ->prefix(\App\Models\Setting::get('currency_symbol')),
+                Forms\Components\TextInput::make('cost_price')
+                    ->label('Cost price (what you paid)')
+                    ->numeric()
+                    ->minValue(0)
+                    ->prefix(\App\Models\Setting::get('currency_symbol'))
+                    ->helperText('Never shown to customers — used to track profit margin. Visible to admins and any staff granted cost access.')
+                    ->visible(fn () => auth()->user()?->canViewCost()),
                 Forms\Components\TextInput::make('compare_at_price')
                     ->label('Original price (for "Save %" badge)')
                     ->numeric()
@@ -141,6 +148,21 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('price')
                     ->formatStateUsing(fn ($state) => money_format($state))
                     ->sortable(),
+                Tables\Columns\TextColumn::make('cost_price')
+                    ->label('Cost')
+                    ->formatStateUsing(fn ($state) => $state === null ? '—' : money_format($state))
+                    ->sortable()
+                    ->visible(fn () => auth()->user()?->canViewCost())
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('profit')
+                    ->label('Profit')
+                    ->state(fn ($record) => $record->profit)
+                    ->formatStateUsing(fn ($state, $record) => $state === null
+                        ? '—'
+                        : money_format($state) . ($record->margin_percentage !== null ? " ({$record->margin_percentage}%)" : ''))
+                    ->color(fn ($state) => $state === null ? 'gray' : ($state < 0 ? 'danger' : 'success'))
+                    ->visible(fn () => auth()->user()?->canViewCost())
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('public_url')
                     ->label('Link')
                     ->state(fn ($record) => route('catalog.show', $record))
@@ -153,7 +175,8 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('stock')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\ImageColumn::make('image_path'),
+                Tables\Columns\ImageColumn::make('image_path')
+                    ->size(28),
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean(),
                 Tables\Columns\IconColumn::make('is_featured')

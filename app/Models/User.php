@@ -18,6 +18,7 @@ class User extends Authenticatable implements FilamentUser
         'email',
         'password',
         'role',
+        'can_view_cost',
     ];
 
     protected $hidden = [
@@ -30,6 +31,7 @@ class User extends Authenticatable implements FilamentUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'can_view_cost' => 'boolean',
         ];
     }
 
@@ -55,5 +57,16 @@ class User extends Authenticatable implements FilamentUser
     public function isStaff(): bool
     {
         return $this->role === 'staff';
+    }
+
+    /**
+     * Cost prices & profit margins are visible to back-office admins (admin /
+     * super_admin), plus any staff member explicitly granted the can_view_cost
+     * flag. Lets the owner expose cost to one catalog person without giving them
+     * the full admin tier.
+     */
+    public function canViewCost(): bool
+    {
+        return $this->isAdmin() || (bool) $this->can_view_cost;
     }
 }

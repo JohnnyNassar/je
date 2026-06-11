@@ -16,6 +16,9 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    {{-- Density pass — loaded after app.css so it overrides. Tweak the root
+         font-size knob in public/css/storefront-density.css to adjust. --}}
+    <link rel="stylesheet" href="{{ asset('css/storefront-density.css') }}?v={{ filemtime(public_path('css/storefront-density.css')) }}">
     @include('partials.analytics')
 </head>
 <body class="font-sans antialiased bg-gray-50 text-gray-900 min-h-screen flex flex-col">

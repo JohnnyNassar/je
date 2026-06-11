@@ -38,6 +38,7 @@ class QuickAddController extends Controller
                 'description_en' => ['nullable', 'string', 'max:5000'],
                 'description_ar' => ['nullable', 'string', 'max:5000'],
                 'price' => ['required', 'numeric', 'min:0'],
+                'cost_price' => ['nullable', 'numeric', 'min:0'],
                 'compare_at_price' => ['nullable', 'numeric', 'min:0'],
                 'stock' => ['required', 'integer', 'min:0'],
                 'is_active' => ['nullable', 'boolean'],
@@ -67,6 +68,8 @@ class QuickAddController extends Controller
             'description_en' => $data['description_en'] ?? null,
             'description_ar' => $data['description_ar'] ?? null,
             'price' => $data['price'],
+            // Cost is gated — ignore any value posted by a user without cost access.
+            'cost_price' => auth()->user()?->canViewCost() ? (($data['cost_price'] ?? null) ?: null) : null,
             'compare_at_price' => ($data['compare_at_price'] ?? null) ?: null,
             'stock' => $data['stock'],
             'image_path' => $path,

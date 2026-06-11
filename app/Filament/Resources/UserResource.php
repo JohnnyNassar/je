@@ -58,6 +58,11 @@ class UserResource extends Resource
                             ->dehydrated(fn ($state) => filled($state))
                             ->maxLength(255)
                             ->helperText('Leave blank to keep the current password.'),
+                        Forms\Components\Toggle::make('can_view_cost')
+                            ->label('Can view cost prices & profit')
+                            ->helperText('Lets a Staff member see cost price and profit margin. Administrators and the owner always see these, so this only matters for the Staff role.')
+                            ->default(false)
+                            ->columnSpanFull(),
                     ]),
             ]);
     }
