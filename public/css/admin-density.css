@@ -83,6 +83,23 @@
 }
 
 /* --- Forms --- */
+
+/* Section card padding */
 .fi-section-content {
-    padding: 1rem !important;
+    padding: 0.875rem !important;
+}
+
+/* The main lever: vertical gap between form fields (was 1.5rem / ~22px) */
+.fi-fo-component-ctn {
+    gap: 0.75rem !important;
+}
+
+/* Tighter gap between a field's label, input, and helper text */
+.fi-fo-field-wrp {
+    gap: 0.2rem !important;
+}
+
+/* Trim the gap between stacked sections (e.g. main fields → Variations) */
+.fi-form {
+    gap: 0.75rem !important;
 }

@@ -387,6 +387,64 @@ The Loyalty section gained the reporting + promotions it was structured for, and
 
 ---
 
+## Day 9 — 2026-05-25 → 2026-05-26 (admin role tiers, customer tiers & tier pricing, richer audit log)
+
+### Admin role tiers (super admin / admin / staff)
+- Was two-tier (`admin` = full, `staff` = catalog). Now three: **`super_admin`** (owner), **`admin`** (everyday ops — orders, customers, coupons, loyalty, catalog), **`staff`** (catalog only).
+- New `SuperAdminOnly` trait (mirrors `AdminOnly`) gates the owner-only areas: Staff/user management, the three Settings pages (Store / Notifications / Loyalty) and the Activity log. `User::isAdmin()` was redefined to mean "admin **or** super_admin" so every existing `AdminOnly` gate and dashboard widget keeps working for both tiers; `isSuperAdmin()` is the new strict check.
+- Idempotent migration promotes existing `admin` rows → `super_admin` so the owner keeps full access. Staff manager role dropdown + badge updated to three roles; gating the Staff resource to super-admin-only also closes the privilege-escalation path (an `admin` can't mint a `super_admin`).
+- Fixed a regression from the rename: the new-order admin notification queried `role = 'admin'` — now `whereIn(['admin','super_admin'])` so the owner still gets alerts.
+
+### Customer tiers + tier pricing
+- `customers.tier` (regular | vip | wholesale), default regular, set in the Customers admin (badge + filter). `Customer::TIERS` is the single source of truth.
+- **`CustomerTierService`** centralises the perks: wholesale customers pay a configurable % off every unit price (applied in `Cart::items()`, so it flows cart → checkout → order line items); VIP customers earn a configurable loyalty-points multiplier (applied in `LoyaltyService`, before the best promotion). Rates are admin settings (`tier_wholesale_discount_percent` on Store settings, `tier_vip_points_multiplier` on Loyalty settings; defaults 10% / ×2).
+
+### Richer activity log
+- New `activity_logs.ip_address` + `user_agent`, auto-stamped on every entry by the model's `creating` hook (skipped for console/queue writes with no client IP).
+- **Storefront order placements** now logged explicitly in `CheckoutController` (event `placed`, customer or guest) — the trait skips them since no admin is behind the write.
+- **Customer storefront logins/logouts** now logged (the `customer` guard listeners in `AppServiceProvider`, type `customer-auth`); customer *failed* logins deliberately not logged to avoid public-storefront bot noise.
+- The Activity log resource is now **super-admin-only** (moved with the role change) and gained IP + Device columns and a `placed` event filter.
+
+### Production rollout
+- Three surgical deploys (tar+scp the changed files, `migrate --force`, rebuild caches, reload php-fpm), each with a DB snapshot + file-rollback tarball in `/var/backups/joreption/`. Commits `db6fd7b` (roles + tiers), `0aded33` (order logging + IP/UA), `8482cf9` (customer login logging).
+- Created the live **`admin@joreption.com`** (admin tier); owner `admin@joreption.local` promoted to super_admin. Set strong passwords on both.
+- **End-to-end test on prod** (rolled-back transaction, `Mail::fake()` → zero residue): wholesale `39 → 35.10`, cart/order totals, stock decrement, placement log + IP, VIP `100 → 200` points — 8/8 passed. **Finding: `loyalty_enabled` is off on prod**, so the points program (and the VIP multiplier) is dormant until enabled; wholesale pricing is live and active.
+
+### Notes worth remembering
+- **Two separate role systems.** Admin `User.role` (super_admin/admin/staff, `web` guard) is distinct from storefront `Customer.tier` (regular/vip/wholesale, `customer` guard) — "customer" is **not** a `User` role.
+- **`isAdmin()` semantics.** Redefining `isAdmin()` as "admin-or-super_admin" let the tier split land with zero edits to the many existing `AdminOnly` / widget call sites; only the genuinely owner-only screens got the new `SuperAdminOnly` trait.
+- **Tier perks are inert until used.** Wholesale % and VIP × default on (10 / ×2) but affect nobody until a customer is tagged — safe to deploy live.
+- **Safe prod E2E test.** A rolled-back `DB::transaction` + `Mail::fake()` lets you exercise the real cart/order/loyalty code on production with zero residue and no accidental customer emails — far safer than fighting CSRF + Coming Soon over HTTP. (Watch out: a `WHERE name LIKE 'TEST%'` cleanup check matched a pre-existing day-1 `Test Customer`, not residue — confirm by the rolled-back row count, not the name match.)
+
+---
+
+## Day 10 — 2026-06-11 (product cost price & profit, per-user cost access, UI density pass)
+
+### Cost price & profit margin
+- `products.cost_price` (nullable decimal) — what the owner paid per unit. `Product` gains a `profit` (price − cost) and `margin_percentage` accessor; both return null when no cost is recorded.
+- Shown in the product form and Quick Add, plus toggleable **Cost** + **Profit** columns on the Products table (Profit renders `amount (margin %)`, green for profit / red for a loss). **Never exposed on the storefront** — only admin surfaces reference it.
+- Cost changes flow through the existing activity log (an admin write, not a secret — no redaction needed).
+
+### Per-user cost access
+- `users.can_view_cost` (boolean, default false). New `User::canViewCost()` = `isAdmin() || can_view_cost` — admins/super-admins always see cost; a single **Staff** member can be granted access without being promoted to the admin tier.
+- New **"Can view cost prices & profit"** toggle on the Staff form. All three cost surfaces (form field, table columns, Quick Add — including **server-side rejection** of any cost posted by a user without access) gate on `canViewCost()`.
+
+### UI density pass (admin + storefront)
+- Build-free CSS density layer with one font-scale knob per surface: `public/css/admin-density.css` (injected via an `AdminPanelProvider` `renderHook`, root `90%`) and `public/css/storefront-density.css` (linked in the shop layout after `@vite`, root `94%`). Because Filament and Tailwind size in rem, scaling the root font-size shrinks fonts **and** spacing together.
+- Targeted Filament trims found by inspecting the **live DOM** (a headless-browser computed-style walk), not by guessing class names: the real row padding lives on the inner `.fi-ta-text` (`py-4`), not `.fi-ta-cell`; the page content wrapper's `py-8` + `gap-y-8` was the big empty band before the table; the topbar's fixed `h-16` was overridden. Result on the products list — rows **60px → 36px**, table top **199px → 174px**, thumbnails **40px → 28px** (`ImageColumn::size(28)`).
+- Form density (added after the first deploy): `.fi-fo-component-ctn` field gap **22px → 11px**, field label/input gap and section padding tightened.
+
+### Production rollout
+- Commit `ac09295` deployed via the `git push` → `joreption-deploy.sh` pipeline. **That push also synced the Day 9 commits onto GitHub** — they had only reached prod via tar/scp, so the remote was behind; git and prod are now properly in sync. Pre-deploy DB snapshot at `/var/backups/joreption/predeploy-costprice-*.sql`.
+- Verified live: `products.cost_price` + `users.can_view_cost` columns present, home + admin-login `200`. Cost price + admin/storefront density are **live**; the **form-density** pass was added afterward and is **not yet deployed**.
+
+### Notes worth remembering
+- **Find Filament's real spacing element by inspecting the DOM — don't guess.** Row height came from `.fi-ta-text`'s `py-4` and the page wrapper's `py-8` / `gap-y-8`, not the obvious `.fi-ta-cell`. One computed-style walk in a headless browser found every contributor; blind CSS guesses had no-opped.
+- **Density without a build step.** A plain CSS file scoped per surface (admin via `renderHook`, storefront via a `<link>` after `@vite`) plus a single `:root { font-size }` knob proportionally compacts everything and deploys as an ordinary file — no Vite/theme rebuild.
+- **One gate method keeps cost surfaces in sync.** `canViewCost()` mirrors the `isAdmin()` pattern so the form field, table columns, and controller all share one rule; a per-user boolean grants exceptions without inventing a new role.
+
+---
+
 ## Lessons learned (worth remembering)
 
 - **OPcache vs deploys.** PHP-FPM had `opcache.validate_timestamps=0` somewhere in its config, so simply replacing PHP files left old bytecode in memory and made my fixes look like they had no effect. **All deploys now `systemctl reload php8.3-fpm`** as the last step.

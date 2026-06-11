@@ -52,6 +52,7 @@ _Last updated: 2026-05-24_
 - Amber "Cash on Delivery" callout
 - Sticky order summary with per-item thumbnails, variant labels, and Subtotal / Discount / Total
 - Single DB transaction: order + items (with variant snapshot) + per-variant stock decrement + coupon usage increment
+- **Tier pricing:** a logged-in **wholesale** customer automatically pays a configurable % off every unit price (flows cart → checkout → order line items)
 
 ### Order confirmation
 - Green checkmark hero with order # + 4-column meta grid (date, total, payment, items)
@@ -78,7 +79,7 @@ _Last updated: 2026-05-24_
 
 ### Loyalty points (optional)
 A per-customer rewards program: **every customer has their own points balance and a full earn / redeem history** (ledger), tied to their orders.
-- **Earning** — credited automatically when an order is marked **delivered** (`order total × earn rate`, plus any active promotion). Every order is attached to a customer — their account, or a record auto-created from their phone for guest checkouts — so guests accrue points too
+- **Earning** — credited automatically when an order is marked **delivered** (`order total × earn rate`, plus any active promotion). Every order is attached to a customer — their account, or a record auto-created from their phone for guest checkouts — so guests accrue points too. **VIP**-tier customers earn at a configurable multiplier (e.g. ×2)
 - **Redeeming** — at checkout a **logged-in** customer can opt in (checkbox, live total update) to spend points for a discount; **stacks with a coupon**, capped at the order amount and the minimum-redeem setting. Guests must sign in to spend (the phone-merge then links their prior orders to the account)
 - **Promotions** — admin-run boosts (double / triple, or bonus points; optionally for a date window or above a minimum order) automatically increase what an order earns
 - Points balance card on **My Orders**; "you'll earn X points" hint at checkout (reflects active promotions)
@@ -175,6 +176,7 @@ A per-customer rewards program: **every customer has their own points balance an
 - Price + stock + active toggle
 - **Sale price** (`compare_at_price`) — when higher than current price, triggers Save% badge on public site
 - **Featured toggle** — surfaces the product in the Featured strip on the catalog home
+- **Cost price + profit** (gated) — record what you paid per unit; toggleable **Cost** and **Profit** columns show the margin (`amount (margin %)`, green for profit / red for loss). **Never shown to customers**; visible to admins and any staff granted cost access
 - Category selector (server-side searchable, no preload)
 - **Variations** — collapsible repeater of color/size options, each with its own stock + optional price/image override (drag-to-reorder); product stock auto-sums from them
 - **Copyable public URL** in row ("Copy link" — for WhatsApp sharing)
@@ -187,6 +189,7 @@ A per-customer rewards program: **every customer has their own points balance an
 
 ### Customers
 - Name + Phone (copyable) + City
+- **Tier** badge — Regular / VIP / Wholesale — set per customer; drives wholesale pricing + VIP point multiplier; filterable
 - Orders count (badge) + Total spent (sum, currency-formatted)
 - "Has orders" filter toggle
 - Detail page with embedded **Order History** relation manager
@@ -203,19 +206,23 @@ A per-customer rewards program: **every customer has their own points balance an
 - Applied at checkout from the cart; discount + code recorded on the order
 
 ### Staff (admin accounts)
-- Single-seller roles: **admin** (full access) vs **staff** (catalog only — Products, Categories, Media, Quick Add)
-- Admin-only Staff manager to create/edit accounts (name / email / role / password; can't delete your own account)
-- Staff are blocked (hidden nav + 403) from Orders, Customers, Coupons, Settings, and Staff itself
+- Three roles: **super admin** (owner — full access), **admin** (everyday ops), **staff** (catalog only — Products, Categories, Media, Quick Add)
+- **Super-admin-only** (hidden nav + 403 for everyone else): Staff/user management, Settings (Store / Notifications / Loyalty) and the Activity log
+- **Admin** can run Orders, Customers, Coupons and Loyalty, but not the super-admin-only areas above
+- **Staff** are limited to the catalog
+- Super-admin-only Staff manager to create/edit accounts (name / email / role / password; can't delete your own account). Because only a super admin manages staff, an admin can't promote anyone to super admin
+- **"Can view cost prices & profit"** per-user toggle — grant a single **Staff** member access to product cost/profit without promoting them to admin (admins always see it)
 
 ### Loyalty (dedicated nav section, admin-only)
 - **Points activity** — at-a-glance **reports** (points outstanding, their currency **liability value**, earned / redeemed over 30 days, plus a 6-month earned-vs-redeemed chart) above a read-only ledger of every earn / redeem / adjust, filterable by type
 - **Promotions** — time-boxed point boosts: **multiply points** (×2 double, ×3 triple) or **bonus points** per order, with optional minimum-order total and start/end dates, an on/off toggle, and a live Running / Scheduled / Ended / Off status. The best active promo is auto-applied when an order is delivered (and previewed at checkout)
-- **Settings** — enable toggle, earn rate (points per currency), point value (currency per point), minimum redeem
+- **Settings** — enable toggle, earn rate (points per currency), point value (currency per point), minimum redeem, **VIP points multiplier**
 - Per-customer **points** column + manual **"Adjust points"** action on Customers (records a ledger entry); points-earned / redeemed columns on Orders
 
 ### Settings
 - Currency (code / symbol / position)
 - Admin WhatsApp number
+- **Customer tiers** — *Wholesale discount %* (here, on Store settings) and *VIP points multiplier* (on Loyalty settings) drive the per-tier perks
 - Coming Soon mode toggle + custom EN/AR headlines
 - **Google Analytics (GA4)** — paste your Measurement ID (`G-XXXX`) to load Google's tag on the storefront + Coming Soon page for visitor tracking
 - **Privacy Policy page** (`/privacy`, bilingual) + a dismissible **cookie notice** — reachable even while Coming Soon is on, and linked in the footer
@@ -225,11 +232,13 @@ A per-customer rewards program: **every customer has their own points balance an
   3. Feature any existing product image (server-side searchable Select with live thumbnail preview)
 - Backed by a key/value `settings` table with cached reads (forgotten on save)
 
-### Activity log (System → Activity log, admin-only)
+### Activity log (System → Activity log, super-admin-only)
 - An audit trail of **deliberate admin/staff actions**: create / update / delete on products, orders, coupons, promotions, categories, settings and staff accounts — each with **who did it**, the **before → after** values, and a timestamp
-- Also logs **admin/staff logins, logouts and failed logins**
-- Secret values (mail password, API keys) are **redacted**; storefront/customer-driven writes are not logged, keeping it a clean accountability trail
-- Read-only page, filterable by event type — a lightweight built-in (no third-party package)
+- **Auth events:** admin/staff logins, logouts and failed logins, plus **customer storefront logins / logouts** (type `customer-auth`; customer *failed* logins are skipped to avoid bot noise)
+- **Storefront order placements** are logged too (event `placed`, attributed to the customer or marked guest) — the one customer-driven write that's tracked
+- Every entry records the **client IP** and **device / user-agent**
+- Secret values (mail password, API keys) are **redacted**; other storefront/customer-driven writes are not logged, keeping it a clean accountability trail
+- Read-only page, filterable by event type and source — a lightweight built-in (no third-party package)
 
 ### Media Library — `/admin/media-library`
 WordPress-style image manager:
@@ -326,10 +335,10 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 ## Architecture
 
 ### Data model
-- `users` (Filament admins) — separate from `customers`; **`role`** (admin | staff)
-- `customers` (public-site accounts) — nullable email / password + **points_balance**
+- `users` (Filament admins) — separate from `customers`; **`role`** (super_admin | admin | staff) + **`can_view_cost`** flag
+- `customers` (public-site accounts) — nullable email / password + **points_balance** + **tier** (regular | vip | wholesale)
 - `categories` — bilingual + slug + position + active
-- `products` — bilingual + price + **compare_at_price** + stock + image + active + **is_featured** + category
+- `products` — bilingual + price + **cost_price** (admin-only) + **compare_at_price** + stock + image + active + **is_featured** + category
 - `product_variants` — product + name + stock + optional price/image override + position (product stock = sum of these)
 - `coupons` — code + type (percent | fixed) + value + min order + usage limit/count + start/expiry + active
 - `orders` — customer + phone + city + address + notes + status + total + **discount_total** + **coupon_code** + **points_earned** + **points_redeemed** + COD
@@ -337,13 +346,14 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 - `loyalty_transactions` — customer + order + points (±) + type (earn | redeem | adjust) + description (the points ledger)
 - `loyalty_promotions` — name + type (multiplier | bonus) + multiplier / bonus_points + min_order_total + starts_at / ends_at + active (time-boxed point boosts)
 - `settings` — key/value, cached (includes `hero_image_path`, `hero_product_id`, `coming_soon_*`, currency, `google_analytics_id`)
-- `activity_logs` — audit trail: log_name + event + description + subject (morph) + causer (morph) + properties (old/new) + timestamp
+- `activity_logs` — audit trail: log_name + event + description + subject (morph) + causer (morph) + properties (old/new) + **ip_address** + **user_agent** + timestamp
 - `password_reset_tokens` — used by both `users` and `customers` brokers
 
 ### Auth guards
-- `web` (default): `User` model — Filament admin
+- `web` (default): `User` model — Filament admin (roles super_admin / admin / staff, gated via the `AdminOnly` and `SuperAdminOnly` traits' `canAccess()`)
 - `customer`: `Customer` model — public site optional login
 - Both can be logged in simultaneously; sessions are independent
+- Sign-ins on **both** guards are written to the activity log (with IP + user agent)
 
 ### Routes (web)
 | Path | Auth | Purpose |
@@ -375,12 +385,13 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 
 ## Roadmap (not yet started)
 
-Prioritised after the 2026-05-25 review — the platform is feature-complete and live behind Coming Soon.
+Prioritised after the 2026-05-25 review — the platform is feature-complete and live behind Coming Soon. _(2026-05-26: admin role tiers, customer tiers with wholesale pricing + VIP point multipliers, and a richer audit log shipped since — see Day 9. 2026-06-11: product cost price + profit with per-user cost access, and an admin/storefront UI density pass — see Day 10.)_
 
 ### 1. Launch readiness (go-live)
-- Review & **activate the imported product drafts** — names, stock, categories, Active toggle
-- Set the **WhatsApp number, branding and hero** on the live site
-- **Test the full Cash-on-Delivery checkout** end-to-end on production
+- Review & **activate the imported product drafts** — names, stock, categories, Active toggle _(live: ~37 drafts vs 8 active)_
+- Set the **WhatsApp number** _(`admin_whatsapp` is empty on prod)_, branding and hero on the live site
+- ✅ **Cash-on-Delivery checkout verified** end-to-end on production (2026-05-26, including wholesale tier pricing)
+- **Enable loyalty** on prod if you want the points program / VIP multiplier active _(`loyalty_enabled` is currently off)_
 - Flip **Coming Soon off** and announce to the WhatsApp group
 
 ### 2. SEO & discoverability
