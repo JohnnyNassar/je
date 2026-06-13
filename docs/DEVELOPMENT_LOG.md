@@ -435,13 +435,25 @@ The Loyalty section gained the reporting + promotions it was structured for, and
 - Form density (added after the first deploy): `.fi-fo-component-ctn` field gap **22px → 11px**, field label/input gap and section padding tightened.
 
 ### Production rollout
-- Commit `ac09295` deployed via the `git push` → `joreption-deploy.sh` pipeline. **That push also synced the Day 9 commits onto GitHub** — they had only reached prod via tar/scp, so the remote was behind; git and prod are now properly in sync. Pre-deploy DB snapshot at `/var/backups/joreption/predeploy-costprice-*.sql`.
-- Verified live: `products.cost_price` + `users.can_view_cost` columns present, home + admin-login `200`. Cost price + admin/storefront density are **live**; the **form-density** pass was added afterward and is **not yet deployed**.
+- **Deploy 1 — commit `ac09295`** (cost price + per-user access + admin/storefront density), via the `git push` → `joreption-deploy.sh` pipeline. **That push also synced the Day 9 commits onto GitHub** — they had only reached prod via tar/scp, so the remote was behind; git and prod are now properly in sync. Pre-deploy DB snapshot at `/var/backups/joreption/predeploy-costprice-*.sql`. Verified live: `products.cost_price` + `users.can_view_cost` columns present, home + admin-login `200`.
+- **Deploy 2 — commit `7725d20`** (the **form-density** pass + these doc updates), no schema change. Verified the HTTPS-served `admin-density.css` carries the form rules. **All three — cost price, admin/storefront density, and form density — are live.**
 
 ### Notes worth remembering
 - **Find Filament's real spacing element by inspecting the DOM — don't guess.** Row height came from `.fi-ta-text`'s `py-4` and the page wrapper's `py-8` / `gap-y-8`, not the obvious `.fi-ta-cell`. One computed-style walk in a headless browser found every contributor; blind CSS guesses had no-opped.
 - **Density without a build step.** A plain CSS file scoped per surface (admin via `renderHook`, storefront via a `<link>` after `@vite`) plus a single `:root { font-size }` knob proportionally compacts everything and deploys as an ordinary file — no Vite/theme rebuild.
 - **One gate method keeps cost surfaces in sync.** `canViewCost()` mirrors the `isAdmin()` pattern so the form field, table columns, and controller all share one rule; a per-user boolean grants exceptions without inventing a new role.
+
+---
+
+## Day 11 — 2026-06-13 (first real staff member + onboarding guide)
+
+### Staff onboarding
+- Created the first non-owner team member, **Jasmine** (`Yasmine.badr92i@gmail.com`), role **staff**, `can_view_cost = false` — so she can build the catalog but never sees or submits cost price / profit (cost is gated by `canViewCost()` = `isAdmin() || can_view_cost`, so staff-with-flag-off is the only configuration that hides it).
+- New bilingual **Getting Started** Filament page (`app/Filament/Pages/GettingStarted.php` + `filament/pages/getting-started.blade.php`): EN ⇄ AR toggle (choice persisted in `localStorage`), Arabic renders full RTL, numbered step cards covering sign-in/password, adding a product, variations, categories, media and tips. Sits at `navigationSort = -1`, just under the Dashboard.
+- **Quick Add is now admin-only.** `QuickAddController::show()`/`store()` `abort_unless(isAdmin(), 403)`; the step was also dropped from the staff guide. (Its `store()` had accepted `cost_price`, so gating it also closes a cost-submission path for staff.)
+
+### Notes worth remembering
+- **Cost visibility can't be granted to admins selectively** — `canViewCost()` short-circuits to true for any admin. To withhold cost from a person, they must be `staff` with the flag off; there is no "admin who can't see cost".
 
 ---
 

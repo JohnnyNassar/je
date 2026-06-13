@@ -11,6 +11,9 @@ class QuickAddController extends Controller
 {
     public function show()
     {
+        // Quick Add is an admin-only tool; staff manage the catalog from the panel.
+        abort_unless(auth()->user()?->isAdmin(), 403);
+
         $categories = \App\Models\Category::active()
             ->orderBy('position')
             ->orderBy('id')
@@ -21,6 +24,8 @@ class QuickAddController extends Controller
 
     public function store(Request $request)
     {
+        abort_unless(auth()->user()?->isAdmin(), 403);
+
         \Log::info('quick-add POST received', [
             'all' => $request->except(['image']),
             'has_image' => $request->hasFile('image'),
