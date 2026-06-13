@@ -4,7 +4,7 @@ A bilingual (English / Arabic, with RTL) Cash-on-Delivery e-commerce platform mi
 
 Built with Laravel 11 + Filament 3 + Tailwind 3 + Alpine.js + MariaDB 10.11. Hosted on Contabo Cloud VPS 10, Ubuntu 24.04 LTS.
 
-_Last updated: 2026-05-24_
+_Last updated: 2026-06-13_
 
 ---
 
@@ -120,8 +120,9 @@ A per-customer rewards program: **every customer has their own points balance an
 
 ---
 
-## Mobile admin — Quick Add (PWA)
+## Mobile admin — Quick Add (PWA, admin-only)
 
+- **Admin-only** — restricted to admins / super admins (`abort 403` for staff); not part of the staff catalog tools
 - Installable as a Progressive Web App (home-screen icon, full-screen, native feel)
 - Service worker (`public/sw.js`) caches the shell for offline opens
 - `start_url = /admin/quick-add`, deep teal theme color
@@ -160,14 +161,16 @@ A per-customer rewards program: **every customer has their own points balance an
 - 14-day orders line chart (brand teal)
 - "Latest orders" table (click through to the order)
 - Full-width admin layout (Filament's default ~1280px cap removed)
+- Wide list tables (orders, products, activity log…) keep an **always-visible horizontal scrollbar** so off-screen columns are easy to reach
 - In-app **notification bell** — admins get an alert on every new order
 
 ### Notifications (admin-only)
 - Config page for channels: **in-app (Dashboard)**, **Email** (SMTP), **SMS** (provider key/secret/from), **WhatsApp** (Cloud API id + token)
 - In-app channel is live (new-order bell alerts). **Email is wired** — saved SMTP settings drive Laravel mail at runtime, with a "Send test email" button; powers password-reset emails once a relay's credentials are entered. SMS/WhatsApp capture settings now, sending wired per channel once provider credentials are supplied.
 
-### Help & user guide (admin)
+### Help & user guides (admin)
 - In-admin **Help** page: a full plain-language guide to every area of the platform, for the owner and staff
+- **Getting Started** page (top of the sidebar, all admins): a bilingual **step-by-step onboarding guide** with an **English ⇄ العربية toggle** (choice remembered) — Arabic renders full RTL. Numbered cards cover sign-in/password, adding a product, variations, categories, media and tips. Tailored to catalog work, so it's the friendly first stop for a new staff member
 
 ### Products
 - Bilingual name + description (EN / AR)
@@ -206,7 +209,7 @@ A per-customer rewards program: **every customer has their own points balance an
 - Applied at checkout from the cart; discount + code recorded on the order
 
 ### Staff (admin accounts)
-- Three roles: **super admin** (owner — full access), **admin** (everyday ops), **staff** (catalog only — Products, Categories, Media, Quick Add)
+- Three roles: **super admin** (owner — full access), **admin** (everyday ops), **staff** (catalog only — Products, Categories, Media)
 - **Super-admin-only** (hidden nav + 403 for everyone else): Staff/user management, Settings (Store / Notifications / Loyalty) and the Activity log
 - **Admin** can run Orders, Customers, Coupons and Loyalty, but not the super-admin-only areas above
 - **Staff** are limited to the catalog
@@ -402,7 +405,7 @@ Prioritised after the 2026-05-25 review — the platform is feature-complete and
 - **WhatsApp Business API** (Meta Cloud API) and/or an **SMS gateway** for order + status messages — the config UI already exists; this wires the actual sending. Optional phone-OTP login.
 
 ### 4. More features
-- **Promo / banner areas** — managed promo slots beyond the single hero
+- **Promo / banner areas** — managed promo slots beyond the single hero. _Scoped 2026-06-13 (build next session): a `banners` table + Filament `BannerResource` (image + link to URL/product/category + placement + start/end scheduling + reorder), rendered on the storefront via an `activeFor($placement)` scope and a responsive, RTL-safe partial. Open decisions: placements, single-vs-carousel, per-locale images, link targets, who manages._
 - **Fuller customer info** — structured + multiple saved addresses
 - **Bidding / auctions** — design pending (timed auction vs. "make an offer")
 - **Loyalty follow-ups** — proactive "you have N points" nudges (reporting + promo campaigns already shipped)

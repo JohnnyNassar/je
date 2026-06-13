@@ -459,6 +459,12 @@ The Loyalty section gained the reporting + promotions it was structured for, and
 - **Cost visibility can't be granted to admins selectively** — `canViewCost()` short-circuits to true for any admin. To withhold cost from a person, they must be `staff` with the flag off; there is no "admin who can't see cost".
 - **Two distinct tracking systems — don't confuse them.** (1) The **audit/activity log is ours**, built in-app (Day 8): the `App\Concerns\LogsActivity` trait records admin/staff create/update/delete (who + before/after + IP + UA) to the `activity_logs` table, and auth listeners in `AppServiceProvider` log admin login/logout/**failed_login** (failed records the typed email + IP) and customer login/logout. Viewable at **System → Activity log** (super-admin only). It logs *actions and auth events, not page navigation*. (2) **Google Analytics (GA4)** is a separate third-party snippet (`resources/views/partials/analytics.blade.php`, toggled from Settings) that tracks anonymous **storefront** pageviews only — it sees nothing in the admin and identifies no individual admin user. So "who logged in" came from our own audit log, not GA.
 
+### Admin UX — table horizontal scroll (commit `8ebe226`, deployed CSS-only)
+- Filament list tables already wrap in an `overflow-x:auto` `.fi-ta-content`, so wide tables (e.g. the activity log's Changes column) *do* scroll — but the bar is thin/auto-hidden and sits at the table's bottom, so it reads as "columns cut off." Added rules to `public/css/admin-density.css` styling `.fi-ta-content`'s horizontal scrollbar to be **always visible and easy to grab** (Firefox `scrollbar-*` + WebKit `::-webkit-scrollbar`). Global — every admin list page benefits. Deployed with `--skip-composer --skip-npm` (hand-written CSS file, not part of the Vite build; cache-busted by `filemtime`); verified live via `curl`.
+
+### Planned next session
+- **Promo banners** — scoped but not built (see Roadmap in `FEATURES.md`). Self-managed storefront banners: `banners` table + Filament `BannerResource` (image + link to URL/product/category + placement + start/end scheduling + drag-reorder), storefront `Banner::activeFor($placement)` scope + responsive RTL-safe partial. ~half a day for v1; carousel +1–2 h. **Awaiting owner decisions:** placements, single-vs-carousel, per-locale images, link targets, who manages (admins vs super-admin).
+
 ---
 
 ## Lessons learned (worth remembering)
