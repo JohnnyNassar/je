@@ -82,6 +82,30 @@
     row-gap: 0.6rem !important;
 }
 
+/* --- Tables: make horizontal scroll obvious & always reachable ---
+ * Filament already sets overflow-x:auto on .fi-ta-content, but the scrollbar is
+ * thin/auto-hidden and lives at the very bottom of the table, so wide tables
+ * (e.g. the activity log's Changes column) look cut off and users miss that they
+ * can scroll. Force an always-visible, easy-to-grab horizontal scrollbar. */
+.fi-ta-content {
+    overflow-x: auto !important;
+    scrollbar-width: thin !important;            /* Firefox */
+    scrollbar-color: rgba(100, 116, 139, 0.6) transparent;
+}
+.fi-ta-content::-webkit-scrollbar {
+    height: 11px;                                  /* Chromium / Edge / Safari */
+}
+.fi-ta-content::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.55);
+    border-radius: 9999px;
+}
+.fi-ta-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.8);
+}
+.fi-ta-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
 /* --- Forms --- */
 
 /* Section card padding */
