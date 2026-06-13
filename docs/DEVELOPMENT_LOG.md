@@ -448,12 +448,16 @@ The Loyalty section gained the reporting + promotions it was structured for, and
 ## Day 11 — 2026-06-13 (first real staff member + onboarding guide)
 
 ### Staff onboarding
-- Created the first non-owner team member, **Jasmine** (`Yasmine.badr92i@gmail.com`), role **staff**, `can_view_cost = false` — so she can build the catalog but never sees or submits cost price / profit (cost is gated by `canViewCost()` = `isAdmin() || can_view_cost`, so staff-with-flag-off is the only configuration that hides it).
+- Created the first non-owner team member, **Jasmine** — account exists on **both local and production** (`users.id = 3` in each).
+  - Email: `Yasmine.badr92i@gmail.com` · role **staff** · `can_view_cost = false` — so she can build the catalog but never sees or submits cost price / profit (cost is gated by `canViewCost()` = `isAdmin() || can_view_cost`, so staff-with-flag-off is the only configuration that hides it).
+  - Password lives in `joreption.txt` (gitignored from commits — **never** record live passwords here). Initial password had symbols that caused a "credentials do not match" typo loop; reset to a symbol-free password and verified via `Hash::check` on both envs. Jasmine should change it via avatar → Profile.
 - New bilingual **Getting Started** Filament page (`app/Filament/Pages/GettingStarted.php` + `filament/pages/getting-started.blade.php`): EN ⇄ AR toggle (choice persisted in `localStorage`), Arabic renders full RTL, numbered step cards covering sign-in/password, adding a product, variations, categories, media and tips. Sits at `navigationSort = -1`, just under the Dashboard.
 - **Quick Add is now admin-only.** `QuickAddController::show()`/`store()` `abort_unless(isAdmin(), 403)`; the step was also dropped from the staff guide. (Its `store()` had accepted `cost_price`, so gating it also closes a cost-submission path for staff.)
+- Shipped in commit `70cf614`, deployed to prod via the `git push` → `joreption-deploy.sh` pipeline (no migration). Verified live: Jasmine logs in, Getting Started renders EN/AR, `/admin/quick-add` returns 403 for her.
 
 ### Notes worth remembering
 - **Cost visibility can't be granted to admins selectively** — `canViewCost()` short-circuits to true for any admin. To withhold cost from a person, they must be `staff` with the flag off; there is no "admin who can't see cost".
+- **Two distinct tracking systems — don't confuse them.** (1) The **audit/activity log is ours**, built in-app (Day 8): the `App\Concerns\LogsActivity` trait records admin/staff create/update/delete (who + before/after + IP + UA) to the `activity_logs` table, and auth listeners in `AppServiceProvider` log admin login/logout/**failed_login** (failed records the typed email + IP) and customer login/logout. Viewable at **System → Activity log** (super-admin only). It logs *actions and auth events, not page navigation*. (2) **Google Analytics (GA4)** is a separate third-party snippet (`resources/views/partials/analytics.blade.php`, toggled from Settings) that tracks anonymous **storefront** pageviews only — it sees nothing in the admin and identifies no individual admin user. So "who logged in" came from our own audit log, not GA.
 
 ---
 
