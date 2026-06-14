@@ -21,6 +21,7 @@ class Product extends Model
         'compare_at_price',
         'stock',
         'image_path',
+        'gallery',
         'is_active',
         'is_featured',
     ];
@@ -32,6 +33,7 @@ class Product extends Model
         'stock' => 'integer',
         'is_active' => 'boolean',
         'is_featured' => 'boolean',
+        'gallery' => 'array',
     ];
 
     public function getNameAttribute(): string
@@ -48,6 +50,36 @@ class Product extends Model
         return $locale === 'ar' && $this->description_ar
             ? $this->description_ar
             : $this->description_en;
+    }
+
+    /**
+     * Every image path for this product — the cover (image_path) first, then any
+     * gallery images, de-duplicated. Returns raw storage paths, not URLs.
+     *
+     * @return array<int, string>
+     */
+    public function imagePaths(): array
+    {
+        $paths = [];
+        if ($this->image_path) {
+            $paths[] = $this->image_path;
+        }
+        foreach ((array) $this->gallery as $path) {
+            if ($path) {
+                $paths[] = $path;
+            }
+        }
+        return array_values(array_unique($paths));
+    }
+
+    /**
+     * Public asset URLs for every image, cover first. Convenient for views.
+     *
+     * @return array<int, string>
+     */
+    public function imageUrls(): array
+    {
+        return array_map(fn (string $path) => asset('storage/' . $path), $this->imagePaths());
     }
 
     public function category()
@@ -142,6 +174,15 @@ class Product extends Model
             if ($product->wasChanged('image_path') && $product->image_path) {
                 $abs = storage_path('app/public/' . ltrim($product->image_path, '/'));
                 \App\Support\ImageResizer::fit($abs, 1600, 85);
+            }
+            if ($product->wasChanged('gallery')) {
+                foreach ((array) $product->gallery as $path) {
+                    if (! $path) {
+                        continue;
+                    }
+                    $abs = storage_path('app/public/' . ltrim($path, '/'));
+                    \App\Support\ImageResizer::fit($abs, 1600, 85);
+                }
             }
         });
     }

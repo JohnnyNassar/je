@@ -467,6 +467,29 @@ The Loyalty section gained the reporting + promotions it was structured for, and
 
 ---
 
+## Day 12 — 2026-06-14 (multi-image products + staff storefront preview)
+
+### Multiple product images (gallery)
+- Kept `products.image_path` as the **cover** image (zero breakage for the catalog grid, cart, orders, table thumbnail) and added a new nullable **`products.gallery`** JSON column for extra photos. Migration `2026_06_14_000000_add_gallery_to_products_table`.
+- `Product` casts `gallery` to `array` and gains `imagePaths()` / `imageUrls()` helpers (cover first, then gallery, de-duplicated). The existing `saved()` resize hook now also fits each gallery image to 1600px/85% (same as the cover).
+- Admin form: new **"More images (gallery)"** `FileUpload` (`->multiple()->reorderable()->appendFiles()`) under the cover field in `ProductResource`.
+- Storefront product page (`catalog/show.blade.php`): a thumbnail strip (only when >1 image) that swaps the main image. Works in **both** layouts — in the variant layout, picking a variant still shows its override image and resets the manual thumbnail choice (Alpine `manualImage` cleared on `selectedId` change).
+
+### Staff can preview products on the live site
+- **Problem:** `CatalogController::show` did `abort_unless($product->is_active, 404)`, so a freshly-added **draft** couldn't be viewed by the person who made it.
+- **Fix:** allow preview when the viewer is on the **`web` guard** (`auth('web')->check()` → admins/staff). Shoppers use the separate **`customer`** guard and guests still get a 404 on inactive products — verified (guest → 404, active → 200).
+- A bilingual amber **"Draft preview — not active, customers can't see it yet"** banner shows on the page only for staff viewing an inactive product (`isDraftPreview` flag; EN in `__()`, AR added to `lang/ar.json`).
+- One-click **"View on website"** action added to the products **table row** and the **edit-page header** (`ProductResource` + `EditProduct`), opens in a new tab. The old "Copy link" column stays.
+
+### Production rollout
+- Shipped in commit `__PENDING__`, deployed via the `git push` → `joreption-deploy.sh` pipeline. **Has a migration** (`gallery` column) — pre-deploy DB snapshot taken. Verified live after deploy.
+
+### Notes worth remembering
+- **Two auth guards keep the preview safe.** Staff/admin = `web` guard (`users`), shoppers = `customer` guard (`customers`). Gating the draft preview on `auth('web')->check()` lets the team see drafts without ever exposing them to logged-in customers or guests.
+- **Add images, don't replace the column.** Keeping `image_path` as the cover and layering a `gallery` array on top meant no consumer (grid/cart/orders/table) needed touching — only the detail page opted into the gallery.
+
+---
+
 ## Lessons learned (worth remembering)
 
 - **OPcache vs deploys.** PHP-FPM had `opcache.validate_timestamps=0` somewhere in its config, so simply replacing PHP files left old bytecode in memory and made my fixes look like they had no effect. **All deploys now `systemctl reload php8.3-fpm`** as the last step.

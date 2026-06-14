@@ -1,4 +1,13 @@
 <x-layouts.shop>
+    @if ($isDraftPreview ?? false)
+        <div class="mb-5 flex items-start gap-2.5 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+            <span>{{ __('Draft preview — this product is not active, so customers cannot see it yet. This is how it will look once you activate it.') }}</span>
+        </div>
+    @endif
     <nav class="text-xs text-gray-500 mb-5" aria-label="Breadcrumb">
         <ol class="inline-flex items-center gap-1.5">
             <li><a href="{{ route('catalog.index') }}" class="hover:text-brand-600">{{ __('Catalog') }}</a></li>
@@ -22,19 +31,26 @@
             ])->values();
             $firstInStock = $product->variants->firstWhere('stock', '>', 0) ?? $product->variants->first();
             $productImage = $product->image_path ? asset('storage/' . $product->image_path) : '';
+            $galleryImages = $product->imageUrls();
         @endphp
         <div class="bg-white border border-gray-200 rounded-xl overflow-hidden"
              x-data="{
                 variants: @js($variantData),
                 productImage: @js($productImage),
+                gallery: @js($galleryImages),
+                manualImage: null,
                 selectedId: {{ $firstInStock?->id ?? 'null' }},
                 qty: 1,
                 get current() { return this.variants.find(v => v.id === this.selectedId) || null; },
                 get max() { return this.current ? this.current.stock : 0; },
-                get image() { return (this.current && this.current.image) ? this.current.image : this.productImage; },
+                get image() {
+                    if (this.manualImage) return this.manualImage;
+                    return (this.current && this.current.image) ? this.current.image : this.productImage;
+                },
              }"
-             x-init="$watch('selectedId', () => { qty = 1; })">
+             x-init="$watch('selectedId', () => { qty = 1; manualImage = null; })">
             <div class="grid grid-cols-1 md:grid-cols-2">
+                <div>
                 <div class="relative aspect-square md:aspect-auto bg-gray-100 overflow-hidden">
                     <template x-if="image">
                         <img :src="image" :alt="current ? current.name : @js($product->name)" class="w-full h-full object-cover">
@@ -51,6 +67,18 @@
                             {{ __('Save') }} {{ $product->discount_percentage }}%
                         </span>
                     @endif
+                </div>
+                @if (count($galleryImages) > 1)
+                    <div class="flex gap-2 overflow-x-auto p-3 bg-white">
+                        <template x-for="(src, i) in gallery" :key="i">
+                            <button type="button" @click="manualImage = src"
+                                    :class="image === src ? 'ring-2 ring-brand-600' : 'ring-1 ring-gray-200 hover:ring-gray-300'"
+                                    class="shrink-0 w-16 h-16 rounded-md overflow-hidden bg-gray-100 focus:outline-none">
+                                <img :src="src" alt="" class="w-full h-full object-cover">
+                            </button>
+                        </template>
+                    </div>
+                @endif
                 </div>
 
                 <div class="p-6 sm:p-8 flex flex-col">
@@ -136,10 +164,14 @@
             </div>
         </div>
     @else
+    @php $galleryImages = $product->imageUrls(); @endphp
     <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <div class="grid grid-cols-1 md:grid-cols-2">
+            <div @if (count($galleryImages) > 1) x-data="{ active: @js($galleryImages[0]) }" @endif>
             <div class="relative aspect-square md:aspect-auto bg-gray-100 overflow-hidden">
-                @if ($product->image_path)
+                @if (count($galleryImages) > 1)
+                    <img :src="active" alt="{{ $product->name }}" class="w-full h-full object-cover">
+                @elseif ($product->image_path)
                     <img src="{{ asset('storage/' . $product->image_path) }}"
                          alt="{{ $product->name }}"
                          class="w-full h-full object-cover">
@@ -160,6 +192,18 @@
                         {{ $product->stock }} {{ __('left') }}
                     </span>
                 @endif
+            </div>
+            @if (count($galleryImages) > 1)
+                <div class="flex gap-2 overflow-x-auto p-3 bg-white">
+                    @foreach ($galleryImages as $src)
+                        <button type="button" @click="active = @js($src)"
+                                :class="active === @js($src) ? 'ring-2 ring-brand-600' : 'ring-1 ring-gray-200 hover:ring-gray-300'"
+                                class="shrink-0 w-16 h-16 rounded-md overflow-hidden bg-gray-100 focus:outline-none">
+                            <img src="{{ $src }}" alt="" class="w-full h-full object-cover">
+                        </button>
+                    @endforeach
+                </div>
+            @endif
             </div>
 
             <div class="p-6 sm:p-8 flex flex-col">

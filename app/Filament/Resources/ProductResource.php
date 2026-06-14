@@ -80,6 +80,17 @@ class ProductResource extends Resource
                             ->modalCancelActionLabel('Close')
                             ->modalWidth('5xl')
                     ),
+                Forms\Components\FileUpload::make('gallery')
+                    ->label('More images (gallery)')
+                    ->helperText('Optional. Extra photos shown after the cover image. Drag to reorder.')
+                    ->image()
+                    ->multiple()
+                    ->reorderable()
+                    ->appendFiles()
+                    ->disk('public')
+                    ->directory('products')
+                    ->imagePreviewHeight('120')
+                    ->columnSpanFull(),
                 Forms\Components\Toggle::make('is_active')
                     ->default(true)
                     ->required(),
@@ -199,6 +210,12 @@ class ProductResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\Action::make('viewOnSite')
+                    ->label('View on website')
+                    ->icon('heroicon-m-arrow-top-right-on-square')
+                    ->color('gray')
+                    ->url(fn (Product $record) => route('catalog.show', $record))
+                    ->openUrlInNewTab(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

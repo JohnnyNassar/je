@@ -15,6 +15,12 @@ class EditProduct extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('viewOnSite')
+                ->label('View on website')
+                ->icon('heroicon-m-arrow-top-right-on-square')
+                ->color('gray')
+                ->url(fn () => route('catalog.show', $this->getRecord()))
+                ->openUrlInNewTab(),
             Actions\DeleteAction::make(),
         ];
     }

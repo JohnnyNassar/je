@@ -44,7 +44,11 @@ class CatalogController extends Controller
 
     public function show(Product $product)
     {
-        abort_unless($product->is_active, 404);
+        // Staff/admins (the `web` guard) may preview inactive drafts so they can
+        // see how a product looks before activating it. Shoppers (the `customer`
+        // guard) and guests only ever see active products.
+        $isStaff = auth('web')->check();
+        abort_unless($product->is_active || $isStaff, 404);
 
         $product->load('variants');
 
@@ -58,6 +62,8 @@ class CatalogController extends Controller
                 ->get()
             : collect();
 
-        return view('catalog.show', compact('product', 'related'));
+        $isDraftPreview = $isStaff && ! $product->is_active;
+
+        return view('catalog.show', compact('product', 'related', 'isDraftPreview'));
     }
 }
