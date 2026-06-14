@@ -482,7 +482,7 @@ The Loyalty section gained the reporting + promotions it was structured for, and
 - One-click **"View on website"** action added to the products **table row** and the **edit-page header** (`ProductResource` + `EditProduct`), opens in a new tab. The old "Copy link" column stays.
 
 ### Production rollout
-- Shipped in commit `__PENDING__`, deployed via the `git push` → `joreption-deploy.sh` pipeline. **Has a migration** (`gallery` column) — pre-deploy DB snapshot taken. Verified live after deploy.
+- Shipped in commit `f98182a`, deployed via the `git push` → `joreption-deploy.sh` pipeline. **Has a migration** (`gallery` column) — pre-deploy DB snapshot at `/var/backups/joreption/predeploy-gallery-20260614-143820.sql`. Verified live: migration ran, `products.gallery` column present, home + admin-login + a product page all `200`, Arabic draft-preview string deployed to `lang/ar.json`.
 
 ### Notes worth remembering
 - **Two auth guards keep the preview safe.** Staff/admin = `web` guard (`users`), shoppers = `customer` guard (`customers`). Gating the draft preview on `auth('web')->check()` lets the team see drafts without ever exposing them to logged-in customers or guests.
