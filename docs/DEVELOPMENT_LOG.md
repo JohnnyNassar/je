@@ -541,7 +541,7 @@ The **variant row stays the unit of sale** — `variant_id` still flows through 
 - Rewrote the Getting Started "Variations" step (EN+AR) to teach the new flow: define up to 3 Options → "Build combinations" → fill stock/price/photo; with the manual single-axis fallback.
 
 ### Production rollout
-- Shipped in commit `__PENDING__`. **Has a migration** — pre-deploy DB snapshot taken. Deployed via `git push` → `joreption-deploy.sh`. Verified live after deploy.
+- Shipped in commit `560d0e5`. **Has a migration** — pre-deploy snapshot at `/var/backups/joreption/predeploy-variants-20260615-230826.sql`. Deployed via `git push` → `joreption-deploy.sh`. Verified live: prod at `560d0e5`, `product_options` table + `product_variants.option_values` column present, home + admin-login `200`. Legacy flat variants (e.g. #94) unaffected.
 
 ---
 
