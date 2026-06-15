@@ -4,7 +4,7 @@ A bilingual (English / Arabic, with RTL) Cash-on-Delivery e-commerce platform mi
 
 Built with Laravel 11 + Filament 3 + Tailwind 3 + Alpine.js + MariaDB 10.11. Hosted on Contabo Cloud VPS 10, Ubuntu 24.04 LTS.
 
-_Last updated: 2026-06-13_
+_Last updated: 2026-06-15_
 
 ---
 
@@ -15,7 +15,7 @@ _Last updated: 2026-06-13_
 - Hero banner (locked 21:9 on desktop) with brand color, "Deals" pill, "Browse Catalog" CTA
 - Hero background: admin can upload a custom image (with in-browser cropper) OR feature one of the products' images — pick from a server-side searchable dropdown
 - Search box (matches `name_en`, `name_ar`, `description_en`, `description_ar`)
-- Category chip filter (horizontally scrollable on mobile)
+- **2-level category filter** — a row of top-level categories and, when one is active, a second row of its sub-categories (both horizontally scrollable on mobile). Picking a parent shows its own products **plus** all of its sub-categories'; picking a child narrows to that child
 - **"Featured" strip** below the hero — shows up to 8 products marked as featured (horizontal scroll, snap-aligned)
 - Stock badges (`Out of Stock`, `X left`)
 - **"Save X%" red ribbon** on any product where `compare_at_price > price`, plus crossed-out original price on cards + detail
@@ -24,10 +24,14 @@ _Last updated: 2026-06-13_
 
 ### Product detail
 - Breadcrumb
-- Large image with hover zoom
+- **Image gallery** — cover image plus optional extra photos; a thumbnail strip swaps the main image (shown only when there's more than one)
 - Locale-aware name + description (auto-picks Arabic or English)
 - Live "X left" indicator (green dot)
-- **Variant selector** — when a product has variations, option chips live-swap the price, stock, and image, and set the chosen variant (out-of-stock options disabled)
+- **Variant selectors** — two ways, depending on the product:
+  - **Structured options** — up to 3 attributes (e.g. Colour, Size, Dimension) each render a **separate selector**; picking values resolves to the matching variant and live-swaps price / stock / image. Combinations with no in-stock variant are auto **struck-through**
+  - **Flat list** (legacy / single-axis) — option chips that live-swap price, stock and image (out-of-stock disabled)
+- **Staff-only "Product #N" tag** — shown under the breadcrumb to logged-in staff/admins only (never to shoppers), for cross-referencing with the admin
+- **Draft preview** — staff viewing an inactive product see an amber "Draft preview — customers can't see this yet" banner instead of a 404
 - "Cash on Delivery" info pill
 - Alpine.js quantity stepper (− / +)
 - "Add to Cart" CTA with cart icon
@@ -174,14 +178,21 @@ A per-customer rewards program: **every customer has their own points balance an
 
 ### Products
 - Bilingual name + description (EN / AR)
-- Image upload (stored in `storage/app/public/products/`) — auto-resized server-side to max 1600px, JPEG q85 via GD
+- **Cover image** upload (stored in `storage/app/public/products/`) — auto-resized server-side to max 1600px, JPEG q85 via GD
+- **Image gallery** — additional photos via a multiple, drag-reorderable upload (also auto-resized); shown as a thumbnail strip on the storefront. The cover image stays the one used in grids/cart/orders
 - **Pick existing image from media library** as an alternative to upload — opens a 4-column thumbnail grid modal
 - Price + stock + active toggle
 - **Sale price** (`compare_at_price`) — when higher than current price, triggers Save% badge on public site
 - **Featured toggle** — surfaces the product in the Featured strip on the catalog home
 - **Cost price + profit** (gated) — record what you paid per unit; toggleable **Cost** and **Profit** columns show the margin (`amount (margin %)`, green for profit / red for loss). **Never shown to customers**; visible to admins and any staff granted cost access
 - Category selector (server-side searchable, no preload)
-- **Variations** — collapsible repeater of color/size options, each with its own stock + optional price/image override (drag-to-reorder); product stock auto-sums from them
+- **Structured options + variations** (multi-axis):
+  - **Options** section — define up to **3 attributes** (Colour / Size / Dimension), each with bilingual values
+  - **"Build combinations"** action — generates one variation per combination (cartesian product), preserving stock/price/photo already set
+  - **Variations** repeater — each combination has its own stock + optional price/image override; product stock auto-sums from them. Still supports manual single-axis variations for simple products
+- **"View on website"** row + edit-page action — opens the product's public page in a new tab (works even for drafts, via the staff preview)
+- **Total products** shown as a sidebar badge **and** on the list page ("N products total · M active")
+- **Sortable columns** (name, price, stock, dates…) + show/hide column toggles; newest-first by default
 - **Copyable public URL** in row ("Copy link" — for WhatsApp sharing)
 
 ### Orders
@@ -198,10 +209,12 @@ A per-customer rewards program: **every customer has their own points balance an
 - Detail page with embedded **Order History** relation manager
 
 ### Categories
+- **2-level hierarchy** — a **Parent category** selector makes a category a sub-category (capped at 2 levels: the parent field excludes self and is disabled once a category has its own children). Parent badge column ("— top level —" when none)
 - Bilingual name + auto-generated slug from English name
 - Drag-to-reorder via position field
 - Active toggle
 - Products-count badge
+- A **standard taxonomy** (10 parents / 40 bilingual sub-categories — Electronics, Home & Kitchen, Men's/Women's Fashion, Kids & Baby, Beauty, Sports, Health, Automotive, Garden & Tools) is seeded via `CategorySeeder` (idempotent)
 
 ### Coupons
 - Code (case-insensitive), percentage or fixed amount
@@ -340,9 +353,10 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 ### Data model
 - `users` (Filament admins) — separate from `customers`; **`role`** (super_admin | admin | staff) + **`can_view_cost`** flag
 - `customers` (public-site accounts) — nullable email / password + **points_balance** + **tier** (regular | vip | wholesale)
-- `categories` — bilingual + slug + position + active
-- `products` — bilingual + price + **cost_price** (admin-only) + **compare_at_price** + stock + image + active + **is_featured** + category
-- `product_variants` — product + name + stock + optional price/image override + position (product stock = sum of these)
+- `categories` — bilingual + slug + position + active + **`parent_id`** (self-FK for the 2-level hierarchy; null = top-level)
+- `products` — bilingual + price + **cost_price** (admin-only) + **compare_at_price** + stock + image + **`gallery`** (JSON list of extra image paths) + active + **is_featured** + category
+- `product_options` — product + **name_en/name_ar** + **`values`** JSON (`[{en,ar}]`) + position (the up-to-3 variant axes: Colour / Size / Dimension)
+- `product_variants` — product + name + **`option_values`** JSON (`{"Colour":"Red","Size":"M"}`; null for legacy flat variants) + stock + optional price/image override + position (product stock = sum of these)
 - `coupons` — code + type (percent | fixed) + value + min order + usage limit/count + start/expiry + active
 - `orders` — customer + phone + city + address + notes + status + total + **discount_total** + **coupon_code** + **points_earned** + **points_redeemed** + COD
 - `order_items` — order + product + **variant** (id + name snapshot) + product_name + unit_price + quantity + line_total
@@ -388,7 +402,7 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 
 ## Roadmap (not yet started)
 
-Prioritised after the 2026-05-25 review — the platform is feature-complete and live behind Coming Soon. _(2026-05-26: admin role tiers, customer tiers with wholesale pricing + VIP point multipliers, and a richer audit log shipped since — see Day 9. 2026-06-11: product cost price + profit with per-user cost access, and an admin/storefront UI density pass — see Day 10.)_
+Prioritised after the 2026-05-25 review — the platform is feature-complete and live behind Coming Soon. _(2026-05-26: admin role tiers, customer tiers with wholesale pricing + VIP point multipliers, and a richer audit log shipped since — see Day 9. 2026-06-11: product cost price + profit with per-user cost access, and an admin/storefront UI density pass — see Day 10. 2026-06-14/15: product image galleries, staff draft preview + staff-only product #, admin products-table UX (top scrollbar, total count, sortable columns), **structured multi-axis variants** (Colour × Size × Dimension), and **2-level categories** with a standard taxonomy — see Days 12–15.)_
 
 ### 1. Launch readiness (go-live)
 - Review & **activate the imported product drafts** — names, stock, categories, Active toggle _(live: ~37 drafts vs 8 active)_
