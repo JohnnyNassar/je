@@ -507,7 +507,7 @@ The Loyalty section gained the reporting + promotions it was structured for, and
 - **Public storefront is gated by `coming_soon_enabled`** (`ComingSoonMode` middleware): guests get the splash; `/admin`, `/livewire`, `/privacy`, and any logged-in `web` user bypass it. So products (e.g. #94 CRIVIT pool, which already has 8 gallery images + 2 shape variants live) are fully built but invisible to customers until that setting is turned off. A `curl` of a product URL returns 200 but is the splash — log in (or check the DB) to verify real product rendering.
 
 ### Production rollout
-- Shipped in commit `__PENDING__`, deployed via the `git push` → `joreption-deploy.sh` pipeline (**no migration**; JS/CSS are static, picked up by the npm build step). Verified live after deploy.
+- Shipped in commit `774ad77`, deployed via the `git push` → `joreption-deploy.sh` pipeline (**no migration**; "Nothing to migrate"). Verified live: prod at `774ad77`, `js/admin-table-scroll.js` + `css/admin-density.css` serve `200` and the script is wired into admin pages, home + admin-login `200`.
 
 ---
 
