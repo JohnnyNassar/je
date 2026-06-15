@@ -22,6 +22,21 @@ class CategoryResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('parent_id')
+                    ->label('Parent category')
+                    ->relationship(
+                        name: 'parent',
+                        titleAttribute: 'name_en',
+                        modifyQueryUsing: fn (\Illuminate\Database\Eloquent\Builder $query, ?Category $record) => $query
+                            ->whereNull('parent_id')
+                            ->when($record, fn ($q) => $q->whereKeyNot($record->id)),
+                    )
+                    ->searchable()
+                    ->preload()
+                    ->placeholder('— none (top-level category) —')
+                    ->helperText('Leave empty for a top-level category. Pick a parent to make this a sub-category (2 levels max).')
+                    ->disabled(fn (?Category $record): bool => $record !== null && $record->children()->exists())
+                    ->dehydrated(),
                 Forms\Components\TextInput::make('name_en')
                     ->label('Name (English)')
                     ->required()
@@ -49,6 +64,12 @@ class CategoryResource extends Resource
             ->reorderable('position')
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('#')->sortable(),
+                Tables\Columns\TextColumn::make('parent.name_en')
+                    ->label('Parent')
+                    ->badge()
+                    ->color('gray')
+                    ->placeholder('— top level —')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('name_en')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('name_ar')->searchable()->toggleable(),
                 Tables\Columns\TextColumn::make('slug')->toggleable()->color('gray'),

@@ -545,6 +545,31 @@ The **variant row stays the unit of sale** — `variant_id` still flows through 
 
 ---
 
+## Day 15 — 2026-06-15 (2-level categories + standard taxonomy seed)
+
+### Schema
+- Migration `2026_06_15_010000_add_parent_id_to_categories` adds `categories.parent_id` (nullable self-FK, `nullOnDelete` → removing a parent promotes its children to top-level, never deletes products' links). Null = top-level.
+- `Category` gains `parent()` / `children()` relations, a `topLevel()` scope, `isTopLevel()`, and `parent_id` in fillable/casts.
+
+### Admin (CategoryResource)
+- **Parent category** select on the form — lists only top-level categories, excludes self, and is **disabled when the category already has children** (keeps it to 2 levels). New **Parent** badge column ("— top level —" when none).
+
+### Storefront (CatalogController + catalog/index)
+- 2-level nav: top row of parent categories, and a second row of the active parent's sub-categories. Selecting a **parent** lists its own products **plus all sub-categories'**; selecting a **child** lists just that child's. `activeParent` drives which row expands and the highlight.
+
+### Standard taxonomy seed (`CategorySeeder`)
+- Idempotent (matches on slug; child slugs are parent-prefixed since `slug` is unique). Seeds **10 parents / 40 sub-categories**, bilingual EN+AR: Electronics, Home & Kitchen, Men's Fashion, Women's Fashion, Kids & Baby, Beauty & Personal Care, Sports & Outdoors, Health & Wellness, Automotive, Garden & Tools.
+- **Folds the legacy standalone "Men"** category into "Men's Fashion" (reassigns its product, deletes the old row).
+- Run on deploy with `php artisan db:seed --class=CategorySeeder --force` (deploy script does not auto-run seeders).
+
+### Verified locally
+- 10 parents + 40 children seeded; "Men" folded. Storefront `?category=electronics` showed the parent row (Electronics active) + sub-row (5 children). Admin create form loads with the Parent select, no errors.
+
+### Production rollout
+- Shipped in commit `__PENDING__`. **Has a migration + a one-off seed.** Pre-deploy DB snapshot taken. Deployed via `git push` → `joreption-deploy.sh`, then seeder run manually. Verified live after deploy.
+
+---
+
 ## Lessons learned (worth remembering)
 
 - **OPcache vs deploys.** PHP-FPM had `opcache.validate_timestamps=0` somewhere in its config, so simply replacing PHP files left old bytecode in memory and made my fixes look like they had no effect. **All deploys now `systemctl reload php8.3-fpm`** as the last step.

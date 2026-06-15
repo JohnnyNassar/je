@@ -118,20 +118,39 @@
         </form>
 
         @if ($categories->isNotEmpty())
+            {{-- Top-level categories --}}
             <div class="flex items-center gap-2 overflow-x-auto pb-2 -mx-1 px-1">
                 <a href="{{ route('catalog.index', request()->only('q')) }}"
                    class="shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium border transition
-                          {{ ! ($activeCategory ?? null) ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50' }}">
+                          {{ ! ($activeParent ?? null) ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50' }}">
                     {{ __('All') }}
                 </a>
                 @foreach ($categories as $cat)
                     <a href="{{ route('catalog.index', array_filter(['q' => $q ?? null, 'category' => $cat->slug])) }}"
                        class="shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium border transition
-                              {{ ($activeCategory ?? null) && $activeCategory->id === $cat->id ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50' }}">
+                              {{ ($activeParent ?? null) && $activeParent->id === $cat->id ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50' }}">
                         {{ $cat->name }}
                     </a>
                 @endforeach
             </div>
+
+            {{-- Sub-categories of the active top-level category --}}
+            @if (($activeParent ?? null) && $activeParent->children->isNotEmpty())
+                <div class="flex items-center gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+                    <a href="{{ route('catalog.index', array_filter(['q' => $q ?? null, 'category' => $activeParent->slug])) }}"
+                       class="shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition
+                              {{ ($activeCategory ?? null) && $activeCategory->id === $activeParent->id ? 'bg-brand-100 text-brand-700 border-brand-200' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50' }}">
+                        {{ __('All') }} {{ $activeParent->name }}
+                    </a>
+                    @foreach ($activeParent->children as $child)
+                        <a href="{{ route('catalog.index', array_filter(['q' => $q ?? null, 'category' => $child->slug])) }}"
+                           class="shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition
+                                  {{ ($activeCategory ?? null) && $activeCategory->id === $child->id ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50' }}">
+                            {{ $child->name }}
+                        </a>
+                    @endforeach
+                </div>
+            @endif
         @endif
     </div>
 

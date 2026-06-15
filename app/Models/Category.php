@@ -10,6 +10,7 @@ class Category extends Model
     use \App\Concerns\LogsActivity;
 
     protected $fillable = [
+        'parent_id',
         'name_en',
         'name_ar',
         'slug',
@@ -18,6 +19,7 @@ class Category extends Model
     ];
 
     protected $casts = [
+        'parent_id' => 'integer',
         'position' => 'integer',
         'is_active' => 'boolean',
     ];
@@ -25,6 +27,27 @@ class Category extends Model
     public function products()
     {
         return $this->hasMany(Product::class);
+    }
+
+    public function parent()
+    {
+        return $this->belongsTo(Category::class, 'parent_id');
+    }
+
+    public function children()
+    {
+        return $this->hasMany(Category::class, 'parent_id')->orderBy('position')->orderBy('id');
+    }
+
+    /** Top-level categories only (no parent). */
+    public function scopeTopLevel($query)
+    {
+        return $query->whereNull('parent_id');
+    }
+
+    public function isTopLevel(): bool
+    {
+        return $this->parent_id === null;
     }
 
     public function getNameAttribute(): string

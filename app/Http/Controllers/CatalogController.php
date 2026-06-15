@@ -13,13 +13,30 @@ class CatalogController extends Controller
         $q = trim((string) $request->query('q', ''));
         $categorySlug = trim((string) $request->query('category', ''));
 
-        $categories = Category::active()->orderBy('position')->orderBy('id')->get();
-        $activeCategory = $categorySlug ? $categories->firstWhere('slug', $categorySlug) : null;
+        // Top-level categories with their active children, for the 2-level nav.
+        $categories = Category::active()->topLevel()
+            ->with(['children' => fn ($q) => $q->where('is_active', true)])
+            ->orderBy('position')->orderBy('id')->get();
+
+        $activeCategory = $categorySlug
+            ? Category::active()->where('slug', $categorySlug)->first()
+            : null;
+        // The top-level category whose nav row should expand (the active one, or its parent).
+        $activeParent = $activeCategory
+            ? ($activeCategory->isTopLevel() ? $activeCategory : $activeCategory->parent)
+            : null;
 
         $query = Product::active()->orderByDesc('created_at');
 
         if ($activeCategory) {
-            $query->where('category_id', $activeCategory->id);
+            if ($activeCategory->isTopLevel()) {
+                // A parent shows its own products plus all of its sub-categories'.
+                $ids = Category::where('parent_id', $activeCategory->id)->pluck('id')
+                    ->push($activeCategory->id)->all();
+                $query->whereIn('category_id', $ids);
+            } else {
+                $query->where('category_id', $activeCategory->id);
+            }
         }
 
         if ($q !== '') {
@@ -39,7 +56,7 @@ class CatalogController extends Controller
             ? Product::active()->featured()->orderByDesc('created_at')->take(8)->get()
             : collect();
 
-        return view('catalog.index', compact('products', 'categories', 'activeCategory', 'q', 'featured'));
+        return view('catalog.index', compact('products', 'categories', 'activeCategory', 'activeParent', 'q', 'featured'));
     }
 
     public function show(Product $product)
