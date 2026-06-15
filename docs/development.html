@@ -70,9 +70,21 @@ tailwind.config = {
     </p>
 
     <div class="mt-8 flex flex-wrap gap-2">
-      <a href="#day-1" class="bg-white/10 hover:bg-white/15 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">Day 1 — Local scaffolding</a>
+      <a href="#day-1" class="bg-white/10 hover:bg-white/15 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">Day 1 — Scaffolding</a>
       <a href="#day-2" class="bg-white/10 hover:bg-white/15 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">Day 2 — Deployment</a>
       <a href="#day-3" class="bg-white/10 hover:bg-white/15 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">Day 3 — Auth + categories</a>
+      <a href="#day-4" class="bg-white/10 hover:bg-white/15 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">Day 4 — Media library</a>
+      <a href="#day-5" class="bg-white/10 hover:bg-white/15 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">Day 5 — Coupons + variants</a>
+      <a href="#day-6" class="bg-white/10 hover:bg-white/15 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">Day 6 — Loyalty points</a>
+      <a href="#day-7" class="bg-white/10 hover:bg-white/15 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">Day 7 — Loyalty reporting</a>
+      <a href="#day-8" class="bg-white/10 hover:bg-white/15 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">Day 8 — Analytics + audit log</a>
+      <a href="#day-9" class="bg-white/10 hover:bg-white/15 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">Day 9 — Role + customer tiers</a>
+      <a href="#day-10" class="bg-white/10 hover:bg-white/15 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">Day 10 — Cost &amp; profit</a>
+      <a href="#day-11" class="bg-white/10 hover:bg-white/15 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">Day 11 — First staff member</a>
+      <a href="#day-12" class="bg-white/10 hover:bg-white/15 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">Day 12 — Image galleries</a>
+      <a href="#day-13" class="bg-white/10 hover:bg-white/15 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">Day 13 — Products-table UX</a>
+      <a href="#day-14" class="bg-white/10 hover:bg-white/15 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">Day 14 — Multi-axis variants</a>
+      <a href="#day-15" class="bg-white/10 hover:bg-white/15 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">Day 15 — 2-level categories</a>
       <a href="#lessons" class="bg-white/10 hover:bg-white/15 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">Lessons learned</a>
     </div>
   </div>
@@ -363,6 +375,513 @@ tailwind.config = {
     </div>
   </section>
 
+  <!-- Day 4 -->
+  <section id="day-4" class="scroll-mt-4 day-rail relative ps-12">
+    <div class="day-dot"></div>
+    <div class="mb-2">
+      <div class="text-xs font-semibold text-brand-700 uppercase tracking-widest">Day 4 · 2026-05-21</div>
+      <h2 class="text-2xl font-bold">Visual polish + media library + git deploy</h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4 mt-4">
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Sale prices + featured products</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Added <code>compare_at_price</code> + <code>is_featured</code> to <code>products</code>; <code>isOnSale()</code> + <code>discount_percentage</code> + <code>scopeFeatured()</code></li>
+          <li class="check">Catalog: red "Save X%" ribbon, crossed-out original price, horizontal <strong>Featured strip</strong> below the hero</li>
+          <li class="check">Quick Add: "Original price" with live Save% preview + "⭐ Featured" toggle</li>
+          <li class="check">Importer now extracts <code>Online $X</code> / <span dir="rtl" lang="ar">سعره بالسوق</span> into <code>compare_at_price</code></li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Hero image + image resizing</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check"><code>hero_image_path</code> setting with Filament <code>imageEditor()</code> cropper (21:9 / 16:5 / 3:1 …)</li>
+          <li class="check"><code>hero_product_id</code> — server-side searched Select that scales past thousands of products</li>
+          <li class="check"><code>App\Support\ImageResizer::fit()</code> (GD) — product uploads → 1600px, hero → 1920px</li>
+          <li class="check">Catalog resolves: uploaded image → product image → gradient fallback</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Media library — <code>/admin/media-library</code></h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Custom Filament Page; scans <code>products/</code> + <code>hero/</code>, builds a usage map by querying live references</li>
+          <li class="check">Stats row (total / disk usage / orphan count), search + filter (used / orphan) + sort, 48/page</li>
+          <li class="check">Per-tile modal: preview, copy URL, open full, <strong>delete orphan</strong> (in-use files protected)</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Media picker (wired into upload fields)</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Inline <code>x-data</code> broke (injected modal <code>&lt;script&gt;</code> doesn't run, quote-mode collisions)</li>
+          <li class="check">Fixed via global <code>Alpine.data('mediaPicker', …)</code> in <code>public/js/media-picker.js</code>, injected by a <code>renderHook</code></li>
+          <li class="check"><code>HandlesMediaPicking</code> trait routes the value through <code>form->fill()</code> so <code>FileUpload</code> hydration runs cleanly</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5 md:col-span-2">
+        <h3 class="font-semibold mb-3">Push-based git deploy</h3>
+        <ul class="grid md:grid-cols-2 gap-x-6 gap-y-1.5 text-sm text-gray-700">
+          <li class="check"><code>.gitignore</code> covering <code>.env</code>, <code>vendor/</code>, <code>node_modules/</code>, build output, uploaded data, logs, secrets</li>
+          <li class="check"><code>git init</code> + first commit (197 files) pushed to GitHub via HTTPS + PAT</li>
+          <li class="check">Server: read-only ed25519 deploy key; <code>/var/www/joreption</code> reset to <code>origin/main</code></li>
+          <li class="check"><code>joreption-deploy.sh</code>: fetch + hard reset → composer → npm build → <code>filament:upgrade</code> → migrate → cache → reload php-fpm</li>
+          <li class="check">New workflow: edit locally → <code>git push</code> → run the deploy script over SSH</li>
+          <li class="check"><code>docs/development.html</code> styled build journal created at start of Day 4</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Day 5 -->
+  <section id="day-5" class="scroll-mt-4 day-rail relative ps-12">
+    <div class="day-dot"></div>
+    <div class="mb-2">
+      <div class="text-xs font-semibold text-brand-700 uppercase tracking-widest">Day 5 · 2026-05-23 → 24</div>
+      <h2 class="text-2xl font-bold">Related products, coupons, staff roles, variations</h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4 mt-4">
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Coupons / discount codes</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check"><code>coupons</code> table (percent | fixed, value, min order, usage limit, window, active) + <code>Coupon</code> model</li>
+          <li class="check"><code>orders</code> gains <code>discount_total</code> + <code>coupon_code</code> snapshot; <code>CouponService</code> shared by cart + checkout</li>
+          <li class="check">Coupon entry on the cart page; subtotal / discount / total shown everywhere; <code>used_count</code> increments in the transaction</li>
+          <li class="check">Filament <code>CouponResource</code> (CRUD, usage shown as used / max)</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Staff role (single-seller)</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check"><code>users.role</code> (admin | staff); <code>isAdmin()</code> / <code>isStaff()</code></li>
+          <li class="check"><code>AdminOnly</code> trait — hides resource from staff nav <em>and</em> 403s on direct URL</li>
+          <li class="check">Admin-only: Orders, Customers, Coupons, Settings, Staff. Both: Products, Categories, Media, Quick Add</li>
+          <li class="check">New admin-only <code>UserResource</code> ("Staff") to create accounts</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5 md:col-span-2">
+        <h3 class="font-semibold mb-3">Product variations (simple variant rows)</h3>
+        <ul class="grid md:grid-cols-2 gap-x-6 gap-y-1.5 text-sm text-gray-700">
+          <li class="check"><code>product_variants</code> (name, stock, nullable price + image overrides, position); <code>order_items</code> gains <code>variant_id</code> + snapshot</li>
+          <li class="check"><code>Product::syncStockFromVariants()</code> keeps <code>products.stock</code> = sum of variant stock (model events, <code>saveQuietly</code>)</li>
+          <li class="check">Detail page: variant products get an Alpine selector that live-swaps price / stock / image</li>
+          <li class="check">Cart keyed by product + variant (<code>{pid}-{vid}</code>); variant label + image flow through to confirmation</li>
+          <li class="check">Filament: collapsible Variations repeater (relationship-bound, drag-reorder)</li>
+          <li class="check">Fixed <code>+</code>/<code>−</code> stepper race — defer <code>form.submit()</code> to <code>$nextTick</code></li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5 md:col-span-2">
+        <h3 class="font-semibold mb-3">Related products + migration fix</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check"><strong>"You may also like"</strong> strip — up to 8 active same-category siblings, reusing the featured-card style</li>
+          <li class="check">Fixed an <strong>empty-stub customer-auth migration</strong> with a new idempotent one (<code>Schema::hasColumn</code> guards) — login crashed on a fresh DB</li>
+          <li class="check">Six new migrations run + smoke-tested live (coupon math, variant stock roll-up); built while local MariaDB was down via lint + class-load + Blade compile</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Day 6 -->
+  <section id="day-6" class="scroll-mt-4 day-rail relative ps-12">
+    <div class="day-dot"></div>
+    <div class="mb-2">
+      <div class="text-xs font-semibold text-brand-700 uppercase tracking-widest">Day 6 · 2026-05-24</div>
+      <h2 class="text-2xl font-bold">Category UX, theming, loyalty / points</h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4 mt-4">
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Category UX + teal theming</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">"Categories aren't connected" was data, not wiring — 0 products assigned + no preload on the picker</li>
+          <li class="check">Re-enabled <code>->preload()</code> + added a <strong>"Set category" bulk action</strong> on the Products table</li>
+          <li class="check">Admin: Filament's default Amber primary → brand teal (<code>Color::hex('#287d88')</code>, runtime CSS, no rebuild)</li>
+          <li class="check">Storefront: recolored featured icon + low-stock badges from amber to brand</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Admin dashboard + UI density</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">New admin-only dashboard: stats row, 14-day orders chart (brand teal), latest-orders table</li>
+          <li class="check">Density pass — layout widened to <code>max-w-screen-2xl</code>, catalog 5th column at <code>xl</code>, hero shrank, gaps tightened</li>
+          <li class="check">Admin panel set to <code>maxContentWidth(Full)</code> to drop Filament's ~1280px cap</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5 md:col-span-2">
+        <h3 class="font-semibold mb-3">Loyalty / points ("JorEption Points")</h3>
+        <ul class="grid md:grid-cols-2 gap-x-6 gap-y-1.5 text-sm text-gray-700">
+          <li class="check"><code>loyalty_transactions</code> ledger + <code>customers.points_balance</code> + per-order earned/redeemed columns</li>
+          <li class="check"><code>LoyaltyService</code>: admin-configurable earn rate + redeem value + min-redeem; idempotent <code>awardForOrder()</code></li>
+          <li class="check"><strong>Earning</strong> credited when an order becomes <em>delivered</em> (guarded so re-saves never double-credit)</li>
+          <li class="check"><strong>Redeeming</strong> opt-in at checkout for logged-in customers; stacks with a coupon, capped at the order</li>
+          <li class="check">Dedicated <strong>Loyalty nav group</strong>: read-only Points activity ledger + its own Settings page</li>
+          <li class="check">Per-customer points column + manual "Adjust points" action; verified by a rolled-back smoke test</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5 md:col-span-2">
+        <h3 class="font-semibold mb-3">Notification channels + email + Help</h3>
+        <ul class="grid md:grid-cols-2 gap-x-6 gap-y-1.5 text-sm text-gray-700">
+          <li class="check">Admin <strong>Notifications</strong> page configures in-app / Email (SMTP) / SMS / WhatsApp Cloud API channels</li>
+          <li class="check"><strong>In-app works end-to-end</strong> — Filament DB notifications (bell + 30s polling); new order fires an alert to admins</li>
+          <li class="check">Email driven by the UI: <code>configureMailFromSettings()</code> applies saved SMTP at runtime + "Send test email" action</li>
+          <li class="check"><code>QUEUE_CONNECTION=sync</code> — no queue worker, else notifications/emails sit unprocessed</li>
+          <li class="check">New admin <strong>Help</strong> page — plain-language guide covering every area (admin + staff)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Day 7 -->
+  <section id="day-7" class="scroll-mt-4 day-rail relative ps-12">
+    <div class="day-dot"></div>
+    <div class="mb-2">
+      <div class="text-xs font-semibold text-brand-700 uppercase tracking-widest">Day 7 · 2026-05-24</div>
+      <h2 class="text-2xl font-bold">Loyalty reporting &amp; promotions; email verified</h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4 mt-4">
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Email — verified live (Resend)</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check"><code>joreption.com</code> verified in Resend (SPF / DKIM / DMARC + MX); From = <code>noreply@joreption.com</code></li>
+          <li class="check">Test failed at first — <strong>blank admin-alert recipient</strong> fell back to the no-mailbox From address; setting a real recipient fixed it</li>
+          <li class="check">Password-reset + transactional email now confirmed working end-to-end</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Loyalty reporting</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Two header widgets above the ledger: stats overview (outstanding points + liability value) + 6-month earned-vs-redeemed bar chart</li>
+          <li class="check">Placed <em>outside</em> <code>app/Filament/Widgets/</code> so auto-discovery doesn't drop them on the main dashboard</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5 md:col-span-2">
+        <h3 class="font-semibold mb-3">Loyalty promotions (new section)</h3>
+        <ul class="grid md:grid-cols-2 gap-x-6 gap-y-1.5 text-sm text-gray-700">
+          <li class="check"><code>loyalty_promotions</code> (multiplier | bonus, min order, date window, active) + <code>scopeActive</code> / <code>appliesTo</code> / <code>apply</code></li>
+          <li class="check">Full-CRUD <code>LoyaltyPromotionResource</code>; type-aware form + Running / Scheduled / Ended / Off badge + inline toggle</li>
+          <li class="check"><code>applyPromotions()</code> picks the single <strong>best</strong> active promo; records its name in the ledger entry</li>
+          <li class="check"><code>estimatedPointsForAmount()</code> feeds the checkout "you'll earn X" preview; verified rolled back (×2 → 100 pts, gating, math)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Day 8 -->
+  <section id="day-8" class="scroll-mt-4 day-rail relative ps-12">
+    <div class="day-dot"></div>
+    <div class="mb-2">
+      <div class="text-xs font-semibold text-brand-700 uppercase tracking-widest">Day 8 · 2026-05-25</div>
+      <h2 class="text-2xl font-bold">Visitor analytics + audit log + privacy</h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4 mt-4">
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Coming Soon — working as designed</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">"Not working" was intentional — the middleware lets logged-in admins through</li>
+          <li class="check">Verified the public view with an anonymous fetch (returned the splash) + checked the prod setting directly</li>
+          <li class="check">Preview in an incognito window; nothing to fix</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Visitor analytics (GA4)</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Settings → Analytics field (<code>google_analytics_id</code>); shared <code>gtag.js</code> partial renders only when set</li>
+          <li class="check">Included in the storefront layout <em>and</em> the Coming Soon page (captures pre-launch interest)</li>
+          <li class="check">Admin panel deliberately not tracked; ID entered per-environment (on the live admin)</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5 md:col-span-2">
+        <h3 class="font-semibold mb-3">Audit / activity log (built-in, not Spatie)</h3>
+        <ul class="grid md:grid-cols-2 gap-x-6 gap-y-1.5 text-sm text-gray-700">
+          <li class="check">Lightweight in-house build (no new Composer dependency); <code>activity_logs</code> table with subject + causer morphs + properties JSON</li>
+          <li class="check"><code>LogsActivity</code> trait on Product / Order / Coupon / Promotion / Category / Setting / User — records before→after, only for authenticated web-guard users</li>
+          <li class="check"><code>password</code> / secrets excluded; Setting redacts mail password + API keys</li>
+          <li class="check">Auth listeners log admin/staff Login / Logout / Failed (web guard, in try/catch)</li>
+          <li class="check">Read-only <code>ActivityLogResource</code> under a new <strong>System</strong> nav group (admin-only)</li>
+          <li class="check">Verified rolled back: no-auth write not logged, admin actions captured with causer, secrets masked</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5 md:col-span-2">
+        <h3 class="font-semibold mb-3">Privacy policy + cookie notice</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Bilingual <code>/privacy</code> page (EN/AR), <strong>exempted from Coming Soon</strong> so it's reachable pre-launch</li>
+          <li class="check">Dismissible cookie notice — plain JS (works on the Coming Soon page too), choice in <code>localStorage</code></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Day 9 -->
+  <section id="day-9" class="scroll-mt-4 day-rail relative ps-12">
+    <div class="day-dot"></div>
+    <div class="mb-2">
+      <div class="text-xs font-semibold text-brand-700 uppercase tracking-widest">Day 9 · 2026-05-25 → 26</div>
+      <h2 class="text-2xl font-bold">Admin role tiers, customer tiers &amp; tier pricing, richer audit log</h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4 mt-4">
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Admin role tiers</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Now three tiers: <strong>super_admin</strong> (owner) / <strong>admin</strong> (everyday ops) / <strong>staff</strong> (catalog only)</li>
+          <li class="check"><code>SuperAdminOnly</code> trait gates owner-only areas (Staff, the 3 Settings pages, Activity log)</li>
+          <li class="check"><code>isAdmin()</code> redefined as "admin or super_admin" → every existing gate keeps working; <code>isSuperAdmin()</code> is the strict check</li>
+          <li class="check">Idempotent migration promotes existing admins → super_admin; closes the privilege-escalation path</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Customer tiers + tier pricing</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check"><code>customers.tier</code> (regular | vip | wholesale) with badge + filter in the admin</li>
+          <li class="check"><code>CustomerTierService</code>: wholesale pays a configurable % off every unit price (flows cart → order)</li>
+          <li class="check">VIP earns a configurable loyalty-points multiplier (applied before the best promotion)</li>
+          <li class="check">Rates are admin settings (defaults 10% / ×2)</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5 md:col-span-2">
+        <h3 class="font-semibold mb-3">Richer audit log + rollout</h3>
+        <ul class="grid md:grid-cols-2 gap-x-6 gap-y-1.5 text-sm text-gray-700">
+          <li class="check">Added <code>ip_address</code> + <code>user_agent</code> to <code>activity_logs</code> (auto-stamped, skipped for console writes)</li>
+          <li class="check">Storefront order placements logged explicitly (event <code>placed</code>); customer storefront logins/logouts logged</li>
+          <li class="check">Activity log now super-admin-only, with IP + Device columns + a <code>placed</code> filter</li>
+          <li class="check">Three surgical prod deploys, each with a DB snapshot + rollback tarball</li>
+          <li class="check">Created live <code>admin@joreption.com</code> (admin); owner promoted to super_admin</li>
+          <li class="check">Rolled-back prod E2E (8/8): wholesale 39 → 35.10, VIP 100 → 200 pts — <strong>finding: <code>loyalty_enabled</code> off on prod</strong></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Day 10 -->
+  <section id="day-10" class="scroll-mt-4 day-rail relative ps-12">
+    <div class="day-dot"></div>
+    <div class="mb-2">
+      <div class="text-xs font-semibold text-brand-700 uppercase tracking-widest">Day 10 · 2026-06-11</div>
+      <h2 class="text-2xl font-bold">Product cost price &amp; profit, per-user cost access, UI density pass</h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4 mt-4">
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Cost price &amp; profit margin</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check"><code>products.cost_price</code> + <code>profit</code> / <code>margin_percentage</code> accessors (null when no cost)</li>
+          <li class="check">Toggleable Cost + Profit columns (Profit shows <code>amount (margin %)</code>, green / red)</li>
+          <li class="check"><strong>Never exposed on the storefront</strong> — admin surfaces only; changes flow through the activity log</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Per-user cost access</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check"><code>users.can_view_cost</code> (default false); <code>canViewCost()</code> = <code>isAdmin() || can_view_cost</code></li>
+          <li class="check">"Can view cost prices &amp; profit" toggle on the Staff form</li>
+          <li class="check">All three surfaces (form, table, Quick Add — incl. <strong>server-side rejection</strong>) gate on it</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5 md:col-span-2">
+        <h3 class="font-semibold mb-3">UI density pass (build-free)</h3>
+        <ul class="grid md:grid-cols-2 gap-x-6 gap-y-1.5 text-sm text-gray-700">
+          <li class="check">Plain CSS layers — <code>admin-density.css</code> (root 90%) + <code>storefront-density.css</code> (root 94%); rem scaling shrinks font + spacing together</li>
+          <li class="check">Real Filament spacing found by a <strong>headless computed-style walk</strong>, not by guessing class names</li>
+          <li class="check">Products list rows 60px → 36px, thumbnails 40px → 28px; later a form-density pass too</li>
+          <li class="check">Two deploys via <code>git push</code> → <code>joreption-deploy.sh</code> (also synced the Day 9 commits onto GitHub)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Day 11 -->
+  <section id="day-11" class="scroll-mt-4 day-rail relative ps-12">
+    <div class="day-dot"></div>
+    <div class="mb-2">
+      <div class="text-xs font-semibold text-brand-700 uppercase tracking-widest">Day 11 · 2026-06-13</div>
+      <h2 class="text-2xl font-bold">First real staff member + onboarding guide</h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4 mt-4">
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">First staff member</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Created <strong>Jasmine</strong> — staff, <code>can_view_cost = false</code> (builds the catalog, never sees cost / profit)</li>
+          <li class="check">Account on both local + production (<code>users.id = 3</code> each); password kept out of the repo</li>
+          <li class="check">Symbol-heavy initial password caused a "credentials do not match" loop → reset to a symbol-free one, verified via <code>Hash::check</code></li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Bilingual Getting Started guide</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">New Filament page with EN ⇄ AR toggle (persisted in <code>localStorage</code>, full RTL Arabic)</li>
+          <li class="check">Numbered step cards: sign-in, adding a product, variations, categories, media, tips</li>
+          <li class="check">Sits just under the Dashboard (<code>navigationSort = -1</code>)</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5 md:col-span-2">
+        <h3 class="font-semibold mb-3">Quick Add restricted + always-visible table scrollbar</h3>
+        <ul class="grid md:grid-cols-2 gap-x-6 gap-y-1.5 text-sm text-gray-700">
+          <li class="check"><strong>Quick Add is now admin-only</strong> (<code>abort_unless(isAdmin(), 403)</code>) — also closes a cost-submission path for staff</li>
+          <li class="check">Verified live: Jasmine logs in, Getting Started renders EN/AR, <code>/admin/quick-add</code> returns 403 for her</li>
+          <li class="check">Styled <code>.fi-ta-content</code>'s horizontal scrollbar to be <strong>always visible</strong> — every admin list page benefits (CSS-only deploy)</li>
+          <li class="check">Promo banners scoped for a later session (awaiting owner decisions)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Day 12 -->
+  <section id="day-12" class="scroll-mt-4 day-rail relative ps-12">
+    <div class="day-dot"></div>
+    <div class="mb-2">
+      <div class="text-xs font-semibold text-brand-700 uppercase tracking-widest">Day 12 · 2026-06-14</div>
+      <h2 class="text-2xl font-bold">Multi-image products + staff storefront preview</h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4 mt-4">
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Multiple product images (gallery)</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Kept <code>image_path</code> as the <strong>cover</strong> (zero breakage) + added a nullable <code>gallery</code> JSON column</li>
+          <li class="check"><code>imagePaths()</code> / <code>imageUrls()</code> helpers (cover first, de-duplicated); resize hook fits each gallery image to 1600px</li>
+          <li class="check">Admin: "More images (gallery)" <code>FileUpload</code> (multiple, reorderable, append)</li>
+          <li class="check">Storefront: thumbnail strip that swaps the main image; works in the variant layout too</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Staff draft preview on the live site</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Problem: a fresh <strong>draft</strong> 404'd for the person who made it</li>
+          <li class="check">Fix: allow preview for <code>web</code>-guard viewers (admin/staff); shoppers + guests still get 404 on inactive products</li>
+          <li class="check">Bilingual amber "Draft preview — customers can't see it yet" banner; one-click "View on website" action</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5 md:col-span-2">
+        <h3 class="font-semibold mb-3">Production rollout</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Shipped in <code>f98182a</code> via the git-push pipeline; has a migration (<code>gallery</code> column) with a pre-deploy DB snapshot</li>
+          <li class="check">Verified live: migration ran, column present, home + admin-login + a product page all 200</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Day 13 -->
+  <section id="day-13" class="scroll-mt-4 day-rail relative ps-12">
+    <div class="day-dot"></div>
+    <div class="mb-2">
+      <div class="text-xs font-semibold text-brand-700 uppercase tracking-widest">Day 13 · 2026-06-15</div>
+      <h2 class="text-2xl font-bold">Admin products-table UX + staff product # + variants help</h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4 mt-4">
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Admin Products table</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check"><strong>Mirrored top scrollbar</strong> — <code>admin-table-scroll.js</code> builds a synced bar <em>above</em> every wide table; re-measures on resize + Livewire morphs</li>
+          <li class="check">Total product count in the nav badge + on the page ("44 products total · 6 active")</li>
+          <li class="check">Made <code>name_en</code> / <code>name_ar</code> sortable; <code>defaultSort('created_at','desc')</code> (Filament 3.3 has no column reordering)</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Staff product # + variants help</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Product detail shows "Product #N · visible to staff only", gated by <code>@auth('web')</code></li>
+          <li class="check">Enriched the Getting Started "Variations" step — combining colour + size + dimension into one variant name (bilingual)</li>
+          <li class="check">Shipped in <code>774ad77</code> (no migration); verified live</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Day 14 -->
+  <section id="day-14" class="scroll-mt-4 day-rail relative ps-12">
+    <div class="day-dot"></div>
+    <div class="mb-2">
+      <div class="text-xs font-semibold text-brand-700 uppercase tracking-widest">Day 14 · 2026-06-15</div>
+      <h2 class="text-2xl font-bold">Structured multi-axis variants (Colour × Size × Dimension)</h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4 mt-4">
+      <div class="bg-white rounded-xl border border-gray-200 p-5 md:col-span-2">
+        <h3 class="font-semibold mb-3">What &amp; why</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Upgraded variants from a flat free-text list to the standard <strong>Options → Variants</strong> model (Shopify/Woo style), capped at 3 axes, per-combination price + photo, no SKU</li>
+          <li class="check"><strong>The variant row stays the unit of sale</strong> — <code>variant_id</code> still flows through cart → checkout → <code>OrderItem</code> unchanged. Minimal blast radius; legacy flat variants keep working</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Schema + admin</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">New <code>product_options</code> table (name_en/ar + <code>values</code> JSON + position); <code>product_variants.option_values</code> JSON maps axis → chosen value</li>
+          <li class="check">Filament "Options" section: repeater (max 3) with nested values repeater</li>
+          <li class="check"><strong>"Build combinations from options"</strong> action computes the cartesian product, preserving existing stock/price/photo</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Storefront + verification</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">One selector group per option; Alpine resolves selections → variant, disabling + striking values with no in-stock match</li>
+          <li class="check">Fallthrough: options+variants → structured; variants only → legacy flat; neither → simple product</li>
+          <li class="check">Verified locally (browser + DB): 3-axis seed, correct strike-out, cart label, save round-trip preserved; shipped in <code>560d0e5</code> with a migration + snapshot</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Day 15 -->
+  <section id="day-15" class="scroll-mt-4 day-rail relative ps-12">
+    <div class="day-dot"></div>
+    <div class="mb-2">
+      <div class="text-xs font-semibold text-brand-700 uppercase tracking-widest">Day 15 · 2026-06-15</div>
+      <h2 class="text-2xl font-bold">2-level categories + standard taxonomy seed</h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4 mt-4">
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Schema + admin</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check"><code>categories.parent_id</code> (nullable self-FK, <code>nullOnDelete</code> → removing a parent promotes children, never deletes product links)</li>
+          <li class="check"><code>Category</code> gains <code>parent()</code> / <code>children()</code> + a <code>topLevel()</code> scope</li>
+          <li class="check">Parent select on the form — top-level only, excludes self, disabled once it has children (keeps it to 2 levels)</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Storefront + taxonomy seed</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">2-level nav: parents row + the active parent's sub-row; a parent lists its own + all sub-categories' products</li>
+          <li class="check">Idempotent <code>CategorySeeder</code> seeds <strong>10 parents / 40 sub-categories</strong> (bilingual); folds the legacy "Men" into "Men's Fashion"</li>
+          <li class="check">Shipped in <code>86f9afb</code> — migration + a one-off seed run manually; verified live (Electronics shows its 5 children)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
   <!-- Lessons -->
   <section id="lessons" class="scroll-mt-4">
     <div class="flex items-center gap-3 mb-4">
@@ -410,6 +929,96 @@ tailwind.config = {
         <h3 class="font-semibold mb-1">Pricing dialect matters</h3>
         <p class="text-sm text-gray-700"><span dir="rtl" lang="ar"><code>السعر</code></span> is the actual selling price; <span dir="rtl" lang="ar"><code>سعره بالسوق</code></span> is the market reference price (skip); <code>Online $X</code> is a reference price (skip). Got bitten by accepting any number followed by <span dir="rtl" lang="ar"><code>دينار</code></span> as the price — fixed by ordering regex patterns from most-specific to least.</p>
       </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-1">Filament modal <code>&lt;script&gt;</code> tags don't execute</h3>
+        <p class="text-sm text-gray-700">When Filament injects modal content via <code>innerHTML</code>, inline <code>&lt;script&gt;</code> blocks are silently skipped (browser security). Register Alpine components globally via a standalone JS file loaded on every panel page (a <code>renderHook(panels::head.end, …)</code>).</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-1">HTML attribute quotes vs JS string quotes</h3>
+        <p class="text-sm text-gray-700">Nested <code>"</code> strings inside <code>x-data="..."</code> corrupt the attribute, and with <code>@js()</code> emitting double-quoted JSON it's a constant battle. Lesson: don't write multi-line JS inline in HTML — use <code>Alpine.data()</code> registrations.</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-1">Filament <code>FileUpload</code> state ≠ plain string</h3>
+        <p class="text-sm text-gray-700">Setting <code>$this->data['image_path'] = 'foo.jpg'</code> directly crashes <code>BaseFileUpload</code> with "foreach() argument must be of type array, string given" on re-render. Fix: route updates through <code>$this->form->fill($merged)</code> so the component's hydration runs.</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-1"><code>composer dump-autoload</code> for new classes on prod</h3>
+        <p class="text-sm text-gray-700">Adding a new <code>app/Concerns/Foo.php</code> and rsyncing it isn't enough — Composer's classmap doesn't know about it until <code>composer dump-autoload</code> runs. Symptom: <code>Method Foo::bar not found</code> from a <code>$wire.call</code>.</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-1">Git as root inside a www-data tree</h3>
+        <p class="text-sm text-gray-700"><code>git init</code> triggers "dubious ownership" since git 2.36 — fix with <code>git config --global --add safe.directory /var/www/joreption</code>. Also <code>set -e</code> + <code>git remote remove</code> on a missing remote aborts the script; use <code>git remote remove origin 2&gt;/dev/null || true</code>.</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-1"><code>git reset --hard</code> is safe for prod sync</h3>
+        <p class="text-sm text-gray-700">It removes tracked-but-modified files but leaves <strong>untracked + gitignored</strong> files alone — so <code>.env</code>, <code>vendor/</code>, <code>node_modules/</code> and uploaded images survive, as long as they're in <code>.gitignore</code>. But Filament's published <code>public/{js,css}/filament/</code> disappear if gitignored — re-run <code>php artisan filament:upgrade</code> every deploy.</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-1">Alpine <code>x-model</code> + immediate <code>form.submit()</code> race</h3>
+        <p class="text-sm text-gray-700">Setting a bound property then calling native <code>form.submit()</code> on the same synchronous line submits the <em>old</em> value — <code>x-model</code> flushes on a microtask, after the submit. Wrap the submit in <code>$nextTick(() =&gt; …)</code>. (This is why the cart <code>+</code>/<code>−</code> "did nothing".)</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-1">Editing an already-run migration doesn't re-run it</h3>
+        <p class="text-sm text-gray-700">A migration recorded in the <code>migrations</code> table won't re-execute on <code>migrate</code>. To fix a bad/empty one across environments, add a <strong>new</strong> idempotent migration (<code>Schema::hasColumn</code> guards) rather than editing the old file in place.</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-1">Trait-based <code>canAccess()</code> gates Filament cleanly</h3>
+        <p class="text-sm text-gray-700">Overriding <code>canAccess(): bool</code> on a Resource or Page both removes it from navigation and 403s on direct URL — one trait (<code>AdminOnly</code>) covers both. Verify trait composition by force-loading the class (<code>class_exists</code>) since <code>php -l</code> won't catch a trait-method collision.</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-1">Derived columns via model events</h3>
+        <p class="text-sm text-gray-700">Keeping <code>products.stock</code> as the sum of variant stock is done in <code>ProductVariant</code>'s <code>saved</code>/<code>deleted</code> events calling <code>syncStockFromVariants()</code> with <code>saveQuietly()</code> — avoids re-firing parent events and keeps every existing stock query working. Filament's <code>->relationship()</code> repeater fires each child's events on save, so the roll-up just works from the admin form too.</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-1">Filament's default primary is Amber</h3>
+        <p class="text-sm text-gray-700">To theme the admin, set <code>panel->colors(['primary' => Color::hex(...)])</code> — applied as runtime CSS variables, so <code>config:clear</code> + a php-fpm reload is enough; no <code>npm run build</code>. A real "management section" also wants its own <code>navigationGroup</code> entry, not folding into general Settings.</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-1">Page-scoped widgets stay off the dashboard</h3>
+        <p class="text-sm text-gray-700">To show stat/chart widgets on one page but keep them off the dashboard, put them <em>outside</em> <code>app/Filament/Widgets/</code> (so <code>discoverWidgets</code> skips them) and reference them from the page's <code>getHeaderWidgets()</code>.</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-1">Email test falls back to the From address</h3>
+        <p class="text-sm text-gray-700">The "Send test email" action sends to the From address when no admin recipient is set — a blank "admin email" silently sends mail to a no-mailbox address (<code>noreply@</code>) that never lands in an inbox. Set a real recipient.</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-1">Audit causer gating + per-environment settings</h3>
+        <p class="text-sm text-gray-700">Keying activity logging on <code>auth('web')->user()</code> turns it from a write firehose into a clean "who-did-what in the admin" trail — storefront stock decrements and customer order creation are intentionally excluded. Like email, the GA4 ID and Coming Soon toggle live in each environment's DB — set them on the <strong>live</strong> admin, not local.</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-1">Two separate role systems</h3>
+        <p class="text-sm text-gray-700">Admin <code>User.role</code> (super_admin/admin/staff, <code>web</code> guard) is distinct from storefront <code>Customer.tier</code> (regular/vip/wholesale, <code>customer</code> guard) — "customer" is <strong>not</strong> a <code>User</code> role. Redefining <code>isAdmin()</code> as "admin-or-super_admin" let the tier split land with zero edits to existing gates.</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-1">Safe prod E2E test</h3>
+        <p class="text-sm text-gray-700">A rolled-back <code>DB::transaction</code> + <code>Mail::fake()</code> lets you exercise the real cart/order/loyalty code on production with zero residue and no accidental emails — far safer than fighting CSRF + Coming Soon over HTTP. (Watch out: a <code>WHERE name LIKE 'TEST%'</code> cleanup check can match pre-existing data — confirm by the rolled-back row count, not a name match.)</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-1">Find Filament's real spacing in the DOM</h3>
+        <p class="text-sm text-gray-700">Don't guess class names. Row height came from <code>.fi-ta-text</code>'s <code>py-4</code> and the page wrapper's <code>py-8</code> / <code>gap-y-8</code>, not the obvious <code>.fi-ta-cell</code>. One computed-style walk in a headless browser found every contributor; blind CSS guesses had no-opped. Density needs no build step — a per-surface CSS file + a single <code>:root { font-size }</code> knob compacts everything proportionally.</p>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-1">Two auth guards keep drafts safe</h3>
+        <p class="text-sm text-gray-700">Staff/admin = <code>web</code> guard (<code>users</code>), shoppers = <code>customer</code> guard (<code>customers</code>). Gating draft preview on <code>auth('web')->check()</code> lets the team see drafts without ever exposing them to logged-in customers or guests. And keeping <code>image_path</code> as the cover while layering a <code>gallery</code> array on top meant no consumer (grid/cart/orders/table) needed touching.</p>
+      </div>
     </div>
   </section>
 
@@ -440,7 +1049,7 @@ tailwind.config = {
 </main>
 
 <footer class="max-w-5xl mx-auto px-6 pb-10 text-center text-xs text-gray-500">
-  Generated 2026-05-21 · Joreption build journal
+  Updated 2026-06-15 · Joreption build journal
 </footer>
 
 </body>

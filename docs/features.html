@@ -45,7 +45,7 @@ tailwind.config = {
     <p class="text-white/80 max-w-2xl leading-relaxed">
       A bilingual (EN/AR), mobile-first, cash-on-delivery shop migrated from a WhatsApp group to a live production site at
       <a class="underline hover:text-white" href="https://joreption.com">joreption.com</a>.
-      Built with Laravel 11 + Filament 3 + Tailwind + MariaDB on a Contabo VPS.
+      Built with Laravel 11 + Filament 3 + Tailwind + Alpine.js + MariaDB on a Contabo VPS.
     </p>
 
     <div class="mt-8 flex flex-wrap gap-3">
@@ -54,6 +54,7 @@ tailwind.config = {
       </span>
       <span class="inline-flex items-center gap-2 bg-white/10 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">EN / AR with RTL</span>
       <span class="inline-flex items-center gap-2 bg-white/10 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">PWA installable</span>
+      <span class="inline-flex items-center gap-2 bg-white/10 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">Loyalty points</span>
       <span class="inline-flex items-center gap-2 bg-white/10 ring-1 ring-white/20 rounded-full px-4 py-1.5 text-sm">HTTPS · Let's Encrypt</span>
     </div>
   </div>
@@ -64,11 +65,11 @@ tailwind.config = {
   <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
     <div class="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm">
       <div class="text-xs text-gray-500">Customer pages</div>
-      <div class="text-2xl font-bold mt-1">12</div>
+      <div class="text-2xl font-bold mt-1">13</div>
     </div>
     <div class="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm">
-      <div class="text-xs text-gray-500">Admin resources</div>
-      <div class="text-2xl font-bold mt-1">5</div>
+      <div class="text-xs text-gray-500">Admin areas</div>
+      <div class="text-2xl font-bold mt-1">12</div>
     </div>
     <div class="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm">
       <div class="text-xs text-gray-500">Languages</div>
@@ -85,10 +86,10 @@ tailwind.config = {
 <nav class="max-w-5xl mx-auto px-6 mt-10">
   <div class="bg-white rounded-xl border border-gray-200 p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs sm:text-sm font-medium">
     <a href="#customer" class="text-brand-700 hover:underline">Customer site</a>
+    <a href="#loyalty" class="text-brand-700 hover:underline">Loyalty &amp; tiers</a>
     <a href="#mobile" class="text-brand-700 hover:underline">Mobile admin</a>
     <a href="#admin" class="text-brand-700 hover:underline">Admin dashboard</a>
     <a href="#infra" class="text-brand-700 hover:underline">Infrastructure</a>
-    <a href="#data" class="text-brand-700 hover:underline">Data &amp; tooling</a>
     <a href="#next" class="text-brand-700 hover:underline">What's next</a>
   </div>
 </nav>
@@ -106,77 +107,128 @@ tailwind.config = {
       <div class="bg-white rounded-xl border border-gray-200 p-5">
         <h3 class="font-semibold mb-3">Catalog &amp; browsing</h3>
         <ul class="space-y-1.5 text-sm text-gray-700">
-          <li class="check">Product grid (4 cols desktop, responsive)</li>
-          <li class="check">Hero banner with brand color + "Browse Catalog" CTA</li>
+          <li class="check">Product grid — responsive 2 / 3 / 4 columns</li>
+          <li class="check">Hero banner (21:9 on desktop) with custom image, product image, or brand color</li>
           <li class="check">Search box (matches name + description, both languages)</li>
-          <li class="check">Category chip filter (scrollable on mobile)</li>
+          <li class="check"><strong>2-level category filter</strong> — top-level row + sub-category row when active</li>
+          <li class="check"><strong>"Featured" strip</strong> below the hero (up to 8, snap-scroll)</li>
           <li class="check">Stock badges ("Out of Stock" / "3 left")</li>
-          <li class="check">Pagination (12 per page)</li>
-          <li class="check">Empty state with "Clear filters"</li>
+          <li class="check"><strong>"Save X%" red ribbon</strong> + crossed-out original price</li>
+          <li class="check">Pagination (12 per page) &middot; empty state with "Clear filters"</li>
         </ul>
       </div>
 
       <div class="bg-white rounded-xl border border-gray-200 p-5">
         <h3 class="font-semibold mb-3">Product page</h3>
         <ul class="space-y-1.5 text-sm text-gray-700">
-          <li class="check">Breadcrumb &middot; large image &middot; teal stock pill</li>
-          <li class="check">Bilingual name + description (auto-picks locale)</li>
-          <li class="check">Quantity stepper (Alpine.js, ± buttons)</li>
-          <li class="check">"Cash on Delivery" badge</li>
-          <li class="check">Add to Cart with cart icon</li>
+          <li class="check">Breadcrumb &middot; bilingual name + description (auto-locale)</li>
+          <li class="check"><strong>Image gallery</strong> — cover + extra photos with thumbnail strip</li>
+          <li class="check"><strong>Structured variant selectors</strong> — separate Colour / Size / Dimension pickers</li>
+          <li class="check">Flat single-axis option chips (legacy) — live-swap price / stock / image</li>
+          <li class="check">Out-of-stock combinations auto struck-through</li>
+          <li class="check">Live "X left" indicator (green dot)</li>
+          <li class="check"><strong>Staff-only "Product #N"</strong> tag + amber <strong>draft preview</strong> banner</li>
+          <li class="check">"Cash on Delivery" pill &middot; Alpine.js quantity stepper &middot; Add to Cart</li>
+          <li class="check"><strong>"You may also like"</strong> — same-category strip</li>
         </ul>
       </div>
 
       <div class="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 class="font-semibold mb-3">Cart &amp; checkout</h3>
+        <h3 class="font-semibold mb-3">Cart</h3>
         <ul class="space-y-1.5 text-sm text-gray-700">
-          <li class="check">Session-based multi-item cart</li>
-          <li class="check">Inline qty steppers (auto-submit)</li>
+          <li class="check">Session-based multi-item cart — each line keyed by product + variant</li>
+          <li class="check">Per-item qty stepper (auto-submit) + variant label / image</li>
+          <li class="check"><strong>"Add another option"</strong> — quick-add other in-stock variants</li>
+          <li class="check"><strong>Coupon code</strong> entry (apply / remove) reflected live</li>
           <li class="check">Remove single item / Clear all</li>
-          <li class="check">Sticky order summary aside</li>
+          <li class="check">Sticky order summary aside (subtotal, discount, total)</li>
           <li class="check">3-step indicator (Cart → Shipping → Confirmation)</li>
-          <li class="check">Checkout pre-fills from saved address (when logged in)</li>
-          <li class="check">COD-only payment with amber callout</li>
-          <li class="check">Stock decrement on order, single DB transaction</li>
         </ul>
       </div>
 
       <div class="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 class="font-semibold mb-3">Order tracking</h3>
+        <h3 class="font-semibold mb-3">Checkout</h3>
         <ul class="space-y-1.5 text-sm text-gray-700">
-          <li class="check">Confirmation page with WhatsApp deep-link to admin</li>
+          <li class="check">Single-page form: name, phone, city, address, notes</li>
+          <li class="check">Pre-fills from logged-in profile &middot; guest checkout (no signup)</li>
+          <li class="check">Optional "Sign in for faster checkout" CTA</li>
+          <li class="check">Amber COD callout &middot; sticky summary with thumbnails</li>
+          <li class="check">Single DB transaction: order + items + stock decrement + coupon usage</li>
+          <li class="check"><strong>Wholesale tier pricing</strong> applied automatically when logged in</li>
+          <li class="check"><strong>Redeem loyalty points</strong> opt-in (stacks with coupon)</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Order confirmation &amp; tracking</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Green checkmark hero with order # + meta grid + itemized list</li>
+          <li class="check">WhatsApp deep-link to admin (when configured)</li>
           <li class="check"><code>/track</code> — order # + phone lookup (no login)</li>
-          <li class="check">Status pill with color (Pending / Confirmed / Delivered / Cancelled)</li>
-          <li class="check">Fuzzy phone matching (strips spaces/dashes)</li>
+          <li class="check">Status pill (Pending / Confirmed / Delivered / Cancelled)</li>
+          <li class="check">Fuzzy phone matching (strips spaces/dashes/parens)</li>
           <li class="check">Rate-limited (10 attempts / IP / minute)</li>
         </ul>
       </div>
 
-      <div class="bg-white rounded-xl border border-gray-200 p-5 md:col-span-2">
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
         <h3 class="font-semibold mb-3">Customer accounts (optional)</h3>
-        <ul class="grid md:grid-cols-2 gap-x-6 gap-y-1.5 text-sm text-gray-700">
+        <ul class="space-y-1.5 text-sm text-gray-700">
           <li class="check">Guest checkout still works (no signup required)</li>
-          <li class="check">Email + password registration with phone capture</li>
-          <li class="check">Login (with "Remember me")</li>
+          <li class="check">Register (email + password + phone), Login ("Remember me")</li>
           <li class="check">Forgot / Reset password (Laravel broker)</li>
-          <li class="check">Smart phone-based merge — registering with an existing-order phone links the orders</li>
-          <li class="check"><code>/my-orders</code> — list + detail with status badges</li>
-          <li class="check">Header avatar dropdown (initial badge → My Orders / Track / Logout)</li>
-          <li class="check">Separate <code>customer</code> auth guard (independent from admin)</li>
+          <li class="check"><strong>Smart phone merge</strong> — registering links prior guest orders</li>
+          <li class="check"><code>/my-orders</code> — list + ownership-guarded detail</li>
+          <li class="check">Points balance card on My Orders</li>
+          <li class="check">Header avatar dropdown &middot; separate <code>customer</code> guard</li>
         </ul>
       </div>
 
       <div class="bg-white rounded-xl border border-gray-200 p-5 md:col-span-2">
-        <h3 class="font-semibold mb-3">Bilingual + branding</h3>
+        <h3 class="font-semibold mb-3">Bilingual, branding, privacy</h3>
         <ul class="grid md:grid-cols-2 gap-x-6 gap-y-1.5 text-sm text-gray-700">
           <li class="check">English + Arabic with full RTL flip (<code>dir="rtl"</code>)</li>
-          <li class="check">Language switcher persisted in session</li>
+          <li class="check">Language switcher persisted in session (<code>?lang=ar</code> / <code>?lang=en</code>)</li>
           <li class="check">Logical Tailwind utilities (<code>ps-*</code>, <code>me-*</code>, <code>start-*</code>) — no extra plugin</li>
-          <li class="check">Deep teal brand palette matching the logo</li>
-          <li class="check">Red accent for "Deals" / sale moments</li>
+          <li class="check">Deep teal brand palette + red accent for "Deals" / sale moments</li>
           <li class="check">Inter font (with Figtree fallback)</li>
           <li class="check">Currency configurable (code/symbol/position — currently JOD / JD / after)</li>
-          <li class="check">"Coming Soon" toggle in settings (admins bypass)</li>
+          <li class="check"><strong>Privacy Policy</strong> (<code>/privacy</code>, bilingual) + dismissible cookie notice</li>
+          <li class="check"><strong>Google Analytics (GA4)</strong> tag &middot; "Coming Soon" toggle (admins bypass)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Loyalty & customer tiers -->
+  <section id="loyalty" class="scroll-mt-4">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-accent-600/10 text-accent-600 text-xl">⭐</span>
+      <h2 class="text-2xl font-bold">Loyalty points &amp; customer tiers</h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Loyalty points program</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Per-customer points balance + full earn / redeem ledger</li>
+          <li class="check"><strong>Earning</strong> — credited automatically when an order is delivered</li>
+          <li class="check">Guests accrue too (account auto-created from phone)</li>
+          <li class="check"><strong>VIP</strong> customers earn at a configurable multiplier (e.g. ×2)</li>
+          <li class="check"><strong>Redeeming</strong> at checkout — stacks with coupons, capped by min-redeem</li>
+          <li class="check"><strong>Promotions</strong> — double/triple or bonus points, date-windowed</li>
+          <li class="check">"You'll earn X points" hint at checkout &middot; off by default</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Customer tiers</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Per-customer tier badge: <strong>Regular / VIP / Wholesale</strong></li>
+          <li class="check"><strong>Wholesale</strong> — configurable % off every unit price (cart → order)</li>
+          <li class="check"><strong>VIP</strong> — points-earning multiplier</li>
+          <li class="check">Filterable on the Customers list</li>
+          <li class="check">Tier discount % &amp; VIP multiplier set in Settings / Loyalty</li>
         </ul>
       </div>
     </div>
@@ -186,25 +238,25 @@ tailwind.config = {
   <section id="mobile" class="scroll-mt-4">
     <div class="flex items-center gap-3 mb-4">
       <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-accent-600/10 text-accent-600 text-xl">📱</span>
-      <h2 class="text-2xl font-bold">Mobile admin (Quick Add)</h2>
+      <h2 class="text-2xl font-bold">Mobile admin — Quick Add <span class="text-sm font-normal text-gray-500">(PWA, admin-only)</span></h2>
     </div>
 
     <div class="bg-white rounded-xl border border-gray-200 p-5 grid md:grid-cols-2 gap-x-8 gap-y-1.5 text-sm text-gray-700">
       <ul class="space-y-1.5">
+        <li class="check"><strong>Admin-only</strong> — 403 for staff; not part of the catalog tools</li>
         <li class="check">Installable PWA — home-screen icon, fullscreen, native feel</li>
-        <li class="check">Service worker — caches the shell for fast launches</li>
+        <li class="check">Service worker (<code>public/sw.js</code>) caches the shell offline</li>
         <li class="check">Camera capture via <code>capture="environment"</code></li>
         <li class="check">Client-side compression to 1280px / JPEG 0.85</li>
-        <li class="check">Bilingual name + description fields</li>
-        <li class="check">Voice input — Arabic <code>ar-JO</code> Web Speech</li>
+        <li class="check">Burst queue — pick multiple photos, position indicator (2 / 5)</li>
       </ul>
       <ul class="space-y-1.5">
         <li class="check">Category dropdown (remembers last-used in burst)</li>
-        <li class="check">Price + stock inputs with big tap targets</li>
-        <li class="check">Burst queue: pick multiple photos, edit each in turn</li>
+        <li class="check">Bilingual name + description fields</li>
+        <li class="check">Voice input — Arabic <code>ar-JO</code> Web Speech</li>
+        <li class="check">Price + stock inputs &middot; "Publish immediately" toggle</li>
         <li class="check">After publish: full product URL with "📋 Copy link" button</li>
         <li class="check">URL is ready to paste into the WhatsApp group</li>
-        <li class="check">Dark theme matching brand</li>
       </ul>
     </div>
   </section>
@@ -218,42 +270,86 @@ tailwind.config = {
 
     <div class="grid md:grid-cols-2 gap-4">
       <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Dashboard &amp; notifications</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Stats row: orders + pending, revenue, customers, low-stock alert</li>
+          <li class="check">14-day orders line chart + "Latest orders" table</li>
+          <li class="check">Full-width layout; wide tables keep an always-visible scrollbar</li>
+          <li class="check"><strong>Notification bell</strong> — alert on every new order</li>
+          <li class="check"><strong>Notifications config</strong> — in-app, Email (SMTP, wired + test), SMS, WhatsApp</li>
+          <li class="check"><strong>Help</strong> guide + bilingual <strong>Getting Started</strong> onboarding (EN ⇄ AR toggle)</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
         <h3 class="font-semibold mb-3">Products</h3>
         <ul class="space-y-1.5 text-sm text-gray-700">
-          <li class="check">CRUD with bilingual fields, image upload, stock</li>
-          <li class="check">Active toggle (draft vs live)</li>
-          <li class="check">Category assignment</li>
-          <li class="check">Click-to-copy public URL ("Copy link" → for WhatsApp)</li>
+          <li class="check">Bilingual fields &middot; cover image upload (auto-resized to 1600px / q85)</li>
+          <li class="check"><strong>Image gallery</strong> — drag-reorderable extra photos</li>
+          <li class="check"><strong>Pick from media library</strong> — 4-column thumbnail modal</li>
+          <li class="check"><strong>Sale price</strong> (<code>compare_at_price</code>) → Save% badge on site</li>
+          <li class="check"><strong>Featured toggle</strong> &middot; <strong>Cost price + profit</strong> (gated columns)</li>
+          <li class="check"><strong>Structured options</strong> — up to 3 axes + "Build combinations"</li>
+          <li class="check">Per-combination stock/price/image overrides; stock auto-sums</li>
+          <li class="check"><strong>"View on website"</strong> (works for drafts), copyable URL</li>
+          <li class="check">Total count badge + sortable / show-hide columns</li>
         </ul>
       </div>
 
       <div class="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 class="font-semibold mb-3">Orders</h3>
+        <h3 class="font-semibold mb-3">Orders &amp; customers</h3>
         <ul class="space-y-1.5 text-sm text-gray-700">
-          <li class="check">Sortable list with status filter</li>
-          <li class="check">Editable status (pending → confirmed → delivered → cancelled)</li>
-          <li class="check">Items relation manager (line items per order)</li>
-          <li class="check">Pending-orders count badge in sidebar</li>
+          <li class="check">Orders — sortable, status filter, per-row editable status</li>
+          <li class="check">Items relation manager + pending-orders count badge</li>
+          <li class="check">Points earned / redeemed columns on orders</li>
+          <li class="check">Customers — name, phone (copyable), city, tier badge</li>
+          <li class="check">Orders count + total spent &middot; "Has orders" filter</li>
+          <li class="check">Detail page with embedded Order History + "Adjust points"</li>
         </ul>
       </div>
 
       <div class="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 class="font-semibold mb-3">Customers</h3>
+        <h3 class="font-semibold mb-3">Categories &amp; coupons</h3>
         <ul class="space-y-1.5 text-sm text-gray-700">
-          <li class="check">List with name, phone (copyable), city</li>
-          <li class="check">Orders count + total spent (sum) per customer</li>
-          <li class="check">"Has orders" filter toggle</li>
-          <li class="check">Detail page with embedded Order History</li>
+          <li class="check"><strong>2-level hierarchy</strong> — Parent category selector (capped at 2 levels)</li>
+          <li class="check">Bilingual name (auto-slug), drag-reorder, active toggle, count badge</li>
+          <li class="check"><strong>Seeded standard taxonomy</strong> — 10 parents / 40 sub-categories</li>
+          <li class="check">Coupons — percent or fixed, min order, usage limit, date window</li>
+          <li class="check">Applied at checkout; discount + code recorded on the order</li>
         </ul>
       </div>
 
       <div class="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 class="font-semibold mb-3">Categories</h3>
+        <h3 class="font-semibold mb-3">Loyalty (dedicated section)</h3>
         <ul class="space-y-1.5 text-sm text-gray-700">
-          <li class="check">Bilingual name (auto-slug from English)</li>
-          <li class="check">Drag-to-reorder position</li>
-          <li class="check">Active toggle</li>
-          <li class="check">Product count badge per category</li>
+          <li class="check"><strong>Points activity</strong> — reports (outstanding, liability value, 30-day, 6-month chart)</li>
+          <li class="check">Read-only ledger of every earn / redeem / adjust, filterable</li>
+          <li class="check"><strong>Promotions</strong> — multiplier or bonus, date-boxed, live status</li>
+          <li class="check"><strong>Settings</strong> — enable, earn rate, point value, min redeem, VIP multiplier</li>
+          <li class="check">Best active promo auto-applied on delivery</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Staff roles &amp; permissions</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Three roles — <strong>super admin</strong> / <strong>admin</strong> / <strong>staff</strong> (catalog only)</li>
+          <li class="check">Super-admin-only: Staff, Settings, Loyalty settings, Activity log</li>
+          <li class="check">Admin runs Orders, Customers, Coupons, Loyalty</li>
+          <li class="check">Staff manager (create/edit; can't delete own account)</li>
+          <li class="check"><strong>"Can view cost prices"</strong> per-user toggle for a single staff member</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="font-semibold mb-3">Media Library</h3>
+        <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">WordPress-style image manager (<code>/admin/media-library</code>)</li>
+          <li class="check">Stats row: total files, disk usage, orphan count</li>
+          <li class="check">6-column thumbnail grid from products/ + hero/</li>
+          <li class="check">Filters: search, all / used / orphans, sort by date/size/name</li>
+          <li class="check">Tiles show "used" / "orphan" badges; modal preview + copy URL</li>
+          <li class="check">Delete-if-orphan only (in-use files protected); 48 per page</li>
         </ul>
       </div>
 
@@ -261,18 +357,33 @@ tailwind.config = {
         <h3 class="font-semibold mb-3">Settings</h3>
         <ul class="space-y-1.5 text-sm text-gray-700">
           <li class="check">Currency (code / symbol / before-or-after)</li>
-          <li class="check">Admin WhatsApp number</li>
-          <li class="check">Coming Soon mode toggle + custom EN/AR headlines</li>
-          <li class="check">Cached read with per-write invalidation</li>
+          <li class="check">Admin WhatsApp number &middot; wholesale discount %</li>
+          <li class="check">Coming Soon mode + custom EN/AR headlines</li>
+          <li class="check"><strong>Google Analytics (GA4)</strong> Measurement ID</li>
+          <li class="check"><strong>Landing hero</strong> — upload (cropper), media library, or product image</li>
+          <li class="check">Cached key/value store (invalidated on save)</li>
         </ul>
       </div>
 
       <div class="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 class="font-semibold mb-3">Profile &amp; auth</h3>
+        <h3 class="font-semibold mb-3">Activity log <span class="text-xs font-normal text-gray-500">(super-admin-only)</span></h3>
         <ul class="space-y-1.5 text-sm text-gray-700">
+          <li class="check">Audit trail of create / update / delete on products, orders, coupons, promotions, categories, settings, staff</li>
+          <li class="check">Each entry: who, before → after values, timestamp</li>
+          <li class="check">Auth events — admin/staff + customer logins/logouts, failed admin logins</li>
+          <li class="check">Storefront order placements logged (attributed or guest)</li>
+          <li class="check">Records client IP + device / user-agent; secrets redacted</li>
+          <li class="check">Read-only, filterable — lightweight built-in (no package)</li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl border border-gray-200 p-5 md:col-span-2">
+        <h3 class="font-semibold mb-3">Profile &amp; auth</h3>
+        <ul class="grid md:grid-cols-2 gap-x-6 gap-y-1.5 text-sm text-gray-700">
           <li class="check">Admin profile page (change name / email / password)</li>
           <li class="check"><code>FilamentUser</code> contract enforced in production</li>
-          <li class="check">Sessions distinct from customer guard</li>
+          <li class="check">Separate <code>web</code> (admin) and <code>customer</code> guards</li>
+          <li class="check">Both guards can be logged in at once; sign-ins logged with IP + UA</li>
         </ul>
       </div>
     </div>
@@ -282,7 +393,7 @@ tailwind.config = {
   <section id="infra" class="scroll-mt-4">
     <div class="flex items-center gap-3 mb-4">
       <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 text-gray-700 text-xl">🔒</span>
-      <h2 class="text-2xl font-bold">Infrastructure &amp; security</h2>
+      <h2 class="text-2xl font-bold">Infrastructure &amp; tooling</h2>
     </div>
 
     <div class="bg-white rounded-xl border border-gray-200 p-5 grid md:grid-cols-2 gap-x-8 gap-y-1.5 text-sm text-gray-700">
@@ -291,39 +402,16 @@ tailwind.config = {
         <li class="check">Ubuntu 24.04 LTS, Asia/Amman timezone</li>
         <li class="check">Nginx + PHP 8.3-FPM + MariaDB 10.11 + Redis 7</li>
         <li class="check">HTTPS via Let's Encrypt (auto-renew via certbot.timer)</li>
-        <li class="check">DNS at Namecheap → both <code>@</code> and <code>www</code> → IP</li>
+        <li class="check">SSH: ed25519 key-only &middot; UFW (22/80/443) &middot; fail2ban</li>
+        <li class="check">Daily DB backup at 03:00, 14-day retention &middot; <code>/_adminer</code> (basic auth)</li>
       </ul>
       <ul class="space-y-1.5">
-        <li class="check">SSH: ed25519 key-only, password auth disabled</li>
-        <li class="check">UFW firewall: only 22 / 80 / 443</li>
-        <li class="check">fail2ban active on SSH</li>
-        <li class="check">Daily DB backup at 03:00, 14-day retention</li>
-        <li class="check">Web DB admin at <code>/_adminer</code> (basic auth)</li>
-      </ul>
-    </div>
-  </section>
-
-  <!-- Data & tooling -->
-  <section id="data" class="scroll-mt-4">
-    <div class="flex items-center gap-3 mb-4">
-      <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-brand-100 text-brand-700 text-xl">📦</span>
-      <h2 class="text-2xl font-bold">Data &amp; tooling</h2>
-    </div>
-
-    <div class="bg-white rounded-xl border border-gray-200 p-5 grid md:grid-cols-2 gap-x-8 gap-y-1.5 text-sm text-gray-700">
-      <ul class="space-y-1.5">
-        <li class="check">WhatsApp chat importer: <code>php artisan whatsapp:import {path}</code></li>
-        <li class="check">38 products imported from chat export as drafts</li>
-        <li class="check">Image matching by date + chronological cursor</li>
-        <li class="check">Price/stock regex extraction (Arabic "دينار" / "JD")</li>
-        <li class="check">UTF-8 cleanup (handles truncated emoji bytes)</li>
-      </ul>
-      <ul class="space-y-1.5">
-        <li class="check">Session-based <code>App\Services\Cart</code></li>
-        <li class="check"><code>money_format()</code> global helper</li>
-        <li class="check"><code>Setting</code> key/value table with cached reads</li>
-        <li class="check">Production caches: config / routes / views</li>
-        <li class="check">OPcache enabled (deploys reload PHP-FPM)</li>
+        <li class="check"><strong>Push-based deploy</strong> via GitHub — <code>joreption-deploy.sh</code> over SSH</li>
+        <li class="check">Composer + <code>npm run build</code> + <code>filament:upgrade</code> + migrate + cache</li>
+        <li class="check">Redis for sessions + cache &middot; OPcache (PHP-FPM reload on deploy)</li>
+        <li class="check"><strong>WhatsApp importer</strong> — <code>php artisan whatsapp:import {path}</code></li>
+        <li class="check">38 products imported as drafts; price/stock regex + UTF-8 cleanup</li>
+        <li class="check">Session <code>Cart</code> service &middot; <code>money_format()</code> &middot; <code>ImageResizer</code> GD helper</li>
       </ul>
     </div>
   </section>
@@ -337,13 +425,15 @@ tailwind.config = {
 
     <div class="bg-white rounded-xl border border-gray-200 p-5">
       <ul class="space-y-2 text-sm text-gray-700">
-        <li>📧 <strong>Email provider</strong> — wire up Resend / Brevo / Mailgun so password-reset emails actually send (currently logged only).</li>
-        <li>🔔 <strong>Admin order notifications</strong> — Telegram or email ping when a new COD order arrives.</li>
-        <li>📋 <strong>Activate the 38 imported drafts</strong> — review names, set stocks, assign categories, toggle Active.</li>
-        <li>🖼️ <strong>Visual polish</strong> — brand strip on home, "save X%" discount badges, related products on detail page.</li>
-        <li>📲 <strong>SMS / WhatsApp Business API</strong> — phone-OTP login + outbound order status SMS.</li>
-        <li>🚀 <strong>Push-based deploy</strong> — git remote + <code>deploy.sh</code> on server instead of tar+scp.</li>
-        <li>🎯 <strong>Mobile admin polish</strong> — voice input for English, image swap during edit, draft-only mode.</li>
+        <li>🚀 <strong>Launch readiness</strong> — activate the imported product drafts, set the live WhatsApp number / branding / hero, optionally enable loyalty, then flip Coming Soon off.</li>
+        <li>🔍 <strong>SEO &amp; discoverability</strong> — Google Search Console + sitemap, per-page titles / meta descriptions, Open Graph / Twitter social-share tags.</li>
+        <li>📲 <strong>Outbound notifications</strong> — WhatsApp Business API + SMS gateway for order / status messages (config UI already exists; sending needs provider accounts). Optional phone-OTP login.</li>
+        <li>📧 <strong>Email provider</strong> — SMTP is wired; still needs a relay's credentials entered for password-reset / order emails to actually send.</li>
+        <li>🖼️ <strong>Promo / banner areas</strong> — managed promo slots beyond the single hero (scheduled <code>banners</code> table + Filament resource).</li>
+        <li>🏷️ <strong>Wishlist · reviews / ratings · order CSV export · fuller customer addresses</strong>.</li>
+        <li>🔨 <strong>Bidding / auctions</strong> — design pending (timed auction vs. "make an offer").</li>
+        <li>🔔 <strong>Loyalty follow-ups</strong> — proactive "you have N points" nudges &middot; variant quick-quantity grid &middot; mobile-admin polish.</li>
+        <li>⚙️ <strong>Webhook-triggered auto-deploy</strong> — push to GitHub → server auto-pulls (currently a manual SSH command).</li>
       </ul>
     </div>
   </section>
@@ -375,7 +465,7 @@ tailwind.config = {
 </main>
 
 <footer class="max-w-5xl mx-auto px-6 pb-10 text-center text-xs text-gray-500">
-  Generated 2026-05-20 · Joreption project status overview
+  Updated 2026-06-15 · Joreption project status overview
 </footer>
 
 </body>
