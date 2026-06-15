@@ -566,7 +566,7 @@ The **variant row stays the unit of sale** — `variant_id` still flows through 
 - 10 parents + 40 children seeded; "Men" folded. Storefront `?category=electronics` showed the parent row (Electronics active) + sub-row (5 children). Admin create form loads with the Parent select, no errors.
 
 ### Production rollout
-- Shipped in commit `__PENDING__`. **Has a migration + a one-off seed.** Pre-deploy DB snapshot taken. Deployed via `git push` → `joreption-deploy.sh`, then seeder run manually. Verified live after deploy.
+- Shipped in commit `86f9afb`. **Has a migration + a one-off seed.** Pre-deploy snapshot at `/var/backups/joreption/predeploy-categories-20260615-232043.sql`. Deployed via `git push` → `joreption-deploy.sh` (migration `[15]` ran), then `db:seed --class=CategorySeeder --force` run manually. Verified live: 10 parents / 40 children, "Men" folded into Men's Fashion, Electronics shows its 5 children.
 
 ---
 
