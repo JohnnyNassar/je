@@ -97,6 +97,17 @@ class Product extends Model
         return $this->variants()->exists();
     }
 
+    /** Structured option axes (Colour, Size, …) that drive per-axis selectors. */
+    public function options()
+    {
+        return $this->hasMany(ProductOption::class)->orderBy('position')->orderBy('id');
+    }
+
+    public function hasOptions(): bool
+    {
+        return $this->options()->exists();
+    }
+
     /**
      * Keep products.stock as the sum of its variants' stock, so all the existing
      * stock-based queries, scopes, and badges keep working unchanged. No-op when

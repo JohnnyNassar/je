@@ -511,6 +511,40 @@ The Loyalty section gained the reporting + promotions it was structured for, and
 
 ---
 
+## Day 14 — 2026-06-15 (structured multi-axis variants: Colour × Size × Dimension)
+
+### What & why
+Upgraded variants from a flat free-text list to the standard **Options → Variants** model (Shopify/Woo style), capped at **3 axes**, with **per-combination price + photo**, **no SKU** (owner's call). Existing flat variants (e.g. #94's shapes) keep working untouched.
+
+### Key design insight
+The **variant row stays the unit of sale** — `variant_id` still flows through cart → checkout → `OrderItem` (snapshotted `variant_name`) → stock decrement unchanged. So the new system only *adds* a structured way to define and select variants; the cart/checkout/order code was not touched. Minimal blast radius.
+
+### Schema (migration `2026_06_15_000000_add_structured_product_options`)
+- New table **`product_options`**: `product_id` (cascade), `name_en`, `name_ar`, `values` JSON (`[{en,ar}]`), `position`. The axes + their values.
+- **`product_variants.option_values`** JSON added: maps each option's English name → chosen English value, e.g. `{"Colour":"Red","Size":"M","Dimension":"50cm"}`. Legacy variants leave it null → flat-list behaviour.
+- Models: new `ProductOption` (locale-aware `name`), `Product::options()` hasMany, `ProductVariant` casts `option_values`.
+
+### Admin (Filament `ProductResource`)
+- New **"Options (Colour / Size / Dimension)"** section: relationship repeater (max 3), each option has name_en/name_ar + a nested JSON `values` repeater (en/ar).
+- **"Build combinations from options"** form action: computes the cartesian product of the options' values and fills the Variations repeater (one row per combo, `name` = "Red / M / 50cm", `option_values` set via a `Hidden` field). **Preserves** stock/price/photo for combinations that already exist. Staff then fill stock/price/photo.
+- Existing Variations repeater kept for legacy/manual single-axis products.
+
+### Storefront (`catalog/show.blade.php`)
+- New branch when a product has **both options and variants**: renders **one selector group per option** (bilingual buttons). Alpine resolves the selected value per axis → the matching variant, updating price / stock / image; a value is **disabled + struck-through** when no in-stock variant matches it given the other current selections. Posts the resolved `variant_id` to the unchanged cart route. Gallery thumbnails carried over.
+- Fallthrough: options+variants → structured; variants only → legacy flat list; neither → simple product.
+- Controller eager-loads `options`.
+
+### Verified locally (browser + DB)
+- Seeded a 3-axis product (Colour×Size×Dimension, 8 combos, one combo out of stock). Storefront showed 3 selectors, correct default (Red/S/50cm → variant resolved, "Add to Cart" enabled). Selecting Blue correctly **struck out "M"** (Blue/M out of stock). Add-to-cart → cart showed **"Blue / S / 50cm"** at the right price. Admin edit page loaded with no errors, Build button present; **save round-trip preserved** 3 options + 8 variants + intact `option_values` and bilingual values. Test product deleted afterwards.
+
+### Help
+- Rewrote the Getting Started "Variations" step (EN+AR) to teach the new flow: define up to 3 Options → "Build combinations" → fill stock/price/photo; with the manual single-axis fallback.
+
+### Production rollout
+- Shipped in commit `__PENDING__`. **Has a migration** — pre-deploy DB snapshot taken. Deployed via `git push` → `joreption-deploy.sh`. Verified live after deploy.
+
+---
+
 ## Lessons learned (worth remembering)
 
 - **OPcache vs deploys.** PHP-FPM had `opcache.validate_timestamps=0` somewhere in its config, so simply replacing PHP files left old bytecode in memory and made my fixes look like they had no effect. **All deploys now `systemctl reload php8.3-fpm`** as the last step.

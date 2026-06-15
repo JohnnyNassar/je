@@ -109,14 +109,116 @@ class ProductResource extends Resource
                     ->label('Featured on home page')
                     ->helperText('Highlights this product at the top of the catalog.')
                     ->default(false),
+                Forms\Components\Section::make('Options (Colour / Size / Dimension)')
+                    ->description('Optional. Define up to 3 attributes shoppers choose from, each with its values (English + Arabic). Then use “Build combinations” in the Variations section below.')
+                    ->collapsible()
+                    ->collapsed()
+                    ->schema([
+                        Forms\Components\Repeater::make('options')
+                            ->relationship()
+                            ->hiddenLabel()
+                            ->maxItems(3)
+                            ->schema([
+                                Forms\Components\TextInput::make('name_en')
+                                    ->label('Attribute (English)')
+                                    ->placeholder('Colour')
+                                    ->required()
+                                    ->maxLength(60),
+                                Forms\Components\TextInput::make('name_ar')
+                                    ->label('Attribute (Arabic)')
+                                    ->placeholder('اللون')
+                                    ->maxLength(60),
+                                Forms\Components\Repeater::make('values')
+                                    ->label('Values')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('en')
+                                            ->label('Value (English)')
+                                            ->placeholder('Red')
+                                            ->required()
+                                            ->maxLength(60),
+                                        Forms\Components\TextInput::make('ar')
+                                            ->label('Value (Arabic)')
+                                            ->placeholder('أحمر')
+                                            ->maxLength(60),
+                                    ])
+                                    ->columns(2)
+                                    ->addActionLabel('Add value')
+                                    ->defaultItems(1)
+                                    ->columnSpanFull(),
+                            ])
+                            ->columns(2)
+                            ->itemLabel(fn (array $state): ?string => $state['name_en'] ?? null)
+                            ->orderColumn('position')
+                            ->collapsed()
+                            ->collapsible()
+                            ->addActionLabel('Add an attribute')
+                            ->defaultItems(0),
+                    ]),
                 Forms\Components\Section::make('Variations')
-                    ->description('Optional. Add colors/sizes, each with its own stock. When a product has variations, the Stock field above is set automatically from their total.')
+                    ->description('Optional. Each variation has its own stock, and optionally its own price and photo. When a product has variations, the Stock field above is set automatically from their total.')
                     ->collapsible()
                     ->schema([
+                        Forms\Components\Actions::make([
+                            Forms\Components\Actions\Action::make('buildCombinations')
+                                ->label('Build combinations from options')
+                                ->icon('heroicon-m-squares-plus')
+                                ->color('gray')
+                                ->visible(fn (\Filament\Forms\Get $get): bool => filled($get('options')))
+                                ->requiresConfirmation()
+                                ->modalDescription('Creates one variation per combination of your options. Stock, price and photo already set for a combination are kept; combinations that no longer exist are removed.')
+                                ->action(function (\Filament\Forms\Get $get, \Filament\Forms\Set $set): void {
+                                    $axes = [];
+                                    foreach ($get('options') ?? [] as $opt) {
+                                        $name = trim((string) ($opt['name_en'] ?? ''));
+                                        $vals = collect($opt['values'] ?? [])
+                                            ->map(fn ($v) => trim((string) ($v['en'] ?? '')))
+                                            ->filter()
+                                            ->values()
+                                            ->all();
+                                        if ($name !== '' && $vals) {
+                                            $axes[$name] = $vals;
+                                        }
+                                    }
+
+                                    if (! $axes) {
+                                        return;
+                                    }
+
+                                    // Cartesian product of all axis values.
+                                    $combos = [[]];
+                                    foreach ($axes as $name => $vals) {
+                                        $next = [];
+                                        foreach ($combos as $combo) {
+                                            foreach ($vals as $val) {
+                                                $next[] = $combo + [$name => $val];
+                                            }
+                                        }
+                                        $combos = $next;
+                                    }
+
+                                    // Preserve stock/price/photo for combinations that already exist.
+                                    $existing = collect($get('variants') ?? []);
+                                    $rows = [];
+                                    foreach ($combos as $i => $combo) {
+                                        $match = $existing->first(fn ($v) => ($v['option_values'] ?? null) == $combo);
+                                        $rows[] = [
+                                            'name' => implode(' / ', array_values($combo)),
+                                            'option_values' => $combo,
+                                            'stock' => $match['stock'] ?? 0,
+                                            'price' => $match['price'] ?? null,
+                                            'image_path' => $match['image_path'] ?? null,
+                                            'position' => $i + 1,
+                                        ];
+                                    }
+
+                                    $set('variants', $rows);
+                                }),
+                        ]),
                         Forms\Components\Repeater::make('variants')
                             ->relationship()
                             ->hiddenLabel()
                             ->schema([
+                                Forms\Components\Hidden::make('option_values'),
                                 Forms\Components\TextInput::make('name')
                                     ->label('Option')
                                     ->placeholder('e.g. Red / M')

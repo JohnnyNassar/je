@@ -50,7 +50,7 @@ class CatalogController extends Controller
         $isStaff = auth('web')->check();
         abort_unless($product->is_active || $isStaff, 404);
 
-        $product->load('variants');
+        $product->load('variants', 'options');
 
         // Related products: other active items in the same category.
         $related = $product->category_id

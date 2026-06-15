@@ -30,7 +30,176 @@
         </div>
     @endauth
 
-    @if ($product->variants->isNotEmpty())
+    @if ($product->options->isNotEmpty() && $product->variants->isNotEmpty())
+        @php
+            $lang = app()->getLocale();
+            $optionData = $product->options->map(fn ($o) => [
+                'name' => $o->name_en,
+                'label' => ($lang === 'ar' && $o->name_ar) ? $o->name_ar : $o->name_en,
+                'values' => collect($o->values ?? [])
+                    ->map(fn ($v) => [
+                        'key' => $v['en'] ?? '',
+                        'label' => ($lang === 'ar' && ! empty($v['ar'])) ? $v['ar'] : ($v['en'] ?? ''),
+                    ])
+                    ->filter(fn ($v) => $v['key'] !== '')
+                    ->values(),
+            ])->values();
+            $variantData = $product->variants->map(fn ($v) => [
+                'id' => $v->id,
+                'opts' => (object) ($v->option_values ?? []),
+                'stock' => (int) $v->stock,
+                'price' => money_format($v->effectivePrice()),
+                'image' => $v->image_path ? asset('storage/' . $v->image_path) : null,
+            ])->values();
+            $galleryImages = $product->imageUrls();
+            $productImage = $product->image_path ? asset('storage/' . $product->image_path) : '';
+        @endphp
+        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden"
+             x-data="{
+                options: @js($optionData),
+                variants: @js($variantData),
+                gallery: @js($galleryImages),
+                productImage: @js($productImage),
+                selected: {},
+                manualImage: null,
+                qty: 1,
+                init() {
+                    let v = this.variants.find(x => x.stock > 0) || this.variants[0];
+                    if (v) { this.options.forEach(o => { this.selected[o.name] = v.opts[o.name]; }); }
+                },
+                get current() {
+                    return this.variants.find(v => this.options.every(o => v.opts[o.name] === this.selected[o.name])) || null;
+                },
+                get max() { return this.current ? this.current.stock : 0; },
+                get image() {
+                    if (this.manualImage) return this.manualImage;
+                    return (this.current && this.current.image) ? this.current.image : this.productImage;
+                },
+                available(optName, valKey) {
+                    return this.variants.some(v => v.stock > 0 && v.opts[optName] === valKey
+                        && this.options.every(o => o.name === optName || v.opts[o.name] === this.selected[o.name]));
+                },
+                pick(optName, valKey) { this.selected[optName] = valKey; this.qty = 1; this.manualImage = null; },
+             }">
+            <div class="grid grid-cols-1 md:grid-cols-2">
+                <div>
+                <div class="relative aspect-square md:aspect-auto bg-gray-100 overflow-hidden">
+                    <template x-if="image">
+                        <img :src="image" :alt="current ? current.name : @js($product->name)" class="w-full h-full object-cover">
+                    </template>
+                    <template x-if="!image">
+                        <div class="w-full h-full min-h-[20rem] flex items-center justify-center text-gray-300">
+                            <svg class="w-20 h-20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159"/>
+                            </svg>
+                        </div>
+                    </template>
+                    @if ($product->isOnSale())
+                        <span class="absolute top-3 start-3 inline-flex items-center rounded-md bg-accent-600 text-white px-2.5 py-1 text-xs font-bold uppercase tracking-wider shadow">
+                            {{ __('Save') }} {{ $product->discount_percentage }}%
+                        </span>
+                    @endif
+                </div>
+                @if (count($galleryImages) > 1)
+                    <div class="flex gap-2 overflow-x-auto p-3 bg-white">
+                        <template x-for="(src, i) in gallery" :key="i">
+                            <button type="button" @click="manualImage = src"
+                                    :class="image === src ? 'ring-2 ring-brand-600' : 'ring-1 ring-gray-200 hover:ring-gray-300'"
+                                    class="shrink-0 w-16 h-16 rounded-md overflow-hidden bg-gray-100 focus:outline-none">
+                                <img :src="src" alt="" class="w-full h-full object-cover">
+                            </button>
+                        </template>
+                    </div>
+                @endif
+                </div>
+
+                <div class="p-6 sm:p-8 flex flex-col">
+                    <h1 class="text-xl sm:text-2xl font-semibold text-gray-900 leading-tight">{{ $product->name }}</h1>
+
+                    <div class="mt-4 flex items-center gap-3 flex-wrap">
+                        <span class="text-2xl sm:text-3xl font-bold text-gray-900" x-text="current ? current.price : '{{ money_format($product->price) }}'"></span>
+                        @if ($product->isOnSale())
+                            <span class="text-lg text-gray-400 line-through">{{ money_format($product->compare_at_price) }}</span>
+                        @endif
+                        <template x-if="current && current.stock > 0">
+                            <span class="inline-flex items-center gap-1.5 rounded-full bg-green-50 text-green-700 px-2.5 py-0.5 text-xs font-medium ring-1 ring-green-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                <span x-text="current.stock"></span> {{ __('left') }}
+                            </span>
+                        </template>
+                        <template x-if="!current || current.stock <= 0">
+                            <span class="inline-flex items-center rounded-full bg-red-50 text-red-700 px-2.5 py-0.5 text-xs font-medium ring-1 ring-red-200">
+                                {{ __('Out of Stock') }}
+                            </span>
+                        </template>
+                    </div>
+
+                    @if ($product->description)
+                        <div class="mt-5 text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                            {{ $product->description }}
+                        </div>
+                    @endif
+
+                    {{-- One selector group per option (Colour, Size, …) --}}
+                    <div class="mt-6 space-y-4">
+                        <template x-for="opt in options" :key="opt.name">
+                            <div>
+                                <div class="text-xs font-medium text-gray-700 mb-2" x-text="opt.label"></div>
+                                <div class="flex flex-wrap gap-2">
+                                    <template x-for="val in opt.values" :key="val.key">
+                                        <button type="button"
+                                                @click="(available(opt.name, val.key) || selected[opt.name] === val.key) && pick(opt.name, val.key)"
+                                                :disabled="!available(opt.name, val.key) && selected[opt.name] !== val.key"
+                                                :class="{
+                                                    'ring-2 ring-brand-600 border-brand-600 text-brand-700': selected[opt.name] === val.key,
+                                                    'border-gray-300 text-gray-700 hover:border-gray-400': selected[opt.name] !== val.key && available(opt.name, val.key),
+                                                    'border-gray-200 text-gray-300 line-through cursor-not-allowed': selected[opt.name] !== val.key && !available(opt.name, val.key)
+                                                }"
+                                                class="px-3 py-1.5 rounded-md border text-sm font-medium transition"
+                                                x-text="val.label"></button>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div class="mt-6 inline-flex items-center gap-2 rounded-md bg-gray-100 px-3 py-2 text-xs text-gray-700 w-fit">
+                        <svg class="w-4 h-4 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zm10 0a2 2 0 11-4 0 2 2 0 014 0zM13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/>
+                        </svg>
+                        <span class="font-medium">{{ __('Payment Method') }}:</span>
+                        <span>{{ __('Cash on Delivery') }}</span>
+                    </div>
+
+                    <form method="POST" action="{{ route('cart.add', $product) }}" class="mt-auto pt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                        @csrf
+                        <input type="hidden" name="variant_id" :value="current ? current.id : ''">
+                        <div class="inline-flex items-stretch rounded-md border border-gray-300 overflow-hidden bg-white shrink-0">
+                            <button type="button" @click="qty = Math.max(1, qty - 1)" aria-label="Decrease"
+                                    class="w-10 flex items-center justify-center text-gray-600 hover:bg-gray-100">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4"/></svg>
+                            </button>
+                            <input type="number" name="quantity" x-model.number="qty" :max="max" min="1"
+                                   class="w-14 text-center border-0 focus:ring-0 text-sm font-medium p-0">
+                            <button type="button" @click="qty = Math.min(max, qty + 1)" aria-label="Increase"
+                                    class="w-10 flex items-center justify-center text-gray-600 hover:bg-gray-100">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                            </button>
+                        </div>
+                        <button type="submit"
+                                :disabled="!current || current.stock <= 0"
+                                :class="(!current || current.stock <= 0) ? 'opacity-50 cursor-not-allowed' : ''"
+                                class="flex-1 inline-flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold px-6 py-3 rounded-md transition shadow-card">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                            {{ __('Add to Cart') }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @elseif ($product->variants->isNotEmpty())
         @php
             $variantData = $product->variants->map(fn ($v) => [
                 'id' => $v->id,
