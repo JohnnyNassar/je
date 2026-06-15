@@ -70,6 +70,11 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 \Filament\View\PanelsRenderHook::HEAD_END,
                 fn (): string => '<link rel="stylesheet" href="' . asset('css/admin-density.css') . '?v=' . filemtime(public_path('css/admin-density.css')) . '">'
+            )
+            // Mirrored top horizontal scrollbar for wide list tables.
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::BODY_END,
+                fn (): string => '<script src="' . asset('js/admin-table-scroll.js') . '?v=' . filemtime(public_path('js/admin-table-scroll.js')) . '"></script>'
             );
     }
 }

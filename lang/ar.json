@@ -110,5 +110,7 @@
     "You have :n points.": "لديك :n نقطة.",
     "You will earn :n points on this order.": "ستكسب :n نقطة من هذا الطلب.",
     "Redeem them at checkout for a discount.": "استبدلها عند الدفع للحصول على خصم.",
-    "Draft preview — this product is not active, so customers cannot see it yet. This is how it will look once you activate it.": "معاينة مسودة — هذا المنتج غير مفعّل، لذلك لا يمكن للعملاء رؤيته بعد. هكذا سيظهر بمجرد تفعيله."
+    "Draft preview — this product is not active, so customers cannot see it yet. This is how it will look once you activate it.": "معاينة مسودة — هذا المنتج غير مفعّل، لذلك لا يمكن للعملاء رؤيته بعد. هكذا سيظهر بمجرد تفعيله.",
+    "Product #:n": "المنتج رقم :n",
+    "visible to staff only": "ظاهر للموظفين فقط"
 }

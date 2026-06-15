@@ -490,6 +490,27 @@ The Loyalty section gained the reporting + promotions it was structured for, and
 
 ---
 
+## Day 13 — 2026-06-15 (admin products-table UX + staff product # + variants help)
+
+### Admin Products table
+- **Mirrored top horizontal scrollbar** — `public/js/admin-table-scroll.js` (injected via `AdminPanelProvider` `BODY_END` renderHook) builds a synced scrollbar *above* every `.fi-ta-content`, so wide tables can be panned without scrolling to the bottom. Styled in `admin-density.css` (`.fi-ta-top-scroll`), shows only when the table overflows, re-measures on resize + Livewire morphs (sort/filter/paginate). Verified live in the panel: top bar present above the table, inner width = table scrollWidth, two-way scroll sync works.
+- **Total product count** — `ProductResource::getNavigationBadge()` shows the count next to "Products" in the sidebar; `ListProducts::getSubheading()` also prints it on the page ("44 products total · 6 active") since the badge was easy to miss.
+- **Column ordering** — `name_en` / `name_ar` made `->sortable()` (price/cost/stock/dates already were); `->defaultSort('created_at','desc')`. NB: Filament **v3.3.0 has no `reorderableColumns()`** (drag-to-reorder columns landed later) — "order" here means click-to-sort + the existing show/hide toggles.
+
+### Staff-only product number on the storefront
+- The product detail page (`catalog/show.blade.php`) now shows **"Product #N · visible to staff only"** under the breadcrumb, gated by `@auth('web')` so only logged-in staff/admins see it — shoppers (customer guard) and guests don't. Strings added to `lang/ar.json`.
+
+### Variants help
+- Enriched the existing **"Product variations"** step in the Getting Started page to explain combining attributes (colour + size + dimension) by naming a single variation `"Red / M / 50cm"`, plus per-variation stock/price/photo and the auto-summed stock. Bilingual EN/AR.
+
+### Notes worth remembering
+- **Public storefront is gated by `coming_soon_enabled`** (`ComingSoonMode` middleware): guests get the splash; `/admin`, `/livewire`, `/privacy`, and any logged-in `web` user bypass it. So products (e.g. #94 CRIVIT pool, which already has 8 gallery images + 2 shape variants live) are fully built but invisible to customers until that setting is turned off. A `curl` of a product URL returns 200 but is the splash — log in (or check the DB) to verify real product rendering.
+
+### Production rollout
+- Shipped in commit `__PENDING__`, deployed via the `git push` → `joreption-deploy.sh` pipeline (**no migration**; JS/CSS are static, picked up by the npm build step). Verified live after deploy.
+
+---
+
 ## Lessons learned (worth remembering)
 
 - **OPcache vs deploys.** PHP-FPM had `opcache.validate_timestamps=0` somewhere in its config, so simply replacing PHP files left old bytecode in memory and made my fixes look like they had no effect. **All deploys now `systemctl reload php8.3-fpm`** as the last step.

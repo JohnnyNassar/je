@@ -106,6 +106,33 @@
     background: transparent;
 }
 
+/* Mirrored TOP horizontal scrollbar (built by public/js/admin-table-scroll.js).
+ * Sits just above the table header and scrolls the same content, so you don't
+ * have to scroll to the bottom of a long table to pan columns sideways. */
+.fi-ta-top-scroll {
+    display: none;                                  /* JS shows it only when scrollable */
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;                          /* Firefox */
+    scrollbar-color: rgba(100, 116, 139, 0.6) transparent;
+}
+.fi-ta-top-scroll-inner {
+    height: 1px;
+}
+.fi-ta-top-scroll::-webkit-scrollbar {
+    height: 11px;                                   /* Chromium / Edge / Safari */
+}
+.fi-ta-top-scroll::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.55);
+    border-radius: 9999px;
+}
+.fi-ta-top-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.8);
+}
+.fi-ta-top-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
 /* --- Forms --- */
 
 /* Section card padding */
