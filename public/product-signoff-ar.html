@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Joreption — Product Features Sign-off</title>
+<link rel="icon" type="image/jpeg" href="https://joreption.com/images/logo.jpg">
+<style>
+  :root{
+    --brand:#287d88; --brand-d:#1f525c; --brand-l:#d6f1f2;
+    --ok:#15803d; --ok-bg:#dcfce7; --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --bg:#eef1f5;
+  }
+  *{box-sizing:border-box}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;margin:0;background:var(--bg);color:var(--ink);line-height:1.5}
+  a{color:var(--brand)}
+  .wrap{max-width:980px;margin:0 auto;padding:0 16px}
+
+  header{background:linear-gradient(135deg,var(--brand-d),var(--brand));color:#fff}
+  .head-in{display:flex;gap:16px;align-items:center;padding:22px 0}
+  .head-in img{width:54px;height:54px;border-radius:10px;object-fit:cover;box-shadow:0 0 0 2px rgba(255,255,255,.25)}
+  header h1{margin:0;font-size:1.5rem}
+  header .sub{color:rgba(255,255,255,.85);font-size:.9rem;margin-top:2px}
+  .langlink{margin-inline-start:auto;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:7px 12px;text-decoration:none;font-size:.85rem;white-space:nowrap}
+  .langlink:hover{background:rgba(255,255,255,.25)}
+  .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;padding:0 0 20px}
+  .meta div{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 12px;font-size:.82rem}
+  .meta .k{color:rgba(255,255,255,.7);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em}
+
+  .bar{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  .bar-in{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px 0}
+  .prog{flex:1;min-width:200px}
+  .prog .track{height:10px;background:#eef1f5;border-radius:99px;overflow:hidden}
+  .prog .fill{height:100%;width:0;background:var(--brand);transition:width .25s}
+  .prog .lbl{font-size:.8rem;color:var(--muted);margin-bottom:4px}
+  .btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 11px;font-size:.82rem;cursor:pointer;color:var(--ink)}
+  .btn:hover{background:#f8fafc}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:99px;padding:5px 12px;font-size:.8rem;cursor:pointer}
+  .chip.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+
+  main{padding:18px 0 60px}
+  .intro{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:18px;font-size:.9rem}
+  .intro b{color:var(--brand-d)}
+
+  section.grp{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:16px;overflow:hidden}
+  .grp-head{display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;background:#fbfdfd;border-bottom:1px solid var(--line)}
+  .grp-head .ic{width:30px;height:30px;border-radius:8px;background:var(--brand-l);color:var(--brand-d);display:flex;align-items:center;justify-content:center;font-size:1rem;flex:none}
+  .grp-head h2{margin:0;font-size:1.05rem;flex:1}
+  .grp-head .cnt{font-size:.78rem;color:var(--muted)}
+  .grp-head .chev{transition:transform .2s;color:var(--muted)}
+  section.collapsed .grp-body{display:none}
+  section.collapsed .chev{transform:rotate(-90deg)}
+  .grp-body{padding:6px 16px 14px}
+
+  .item{border-bottom:1px solid #f1f3f5;padding:12px 0}
+  .item:last-child{border-bottom:none}
+  .item-top{display:flex;gap:10px;align-items:flex-start}
+  .id{font-family:ui-monospace,Menlo,monospace;font-size:.72rem;color:#fff;background:var(--brand);border-radius:5px;padding:2px 6px;flex:none;margin-top:2px}
+  .ttl{flex:1;font-weight:600}
+  .badge{flex:none;font-size:.72rem;font-weight:600;border-radius:99px;padding:2px 9px;background:var(--ok-bg);color:var(--ok)}
+  .lnk{font-size:.8rem;margin-top:4px}
+  .ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px}
+  .conf{display:inline-flex;align-items:center;gap:7px;font-size:.85rem;font-weight:600;color:var(--muted);cursor:pointer;user-select:none;border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+  .conf input{width:17px;height:17px;accent-color:var(--brand)}
+  .item.done .conf{color:var(--ok);border-color:#bbf7d0;background:var(--ok-bg)}
+  .cmt{flex:1;min-width:200px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:inherit;font-size:.83rem}
+  .item.hide{display:none}
+
+  .signoff{background:#fff;border:2px solid var(--brand);border-radius:12px;padding:18px;margin-top:24px}
+  .signoff h2{margin:0 0 8px;color:var(--brand-d)}
+  .stmt{background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:.88rem;margin:12px 0}
+  .fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .fields label{display:block;font-size:.78rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em}
+  .fields input{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px;font:inherit}
+  .accept{display:flex;gap:10px;align-items:flex-start;margin-top:14px;background:var(--brand-l);border-radius:8px;padding:12px}
+  .accept input{width:20px;height:20px;margin-top:2px;accent-color:var(--brand);flex:none}
+  .sig-line{margin-top:16px;border-top:2px dashed var(--line);padding-top:10px;font-size:.8rem;color:var(--muted)}
+
+  footer{text-align:center;color:var(--muted);font-size:.78rem;padding:20px}
+  @media (max-width:560px){.fields{grid-template-columns:1fr}}
+  @media print{
+    .bar,.no-print{display:none!important}
+    body{background:#fff}
+    section.collapsed .grp-body{display:block}
+    .item.hide{display:flex}
+    .signoff{break-inside:avoid}
+    header{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<header><div class="wrap"><div class="head-in"><img src="https://joreption.com/images/logo.jpg" alt="Joreption"><div><h1 id="hTitle"></h1><div class="sub" id="hSub"></div></div><a class="langlink" id="langLink"></a></div><div class="meta" id="meta"></div></div></header>
+<div class="bar no-print"><div class="wrap bar-in" id="bar"></div></div>
+<main class="wrap"><div class="intro" id="intro"></div><div id="groups"></div><div class="signoff" id="signoff"></div></main>
+<footer id="footer"></footer>
+<input type="file" id="importFile" accept="application/json" hidden>
+
+<script>
+const LANG = "ar";
+
+const STR = {
+  en: {
+    htmlTitle:"Joreption — Product Features Sign-off", hTitle:"Product Features — Client Sign-off",
+    hSub:"Review & confirm the delivered features", otherLabel:"العربية", otherHref:"product-signoff-ar.html",
+    meta:[["Client","Joreption"],["Prepared by","Development Team"],["Version","1.0"],["Generated","2026-06-18"],["Status","All live"]],
+    intro:'Please review each product feature below and tick <b>“Confirmed”</b> once you have checked it. Add a note in any row if something needs a change. When done, fill the <b>sign-off</b> at the bottom. Your ticks & notes are saved in this browser automatically.',
+    prog:(d,t)=>`${d} / ${t} confirmed`, all:"All", pending:"Pending", done:"Confirmed",
+    expand:"Expand all", collapse:"Collapse all", print:"🖨 Print / PDF", exp:"⬇ Export", imp:"⬆ Import", reset:"↺ Reset",
+    badge:"✓ Live", confirm:"Confirmed", notePh:"Note / change request", checkLink:"Check on site ↗",
+    items:(n)=>n===1?"item":"items",
+    soHead:"Final Acceptance & Sign-off",
+    stmt:"I confirm that I have reviewed the product features listed above and accept them as delivered, except where I have noted otherwise.",
+    fName:"Name", fTitle:"Title / Role", fDate:"Date", fSig:"Signature", sigPh:"Type your name to sign",
+    accept:"I have reviewed and accept all the above features (subject to my notes).",
+    signed:"Signed:", footer:"Joreption · Product Features Sign-off v1.0 · 2026-06-18",
+    resetConfirm:"Clear all ticks, notes and the sign-off on this device?", badFile:"Invalid file",
+  },
+  ar: {
+    htmlTitle:"جوربشن — اعتماد ميزات المنتجات", hTitle:"ميزات المنتجات — ورقة اعتماد العميل",
+    hSub:"مراجعة واعتماد الميزات المُسلّمة", otherLabel:"English", otherHref:"product-signoff-en.html",
+    meta:[["العميل","Joreption"],["إعداد","فريق التطوير"],["الإصدار","1.0"],["تاريخ الإنشاء","2026-06-18"],["الحالة","منشورة بالكامل"]],
+    intro:'يرجى مراجعة كل ميزة أدناه ووضع علامة <b>«مؤكّد»</b> بعد التحقق منها. أضِف ملاحظة في أي بند إذا احتاج تعديلاً. عند الانتهاء، عبّئ خانة <b>الاعتماد</b> بالأسفل. تُحفظ علاماتك وملاحظاتك في هذا المتصفح تلقائياً.',
+    prog:(d,t)=>`${d} / ${t} مؤكّد`, all:"الكل", pending:"قيد المراجعة", done:"مؤكّد",
+    expand:"توسيع الكل", collapse:"طيّ الكل", print:"🖨 طباعة / PDF", exp:"⬇ تصدير", imp:"⬆ استيراد", reset:"↺ إعادة ضبط",
+    badge:"✓ منشور", confirm:"مؤكّد", notePh:"ملاحظة / طلب تعديل", checkLink:"المعاينة على الموقع ↗",
+    items:(n)=>"بند",
+    soHead:"الاعتماد النهائي والتوقيع",
+    stmt:"أقرّ بأنني راجعتُ ميزات المنتجات المذكورة أعلاه وأعتمدها كما سُلّمت، باستثناء ما دوّنتُ بشأنه ملاحظات.",
+    fName:"الاسم", fTitle:"الصفة", fDate:"التاريخ", fSig:"التوقيع", sigPh:"اكتب اسمك للتوقيع",
+    accept:"راجعتُ وأعتمد جميع الميزات أعلاه (مع مراعاة ملاحظاتي).",
+    signed:"التوقيع:", footer:"جوربشن · اعتماد ميزات المنتجات الإصدار 1.0 · 2026-06-18",
+    resetConfirm:"مسح كل العلامات والملاحظات والاعتماد على هذا الجهاز؟", badFile:"ملف غير صالح",
+  },
+};
+const T = STR[LANG];
+
+const DATA = [
+  { icon:"🛍️", en:"Storefront — product display", ar:"واجهة المتجر — عرض المنتج", link:"https://joreption.com", items:[
+    {id:"S1", en:"Product grid + search (name & description, EN + AR)", ar:"شبكة منتجات + بحث (بالاسم والوصف، عربي + إنجليزي)"},
+    {id:"S2", en:"Locale-aware name & description (auto EN/AR)", ar:"اسم ووصف يظهران حسب لغة الزائر تلقائياً"},
+    {id:"S3", en:"Stock badges (“Out of Stock”, “X left”)", ar:"شارات المخزون («غير متوفر»، «متبقّي X»)"},
+    {id:"S4", en:"Sale price — “Save X%” badge + crossed-out original", ar:"سعر التخفيض — شارة «وفّر X%» مع شطب السعر الأصلي"},
+    {id:"S5", en:"Image gallery — cover + thumbnail strip", ar:"معرض صور — صورة رئيسية + شريط صور مصغّرة"},
+    {id:"S6", en:"Multi-axis variant selectors (Colour × Size × Dimension)", ar:"اختيار الخيارات متعدّد المحاور (اللون × المقاس × الأبعاد)"},
+    {id:"S7", en:"Simple variant chips (single-axis fallback)", ar:"أزرار الخيارات البسيطة (لمحور واحد) كبديل"},
+    {id:"S8", en:"Out-of-stock combinations struck through automatically", ar:"شطب التركيبات غير المتوفرة تلقائياً"},
+    {id:"S9", en:"“You may also like” related products", ar:"قسم «قد يعجبك أيضاً» (منتجات مشابهة)"},
+    {id:"S10", en:"Staff-only “Product #N” tag (hidden from shoppers)", ar:"رقم المنتج «#N» يظهر للموظفين فقط"},
+    {id:"S11", en:"Draft preview for staff (inactive products)", ar:"معاينة المسودة للموظفين (للمنتجات غير المفعّلة)"},
+  ]},
+  { icon:"⚙️", en:"Admin — product management", ar:"لوحة التحكم — إدارة المنتجات", link:"https://joreption.com/admin/products", items:[
+    {id:"A1", en:"Bilingual name/description, price, stock, active toggle", ar:"اسم ووصف بلغتين، السعر، الكمية، مفتاح التفعيل"},
+    {id:"A2", en:"Sale price (original price for the discount badge)", ar:"سعر أصلي للمقارنة (لإظهار شارة الخصم)"},
+    {id:"A3", en:"Featured toggle (home-page strip)", ar:"مفتاح «مميّز» (للظهور في الصفحة الرئيسية)"},
+    {id:"A4", en:"Cost price + profit/margin (gated, per-user access)", ar:"سعر التكلفة + الربح/هامش الربح (محمي، صلاحية لكل مستخدم)"},
+    {id:"A5", en:"Cover image upload (auto-resize to 1600px)", ar:"رفع الصورة الرئيسية (تصغير تلقائي حتى 1600 بكسل)"},
+    {id:"A6", en:"Gallery: multiple, reorderable images", ar:"معرض: صور متعددة قابلة لإعادة الترتيب"},
+    {id:"A7", en:"Pick image from media library", ar:"اختيار صورة من مكتبة الوسائط"},
+    {id:"A8", en:"Options (up to 3 axes) + “Build combinations”", ar:"الخيارات (حتى 3 محاور) + زر «إنشاء التركيبات»"},
+    {id:"A9", en:"Variations: per-combination stock / price / photo", ar:"التركيبات: كمية/سعر/صورة لكل تركيبة"},
+    {id:"A10", en:"“View on website” action (table + edit page)", ar:"إجراء «عرض في الموقع» (في الجدول وصفحة التعديل)"},
+    {id:"A11", en:"Total product count (sidebar badge + page subheading)", ar:"إجمالي عدد المنتجات (شارة جانبية + أسفل العنوان)"},
+    {id:"A12", en:"Sortable columns + top horizontal scrollbar", ar:"أعمدة قابلة للترتيب + شريط تمرير أفقي علوي"},
+    {id:"A13", en:"Copy public product link (for WhatsApp)", ar:"نسخ رابط المنتج العام (للمشاركة على واتساب)"},
+    {id:"A14", en:"Bulk “Set category” for many products", ar:"تعيين فئة لعدة منتجات دفعة واحدة"},
+    {id:"A15", en:"Quick Add PWA (admin-only, mobile capture)", ar:"تطبيق «الإضافة السريعة» (للأدمن فقط، تصوير من الجوال)"},
+  ]},
+  { icon:"🎨", en:"Variants — structure", ar:"الخيارات/التنويعات — البنية", items:[
+    {id:"V1", en:"Variants store: name, stock, price/image override, order", ar:"بنية التنويعات: اسم، كمية، سعر/صورة بديلة، ترتيب"},
+    {id:"V2", en:"Structured options + option values (combinations)", ar:"الخيارات المنظّمة + قيمها (التركيبات)"},
+    {id:"V3", en:"Product stock auto-sums from its variants", ar:"إجمالي مخزون المنتج يُحسب تلقائياً من التنويعات"},
+    {id:"V4", en:"Variant flows through cart → checkout → order (stock decrement)", ar:"التنويع يمرّ عبر السلة ← الدفع ← الطلب (خصم المخزون)"},
+  ]},
+  { icon:"🗂️", en:"Categories — product organization", ar:"الفئات — تنظيم المنتجات", link:"https://joreption.com/admin/categories", items:[
+    {id:"C1", en:"Bilingual categories + slug + order + active", ar:"فئات بلغتين + رابط + ترتيب + تفعيل"},
+    {id:"C2", en:"2-level hierarchy (parent / sub-category)", ar:"تصنيف من مستويين (فئة رئيسية / فرعية)"},
+    {id:"C3", en:"Standard taxonomy seeded (10 parents / 40 sub-categories)", ar:"تعبئة تصنيف قياسي (10 رئيسية / 40 فرعية)"},
+    {id:"C4", en:"2-level category navigation on the storefront", ar:"تنقّل الفئات من مستويين في المتجر"},
+  ]},
+  { icon:"📥", en:"Import", ar:"الاستيراد", items:[
+    {id:"I1", en:"WhatsApp chat importer → products created as drafts", ar:"أمر استيراد محادثة واتساب ← منتجات كمسوّدات"},
+  ]},
+];
+
+const KEY = "joreption_product_signoff_" + LANG;
+let state = load();
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)) || {items:{},signoff:{}}; }catch(e){ return {items:{},signoff:{}}; } }
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+const tx = o => o[LANG];
+
+document.documentElement.lang = LANG;
+document.documentElement.dir = (LANG === "ar") ? "rtl" : "ltr";
+document.title = T.htmlTitle;
+
+// Header
+document.getElementById("hTitle").textContent = T.hTitle;
+document.getElementById("hSub").textContent = T.hSub;
+const ll = document.getElementById("langLink"); ll.textContent = T.otherLabel; ll.href = T.otherHref;
+document.getElementById("meta").innerHTML = T.meta.map(([k,v])=>`<div><div class="k">${k}</div>${v}</div>`).join("");
+
+// Toolbar
+document.getElementById("bar").innerHTML = `
+  <div class="prog"><div class="lbl" id="progText"></div><div class="track"><div class="fill" id="progFill"></div></div></div>
+  <span class="chip active" data-filter="all">${T.all}</span>
+  <span class="chip" data-filter="pending">${T.pending}</span>
+  <span class="chip" data-filter="done">${T.done}</span>
+  <button class="btn" id="expandAll">${T.expand}</button>
+  <button class="btn" id="collapseAll">${T.collapse}</button>
+  <button class="btn" id="printBtn">${T.print}</button>
+  <button class="btn" id="exportBtn">${T.exp}</button>
+  <button class="btn" id="importBtn">${T.imp}</button>
+  <button class="btn" id="resetBtn">${T.reset}</button>`;
+
+// Intro
+document.getElementById("intro").innerHTML = T.intro;
+
+// Sign-off
+document.getElementById("signoff").innerHTML = `
+  <h2>${T.soHead}</h2>
+  <div class="stmt">${T.stmt}</div>
+  <div class="fields">
+    <div><label>${T.fName}</label><input id="sf_name" type="text"></div>
+    <div><label>${T.fTitle}</label><input id="sf_title" type="text"></div>
+    <div><label>${T.fDate}</label><input id="sf_date" type="date"></div>
+    <div><label>${T.fSig}</label><input id="sf_sig" type="text" placeholder="${T.sigPh}"></div>
+  </div>
+  <label class="accept"><input type="checkbox" id="sf_accept"><span>${T.accept}</span></label>
+  <div class="sig-line">${T.signed} <span id="sigEcho">—</span></div>`;
+
+document.getElementById("footer").textContent = T.footer;
+
+// Build groups
+const groupsEl = document.getElementById("groups");
+let allItemIds = [];
+DATA.forEach(g => {
+  const sec = document.createElement("section");
+  sec.className = "grp";
+  sec.innerHTML = `
+    <div class="grp-head">
+      <span class="ic">${g.icon}</span>
+      <h2>${tx(g)}</h2>
+      <span class="cnt">${g.items.length} ${T.items(g.items.length)}</span>
+      <span class="chev">▾</span>
+    </div>
+    <div class="grp-body"></div>`;
+  const body = sec.querySelector(".grp-body");
+  g.items.forEach(it => {
+    allItemIds.push(it.id);
+    const st = state.items[it.id] || {};
+    const row = document.createElement("div");
+    row.className = "item" + (st.confirmed ? " done" : "");
+    const linkHtml = g.link ? `<div class="lnk">🔗 <a href="${g.link}" target="_blank" rel="noopener">${T.checkLink}</a></div>` : "";
+    row.innerHTML = `
+      <div class="item-top">
+        <span class="id">${it.id}</span>
+        <span class="ttl">${tx(it)}</span>
+        <span class="badge">${T.badge}</span>
+      </div>
+      ${linkHtml}
+      <div class="ctl">
+        <label class="conf"><input type="checkbox" ${st.confirmed?"checked":""}> ${T.confirm}</label>
+        <input class="cmt" type="text" placeholder="${T.notePh}">
+      </div>`;
+    const cb = row.querySelector(".conf input");
+    const cmt = row.querySelector(".cmt");
+    cmt.value = st.comment || "";
+    cb.addEventListener("change", () => { state.items[it.id] = {...(state.items[it.id]||{}), confirmed: cb.checked}; row.classList.toggle("done", cb.checked); save(); updateProgress(); applyFilter(); });
+    cmt.addEventListener("input", () => { state.items[it.id] = {...(state.items[it.id]||{}), comment: cmt.value}; save(); });
+    body.appendChild(row);
+  });
+  sec.querySelector(".grp-head").addEventListener("click", () => sec.classList.toggle("collapsed"));
+  groupsEl.appendChild(sec);
+});
+
+function updateProgress(){
+  const total = allItemIds.length;
+  const done = allItemIds.filter(id => state.items[id] && state.items[id].confirmed).length;
+  document.getElementById("progText").textContent = T.prog(done, total);
+  document.getElementById("progFill").style.width = (total? (done/total*100):0) + "%";
+}
+let filter = "all";
+function applyFilter(){
+  document.querySelectorAll(".item").forEach(row => {
+    const done = row.classList.contains("done");
+    let show = filter === "all" ? true : (filter === "done" ? done : !done);
+    row.classList.toggle("hide", !show);
+  });
+}
+document.querySelectorAll(".chip").forEach(ch => ch.addEventListener("click", () => {
+  document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
+  ch.classList.add("active"); filter = ch.dataset.filter; applyFilter();
+}));
+document.getElementById("expandAll").onclick = () => document.querySelectorAll("section.grp").forEach(s=>s.classList.remove("collapsed"));
+document.getElementById("collapseAll").onclick = () => document.querySelectorAll("section.grp").forEach(s=>s.classList.add("collapsed"));
+document.getElementById("printBtn").onclick = () => window.print();
+
+// Sign-off persistence
+const sf = {name:"sf_name", title:"sf_title", date:"sf_date", sig:"sf_sig", accept:"sf_accept"};
+Object.entries(sf).forEach(([k,id]) => {
+  const el = document.getElementById(id);
+  const sv = (state.signoff||{})[k];
+  if (sv !== undefined){ if (el.type==="checkbox") el.checked = sv; else el.value = sv; }
+  el.addEventListener(el.type==="checkbox"?"change":"input", () => {
+    state.signoff = state.signoff || {};
+    state.signoff[k] = el.type==="checkbox" ? el.checked : el.value;
+    save(); echoSig();
+  });
+});
+function echoSig(){
+  const s = state.signoff||{};
+  document.getElementById("sigEcho").textContent = (s.sig||s.name) ? `${s.sig||s.name}${s.date? " · "+s.date:""}` : "—";
+}
+
+// Export / Import / Reset
+document.getElementById("exportBtn").onclick = () => {
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = "joreption-product-signoff-" + LANG + ".json"; a.click();
+};
+document.getElementById("importBtn").onclick = () => document.getElementById("importFile").click();
+document.getElementById("importFile").addEventListener("change", e => {
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => { try{ state = JSON.parse(r.result); save(); location.reload(); }catch(err){ alert(T.badFile); } };
+  r.readAsText(f);
+});
+document.getElementById("resetBtn").onclick = () => { if (confirm(T.resetConfirm)){ localStorage.removeItem(KEY); location.reload(); } };
+
+updateProgress(); applyFilter(); echoSig();
+</script>
+</body>
+</html>
