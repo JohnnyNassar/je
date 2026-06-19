@@ -570,6 +570,35 @@ The **variant row stays the unit of sale** — `variant_id` still flows through 
 
 ---
 
+## Day 16 — 2026-06-18 → 2026-06-20 (client product-features sign-off pages + workflow check)
+
+A client-facing deliverable, not new app code: an interactive **product-features sign-off sheet** the owner can hand to a reviewer to tick off and approve each feature.
+
+### Sign-off pages (`public/product-signoff*.html`)
+- Self-contained static pages served live (no Laravel routing): `product-signoff.html` (landing → links to the two languages), `product-signoff-en.html`, `product-signoff-ar.html`. The EN and AR files are **byte-identical except two lines** (`<html lang/dir>` and `const LANG`), so the AR page is regenerated from the EN one via `sed`.
+- All feature rows are driven by one `DATA` array (bilingual `en`/`ar` per item). The page renders: per-row **"Confirmed" checkbox** + **note/change-request** field (both auto-saved to `localStorage`), a **progress bar**, All/Pending/Confirmed **filters**, expand/collapse, **Print→PDF**, **Export/Import JSON**, and a **final acceptance & sign-off block** (name / role / date / typed signature / accept).
+- Shipped initially as one bilingual page (commit `9672969`), then **split into separate EN + AR pages** (`f3ee0a4`).
+
+### Per-feature links + breadcrumb paths (commit `ca31366`)
+- Original build had **one link per section** printed on every row — so every row in a group pointed to the same URL (read as broken). Replaced with a **per-item `url`** (the closest relevant page) plus a **bilingual breadcrumb `path`** rendered in a monospace pill under the link (EN uses `→`, AR uses `←`).
+- Link targets now vary by feature: catalog features → home; product-detail features → a live product (`/products/94`, which has gallery + variants); admin features → `/admin/products` or `/admin/categories` with the breadcrumb naming the exact field/section; Quick Add → `/admin/quick-add`. The WhatsApp-import row had no URL (server command).
+
+### Content edits (owner requests)
+- Removed the **Cost price + profit/margin** row (A4) from the sign-off sheet so cost/profit isn't surfaced to reviewers (commit `8849d8e`) — the feature itself still exists in the product and stays in `FEATURES.md`.
+- Removed the **Import** section entirely (`b4dd1af`). Sheet now has 4 sections: Storefront, Admin – product management, Variants, Categories.
+- Each change deployed via `git push` → `joreption-deploy.sh --skip-composer --skip-npm` (static files only) and verified live by `curl` (0 matches for the removed strings; prod HEAD matches).
+
+### Workflow check — fan "color" finding (data, not a bug)
+- Owner reported a fan with white/blue colors offered **no color choice** in the cart. Root cause: prod product **#90 "floor fan / مروحة أرضية"** has a **single variant literally named `white/blue`** (stock 10) instead of two separate variants. With one variant there's nothing to choose, so no selector renders. Same single-combined-variant pattern on #91 (one "green") and #93 (one dimensions string); #94 (pool) is the correctly-split example (2 variants → shows a chooser).
+- **Fix is data entry, not code:** edit the fan → either add a second flat variant (White / Blue) or define a **Colour** option with two values and click **Build combinations**, then split the stock. Not yet applied — left for the owner.
+
+### Notes worth remembering
+- **One variant ≠ a choice.** The storefront only renders a selector when a product has **two or more** variants/values. Entering both colours in a single variant name (`white/blue`) gives shoppers nothing to pick. Document "one variant per choice" in the Getting Started guide to prevent repeats.
+- **Confirm the deploy scope before worrying.** When the owner asked whether the deploy had touched Coming Soon, a 3-way check settled it instantly: `git show --stat` (only the two HTML files changed), the prod `coming_soon_enabled` setting (still `'true'`), and an anonymous `curl` of `/` (still the splash). Static-file deploys can't move app settings.
+- **EN/AR page parity by generation.** Keeping the two language pages identical except `lang`/`dir`/`LANG` and regenerating AR from EN via `sed` means every content edit is made **once** (in EN) and can't drift between languages.
+
+---
+
 ## Lessons learned (worth remembering)
 
 - **OPcache vs deploys.** PHP-FPM had `opcache.validate_timestamps=0` somewhere in its config, so simply replacing PHP files left old bytecode in memory and made my fixes look like they had no effect. **All deploys now `systemctl reload php8.3-fpm`** as the last step.

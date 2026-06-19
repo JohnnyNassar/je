@@ -4,7 +4,7 @@ A bilingual (English / Arabic, with RTL) Cash-on-Delivery e-commerce platform mi
 
 Built with Laravel 11 + Filament 3 + Tailwind 3 + Alpine.js + MariaDB 10.11. Hosted on Contabo Cloud VPS 10, Ubuntu 24.04 LTS.
 
-_Last updated: 2026-06-15_
+_Last updated: 2026-06-20_
 
 ---
 
@@ -402,10 +402,11 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 
 ## Roadmap (not yet started)
 
-Prioritised after the 2026-05-25 review — the platform is feature-complete and live behind Coming Soon. _(2026-05-26: admin role tiers, customer tiers with wholesale pricing + VIP point multipliers, and a richer audit log shipped since — see Day 9. 2026-06-11: product cost price + profit with per-user cost access, and an admin/storefront UI density pass — see Day 10. 2026-06-14/15: product image galleries, staff draft preview + staff-only product #, admin products-table UX (top scrollbar, total count, sortable columns), **structured multi-axis variants** (Colour × Size × Dimension), and **2-level categories** with a standard taxonomy — see Days 12–15.)_
+Prioritised after the 2026-05-25 review — the platform is feature-complete and live behind Coming Soon. _(2026-05-26: admin role tiers, customer tiers with wholesale pricing + VIP point multipliers, and a richer audit log shipped since — see Day 9. 2026-06-11: product cost price + profit with per-user cost access, and an admin/storefront UI density pass — see Day 10. 2026-06-14/15: product image galleries, staff draft preview + staff-only product #, admin products-table UX (top scrollbar, total count, sortable columns), **structured multi-axis variants** (Colour × Size × Dimension), and **2-level categories** with a standard taxonomy — see Days 12–15. 2026-06-18→20: a client **product-features sign-off sheet** (`/product-signoff.html`, EN + AR) with per-feature links + breadcrumb paths — see Day 16.)_
 
 ### 1. Launch readiness (go-live)
 - Review & **activate the imported product drafts** — names, stock, categories, Active toggle _(live: ~37 drafts vs 8 active)_
+- **Fix mis-entered variants** — some products carry both choices in a single variant name (e.g. fan #90 = one `white/blue` variant, #91 = one `green`) so the storefront shows no chooser; split each into separate variants (or a Colour option + Build combinations) and divide the stock
 - Set the **WhatsApp number** _(`admin_whatsapp` is empty on prod)_, branding and hero on the live site
 - ✅ **Cash-on-Delivery checkout verified** end-to-end on production (2026-05-26, including wholesale tier pricing)
 - **Enable loyalty** on prod if you want the points program / VIP multiplier active _(`loyalty_enabled` is currently off)_
