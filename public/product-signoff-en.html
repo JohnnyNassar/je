@@ -59,6 +59,7 @@
   .ttl{flex:1;font-weight:600}
   .badge{flex:none;font-size:.72rem;font-weight:600;border-radius:99px;padding:2px 9px;background:var(--ok-bg);color:var(--ok)}
   .lnk{font-size:.8rem;margin-top:4px}
+  .path{font-size:.76rem;color:var(--muted);margin-top:3px;font-family:ui-monospace,Menlo,monospace;background:#f8fafc;border:1px solid var(--line);border-radius:6px;padding:3px 8px;display:inline-block}
   .ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px}
   .conf{display:inline-flex;align-items:center;gap:7px;font-size:.85rem;font-weight:600;color:var(--muted);cursor:pointer;user-select:none;border:1px solid var(--line);border-radius:8px;padding:6px 10px}
   .conf input{width:17px;height:17px;accent-color:var(--brand)}
@@ -134,51 +135,57 @@ const STR = {
 };
 const T = STR[LANG];
 
+const HOME = "https://joreption.com";
+const PROD = "https://joreption.com/products/94"; // a live product with gallery + variants
+const APROD = "https://joreption.com/admin/products";
+const ACAT = "https://joreption.com/admin/categories";
+const AQA = "https://joreption.com/admin/quick-add";
+
 const DATA = [
-  { icon:"🛍️", en:"Storefront — product display", ar:"واجهة المتجر — عرض المنتج", link:"https://joreption.com", items:[
-    {id:"S1", en:"Product grid + search (name & description, EN + AR)", ar:"شبكة منتجات + بحث (بالاسم والوصف، عربي + إنجليزي)"},
-    {id:"S2", en:"Locale-aware name & description (auto EN/AR)", ar:"اسم ووصف يظهران حسب لغة الزائر تلقائياً"},
-    {id:"S3", en:"Stock badges (“Out of Stock”, “X left”)", ar:"شارات المخزون («غير متوفر»، «متبقّي X»)"},
-    {id:"S4", en:"Sale price — “Save X%” badge + crossed-out original", ar:"سعر التخفيض — شارة «وفّر X%» مع شطب السعر الأصلي"},
-    {id:"S5", en:"Image gallery — cover + thumbnail strip", ar:"معرض صور — صورة رئيسية + شريط صور مصغّرة"},
-    {id:"S6", en:"Multi-axis variant selectors (Colour × Size × Dimension)", ar:"اختيار الخيارات متعدّد المحاور (اللون × المقاس × الأبعاد)"},
-    {id:"S7", en:"Simple variant chips (single-axis fallback)", ar:"أزرار الخيارات البسيطة (لمحور واحد) كبديل"},
-    {id:"S8", en:"Out-of-stock combinations struck through automatically", ar:"شطب التركيبات غير المتوفرة تلقائياً"},
-    {id:"S9", en:"“You may also like” related products", ar:"قسم «قد يعجبك أيضاً» (منتجات مشابهة)"},
-    {id:"S10", en:"Staff-only “Product #N” tag (hidden from shoppers)", ar:"رقم المنتج «#N» يظهر للموظفين فقط"},
-    {id:"S11", en:"Draft preview for staff (inactive products)", ar:"معاينة المسودة للموظفين (للمنتجات غير المفعّلة)"},
+  { icon:"🛍️", en:"Storefront — product display", ar:"واجهة المتجر — عرض المنتج", items:[
+    {id:"S1", en:"Product grid + search (name & description, EN + AR)", ar:"شبكة منتجات + بحث (بالاسم والوصف، عربي + إنجليزي)", url:HOME, pEn:["Home page","search bar"], pAr:["الصفحة الرئيسية","شريط البحث"]},
+    {id:"S2", en:"Locale-aware name & description (auto EN/AR)", ar:"اسم ووصف يظهران حسب لغة الزائر تلقائياً", url:HOME, pEn:["Home page","language switch (top)"], pAr:["الصفحة الرئيسية","تبديل اللغة (الأعلى)"]},
+    {id:"S3", en:"Stock badges (“Out of Stock”, “X left”)", ar:"شارات المخزون («غير متوفر»، «متبقّي X»)", url:HOME, pEn:["Home page","product cards"], pAr:["الصفحة الرئيسية","بطاقات المنتجات"]},
+    {id:"S4", en:"Sale price — “Save X%” badge + crossed-out original", ar:"سعر التخفيض — شارة «وفّر X%» مع شطب السعر الأصلي", url:HOME, pEn:["Home page","product card (sale ribbon)"], pAr:["الصفحة الرئيسية","بطاقة منتج (شارة التخفيض)"]},
+    {id:"S5", en:"Image gallery — cover + thumbnail strip", ar:"معرض صور — صورة رئيسية + شريط صور مصغّرة", url:PROD, pEn:["Home page","Product page","image thumbnails"], pAr:["الصفحة الرئيسية","صفحة المنتج","الصور المصغّرة"]},
+    {id:"S6", en:"Multi-axis variant selectors (Colour × Size × Dimension)", ar:"اختيار الخيارات متعدّد المحاور (اللون × المقاس × الأبعاد)", url:PROD, pEn:["Home page","Product page","option selectors"], pAr:["الصفحة الرئيسية","صفحة المنتج","أزرار الخيارات"]},
+    {id:"S7", en:"Simple variant chips (single-axis fallback)", ar:"أزرار الخيارات البسيطة (لمحور واحد) كبديل", url:PROD, pEn:["Home page","Product page","option chips"], pAr:["الصفحة الرئيسية","صفحة المنتج","أزرار الخيارات"]},
+    {id:"S8", en:"Out-of-stock combinations struck through automatically", ar:"شطب التركيبات غير المتوفرة تلقائياً", url:PROD, pEn:["Home page","Product page","pick a value → sold-out struck out"], pAr:["الصفحة الرئيسية","صفحة المنتج","اختر قيمة ← شطب غير المتوفر"]},
+    {id:"S9", en:"“You may also like” related products", ar:"قسم «قد يعجبك أيضاً» (منتجات مشابهة)", url:PROD, pEn:["Home page","Product page","bottom: You may also like"], pAr:["الصفحة الرئيسية","صفحة المنتج","الأسفل: قد يعجبك أيضاً"]},
+    {id:"S10", en:"Staff-only “Product #N” tag (hidden from shoppers)", ar:"رقم المنتج «#N» يظهر للموظفين فقط", url:PROD, pEn:["Sign in as staff","Product page","under the title"], pAr:["تسجيل الدخول كموظف","صفحة المنتج","تحت العنوان"]},
+    {id:"S11", en:"Draft preview for staff (inactive products)", ar:"معاينة المسودة للموظفين (للمنتجات غير المفعّلة)", url:APROD, pEn:["Admin","Products","open a draft → View on website"], pAr:["لوحة التحكم","المنتجات","افتح مسودة ← عرض في الموقع"]},
   ]},
-  { icon:"⚙️", en:"Admin — product management", ar:"لوحة التحكم — إدارة المنتجات", link:"https://joreption.com/admin/products", items:[
-    {id:"A1", en:"Bilingual name/description, price, stock, active toggle", ar:"اسم ووصف بلغتين، السعر، الكمية، مفتاح التفعيل"},
-    {id:"A2", en:"Sale price (original price for the discount badge)", ar:"سعر أصلي للمقارنة (لإظهار شارة الخصم)"},
-    {id:"A3", en:"Featured toggle (home-page strip)", ar:"مفتاح «مميّز» (للظهور في الصفحة الرئيسية)"},
-    {id:"A4", en:"Cost price + profit/margin (gated, per-user access)", ar:"سعر التكلفة + الربح/هامش الربح (محمي، صلاحية لكل مستخدم)"},
-    {id:"A5", en:"Cover image upload (auto-resize to 1600px)", ar:"رفع الصورة الرئيسية (تصغير تلقائي حتى 1600 بكسل)"},
-    {id:"A6", en:"Gallery: multiple, reorderable images", ar:"معرض: صور متعددة قابلة لإعادة الترتيب"},
-    {id:"A7", en:"Pick image from media library", ar:"اختيار صورة من مكتبة الوسائط"},
-    {id:"A8", en:"Options (up to 3 axes) + “Build combinations”", ar:"الخيارات (حتى 3 محاور) + زر «إنشاء التركيبات»"},
-    {id:"A9", en:"Variations: per-combination stock / price / photo", ar:"التركيبات: كمية/سعر/صورة لكل تركيبة"},
-    {id:"A10", en:"“View on website” action (table + edit page)", ar:"إجراء «عرض في الموقع» (في الجدول وصفحة التعديل)"},
-    {id:"A11", en:"Total product count (sidebar badge + page subheading)", ar:"إجمالي عدد المنتجات (شارة جانبية + أسفل العنوان)"},
-    {id:"A12", en:"Sortable columns + top horizontal scrollbar", ar:"أعمدة قابلة للترتيب + شريط تمرير أفقي علوي"},
-    {id:"A13", en:"Copy public product link (for WhatsApp)", ar:"نسخ رابط المنتج العام (للمشاركة على واتساب)"},
-    {id:"A14", en:"Bulk “Set category” for many products", ar:"تعيين فئة لعدة منتجات دفعة واحدة"},
-    {id:"A15", en:"Quick Add PWA (admin-only, mobile capture)", ar:"تطبيق «الإضافة السريعة» (للأدمن فقط، تصوير من الجوال)"},
+  { icon:"⚙️", en:"Admin — product management", ar:"لوحة التحكم — إدارة المنتجات", items:[
+    {id:"A1", en:"Bilingual name/description, price, stock, active toggle", ar:"اسم ووصف بلغتين، السعر، الكمية، مفتاح التفعيل", url:APROD, pEn:["Admin","Products","Edit → Basic info"], pAr:["لوحة التحكم","المنتجات","تعديل ← المعلومات الأساسية"]},
+    {id:"A2", en:"Sale price (original price for the discount badge)", ar:"سعر أصلي للمقارنة (لإظهار شارة الخصم)", url:APROD, pEn:["Admin","Products","Edit → Sale price"], pAr:["لوحة التحكم","المنتجات","تعديل ← سعر التخفيض"]},
+    {id:"A3", en:"Featured toggle (home-page strip)", ar:"مفتاح «مميّز» (للظهور في الصفحة الرئيسية)", url:APROD, pEn:["Admin","Products","Edit → Featured toggle"], pAr:["لوحة التحكم","المنتجات","تعديل ← مفتاح مميّز"]},
+    {id:"A4", en:"Cost price + profit/margin (gated, per-user access)", ar:"سعر التكلفة + الربح/هامش الربح (محمي، صلاحية لكل مستخدم)", url:APROD, pEn:["Admin","Products","Edit → Cost & profit"], pAr:["لوحة التحكم","المنتجات","تعديل ← التكلفة والربح"]},
+    {id:"A5", en:"Cover image upload (auto-resize to 1600px)", ar:"رفع الصورة الرئيسية (تصغير تلقائي حتى 1600 بكسل)", url:APROD, pEn:["Admin","Products","Edit → Cover image"], pAr:["لوحة التحكم","المنتجات","تعديل ← الصورة الرئيسية"]},
+    {id:"A6", en:"Gallery: multiple, reorderable images", ar:"معرض: صور متعددة قابلة لإعادة الترتيب", url:APROD, pEn:["Admin","Products","Edit → Gallery"], pAr:["لوحة التحكم","المنتجات","تعديل ← المعرض"]},
+    {id:"A7", en:"Pick image from media library", ar:"اختيار صورة من مكتبة الوسائط", url:APROD, pEn:["Admin","Products","Edit → image field → Media library"], pAr:["لوحة التحكم","المنتجات","تعديل ← حقل الصورة ← مكتبة الوسائط"]},
+    {id:"A8", en:"Options (up to 3 axes) + “Build combinations”", ar:"الخيارات (حتى 3 محاور) + زر «إنشاء التركيبات»", url:APROD, pEn:["Admin","Products","Edit → Options → Build combinations"], pAr:["لوحة التحكم","المنتجات","تعديل ← الخيارات ← إنشاء التركيبات"]},
+    {id:"A9", en:"Variations: per-combination stock / price / photo", ar:"التركيبات: كمية/سعر/صورة لكل تركيبة", url:APROD, pEn:["Admin","Products","Edit → Variations"], pAr:["لوحة التحكم","المنتجات","تعديل ← التركيبات"]},
+    {id:"A10", en:"“View on website” action (table + edit page)", ar:"إجراء «عرض في الموقع» (في الجدول وصفحة التعديل)", url:APROD, pEn:["Admin","Products","row → View on website"], pAr:["لوحة التحكم","المنتجات","صف ← عرض في الموقع"]},
+    {id:"A11", en:"Total product count (sidebar badge + page subheading)", ar:"إجمالي عدد المنتجات (شارة جانبية + أسفل العنوان)", url:APROD, pEn:["Admin","Products","sidebar badge / page heading"], pAr:["لوحة التحكم","المنتجات","شارة جانبية / أسفل العنوان"]},
+    {id:"A12", en:"Sortable columns + top horizontal scrollbar", ar:"أعمدة قابلة للترتيب + شريط تمرير أفقي علوي", url:APROD, pEn:["Admin","Products","table header (sort) / top scrollbar"], pAr:["لوحة التحكم","المنتجات","رأس الجدول (ترتيب) / شريط التمرير العلوي"]},
+    {id:"A13", en:"Copy public product link (for WhatsApp)", ar:"نسخ رابط المنتج العام (للمشاركة على واتساب)", url:APROD, pEn:["Admin","Products","row → Copy link"], pAr:["لوحة التحكم","المنتجات","صف ← نسخ الرابط"]},
+    {id:"A14", en:"Bulk “Set category” for many products", ar:"تعيين فئة لعدة منتجات دفعة واحدة", url:APROD, pEn:["Admin","Products","select rows → Set category"], pAr:["لوحة التحكم","المنتجات","تحديد صفوف ← تعيين فئة"]},
+    {id:"A15", en:"Quick Add PWA (admin-only, mobile capture)", ar:"تطبيق «الإضافة السريعة» (للأدمن فقط، تصوير من الجوال)", url:AQA, pEn:["Admin","Quick Add"], pAr:["لوحة التحكم","الإضافة السريعة"]},
   ]},
   { icon:"🎨", en:"Variants — structure", ar:"الخيارات/التنويعات — البنية", items:[
-    {id:"V1", en:"Variants store: name, stock, price/image override, order", ar:"بنية التنويعات: اسم، كمية، سعر/صورة بديلة، ترتيب"},
-    {id:"V2", en:"Structured options + option values (combinations)", ar:"الخيارات المنظّمة + قيمها (التركيبات)"},
-    {id:"V3", en:"Product stock auto-sums from its variants", ar:"إجمالي مخزون المنتج يُحسب تلقائياً من التنويعات"},
-    {id:"V4", en:"Variant flows through cart → checkout → order (stock decrement)", ar:"التنويع يمرّ عبر السلة ← الدفع ← الطلب (خصم المخزون)"},
+    {id:"V1", en:"Variants store: name, stock, price/image override, order", ar:"بنية التنويعات: اسم، كمية، سعر/صورة بديلة، ترتيب", url:APROD, pEn:["Admin","Products","Edit → Variations"], pAr:["لوحة التحكم","المنتجات","تعديل ← التركيبات"]},
+    {id:"V2", en:"Structured options + option values (combinations)", ar:"الخيارات المنظّمة + قيمها (التركيبات)", url:APROD, pEn:["Admin","Products","Edit → Options"], pAr:["لوحة التحكم","المنتجات","تعديل ← الخيارات"]},
+    {id:"V3", en:"Product stock auto-sums from its variants", ar:"إجمالي مخزون المنتج يُحسب تلقائياً من التنويعات", url:APROD, pEn:["Admin","Products","Edit → Variations (stock auto-sums)"], pAr:["لوحة التحكم","المنتجات","تعديل ← التركيبات (جمع المخزون تلقائياً)"]},
+    {id:"V4", en:"Variant flows through cart → checkout → order (stock decrement)", ar:"التنويع يمرّ عبر السلة ← الدفع ← الطلب (خصم المخزون)", url:PROD, pEn:["Home page","Product page","Add to cart → Cart → Checkout"], pAr:["الصفحة الرئيسية","صفحة المنتج","أضف للسلة ← السلة ← الدفع"]},
   ]},
-  { icon:"🗂️", en:"Categories — product organization", ar:"الفئات — تنظيم المنتجات", link:"https://joreption.com/admin/categories", items:[
-    {id:"C1", en:"Bilingual categories + slug + order + active", ar:"فئات بلغتين + رابط + ترتيب + تفعيل"},
-    {id:"C2", en:"2-level hierarchy (parent / sub-category)", ar:"تصنيف من مستويين (فئة رئيسية / فرعية)"},
-    {id:"C3", en:"Standard taxonomy seeded (10 parents / 40 sub-categories)", ar:"تعبئة تصنيف قياسي (10 رئيسية / 40 فرعية)"},
-    {id:"C4", en:"2-level category navigation on the storefront", ar:"تنقّل الفئات من مستويين في المتجر"},
+  { icon:"🗂️", en:"Categories — product organization", ar:"الفئات — تنظيم المنتجات", items:[
+    {id:"C1", en:"Bilingual categories + slug + order + active", ar:"فئات بلغتين + رابط + ترتيب + تفعيل", url:ACAT, pEn:["Admin","Categories"], pAr:["لوحة التحكم","الفئات"]},
+    {id:"C2", en:"2-level hierarchy (parent / sub-category)", ar:"تصنيف من مستويين (فئة رئيسية / فرعية)", url:ACAT, pEn:["Admin","Categories","Parent category field"], pAr:["لوحة التحكم","الفئات","حقل الفئة الرئيسية"]},
+    {id:"C3", en:"Standard taxonomy seeded (10 parents / 40 sub-categories)", ar:"تعبئة تصنيف قياسي (10 رئيسية / 40 فرعية)", url:ACAT, pEn:["Admin","Categories","seeded list"], pAr:["لوحة التحكم","الفئات","القائمة المُعبّأة"]},
+    {id:"C4", en:"2-level category navigation on the storefront", ar:"تنقّل الفئات من مستويين في المتجر", url:HOME, pEn:["Home page","category bar (2 rows)"], pAr:["الصفحة الرئيسية","شريط الفئات (صفّان)"]},
   ]},
   { icon:"📥", en:"Import", ar:"الاستيراد", items:[
-    {id:"I1", en:"WhatsApp chat importer → products created as drafts", ar:"أمر استيراد محادثة واتساب ← منتجات كمسوّدات"},
+    {id:"I1", en:"WhatsApp chat importer → products created as drafts", ar:"أمر استيراد محادثة واتساب ← منتجات كمسوّدات", pEn:["Server command","php artisan whatsapp:import"], pAr:["أمر على الخادم","php artisan whatsapp:import"]},
   ]},
 ];
 
@@ -249,14 +256,17 @@ DATA.forEach(g => {
     const st = state.items[it.id] || {};
     const row = document.createElement("div");
     row.className = "item" + (st.confirmed ? " done" : "");
-    const linkHtml = g.link ? `<div class="lnk">🔗 <a href="${g.link}" target="_blank" rel="noopener">${T.checkLink}</a></div>` : "";
+    const linkHtml = it.url ? `<div class="lnk">🔗 <a href="${it.url}" target="_blank" rel="noopener">${T.checkLink}</a></div>` : "";
+    const seg = (LANG === "ar" ? it.pAr : it.pEn) || [];
+    const sep = LANG === "ar" ? " ← " : " → ";
+    const pathHtml = seg.length ? `<div class="path">${seg.join(sep)}</div>` : "";
     row.innerHTML = `
       <div class="item-top">
         <span class="id">${it.id}</span>
         <span class="ttl">${tx(it)}</span>
         <span class="badge">${T.badge}</span>
       </div>
-      ${linkHtml}
+      ${linkHtml}${pathHtml}
       <div class="ctl">
         <label class="conf"><input type="checkbox" ${st.confirmed?"checked":""}> ${T.confirm}</label>
         <input class="cmt" type="text" placeholder="${T.notePh}">
