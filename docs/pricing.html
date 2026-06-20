@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Joreption — Platform, Features &amp; Pricing</title>
+<style>
+  :root{
+    --brand:#0f4248; --brand-600:#287d88; --brand-50:#effafa; --brand-100:#d6f1f2;
+    --accent:#dc2626; --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#f3f4f6;color:var(--ink);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;}
+  .wrap{max-width:980px;margin:0 auto;padding:0 20px 64px;}
+  header{background:var(--brand);color:#fff;padding:44px 0;}
+  header .wrap{padding-bottom:0}
+  header .pill{display:inline-block;background:rgba(255,255,255,.14);color:#d6f1f2;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:4px 12px;border-radius:999px;margin-bottom:14px;}
+  header h1{margin:0 0 8px;font-size:32px;font-weight:800;letter-spacing:-.02em;}
+  header p{margin:0;color:#b0e2e5;font-size:16px;max-width:620px;}
+  h2{font-size:22px;font-weight:700;color:var(--brand);margin:40px 0 16px;}
+  h3{font-size:16px;font-weight:700;margin:0 0 10px;}
+  .grid{display:grid;gap:16px;}
+  @media(min-width:720px){ .grid-2{grid-template-columns:repeat(2,1fr)} .grid-3{grid-template-columns:repeat(3,1fr)} }
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 24px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+  .feat h3{color:var(--brand);display:flex;align-items:center;gap:8px;}
+  .feat ul{margin:10px 0 0;padding-left:20px;}
+  .feat li{margin:5px 0;font-size:14.5px;}
+  /* pricing */
+  .price-hero{background:linear-gradient(135deg,var(--brand),var(--brand-600));color:#fff;border:none;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;}
+  .price-hero .amount{font-size:42px;font-weight:800;line-height:1;}
+  .price-hero .amount small{font-size:16px;font-weight:600;opacity:.85;}
+  .price-hero p{margin:6px 0 0;color:#d6f1f2;font-size:14px;max-width:520px;}
+  .plan{display:flex;flex-direction:column;}
+  .plan .tag{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--brand-600);}
+  .plan .mo{font-size:30px;font-weight:800;color:var(--ink);margin:6px 0 2px;}
+  .plan .mo small{font-size:14px;font-weight:600;color:var(--muted);}
+  .plan ul{margin:14px 0 0;padding-left:20px;}
+  .plan li{margin:6px 0;font-size:14px;}
+  .plan.featured{outline:2px solid var(--brand-600);position:relative;}
+  .plan.featured .ribbon{position:absolute;top:-11px;right:18px;background:var(--brand-600);color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);}
+  th{background:var(--brand-50);color:var(--brand);}
+  td.amt{font-weight:700;color:var(--brand);white-space:nowrap;}
+  .note{color:var(--muted);font-size:13px;margin-top:10px;}
+  footer{text-align:center;color:var(--muted);font-size:13px;margin-top:36px;}
+  @media print{ body{background:#fff} .card{box-shadow:none} header{background:var(--brand)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <span class="pill">E-commerce platform</span>
+    <h1>Joreption — Features &amp; Pricing</h1>
+    <p>A custom, bilingual (Arabic / English) online store with Cash-on-Delivery, built for the Jordanian market — replacing the WhatsApp selling group with a real platform.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- FEATURES -->
+  <h2>What's included</h2>
+  <div class="grid grid-2">
+    <div class="card feat">
+      <h3>🛍️ Customer storefront</h3>
+      <ul>
+        <li>Bilingual Arabic / English with full right-to-left support</li>
+        <li>Works on any phone; installable like an app (PWA)</li>
+        <li>Product catalog with search, categories &amp; a featured strip</li>
+        <li>Product variations (color / size) — each with its own stock &amp; price</li>
+        <li>Sale prices with "Save %" badges</li>
+        <li>Shopping cart &amp; Cash-on-Delivery checkout (guest or account)</li>
+        <li>Discount / coupon codes</li>
+        <li>Loyalty points — customers earn &amp; redeem for discounts</li>
+        <li>Order tracking &amp; customer accounts</li>
+        <li>One-tap WhatsApp contact</li>
+      </ul>
+    </div>
+    <div class="card feat">
+      <h3>⚙️ Admin &amp; business tools</h3>
+      <ul>
+        <li>Dashboard with sales stats, charts &amp; latest orders</li>
+        <li>Product management + mobile <strong>Quick Add</strong> (snap a photo, publish)</li>
+        <li>Order management with status workflow</li>
+        <li>Customers, categories, coupons &amp; loyalty management</li>
+        <li>Media library for all product images</li>
+        <li>Staff accounts with limited (catalog-only) roles</li>
+        <li>Store settings: currency, branding, hero banner, "coming soon" mode</li>
+        <li>Notifications: in-app alerts now, email / SMS / WhatsApp ready to connect</li>
+        <li>Bulk import of products from a WhatsApp chat export</li>
+        <li>Built-in user guide</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card feat" style="margin-top:16px">
+    <h3>🔒 Hosting &amp; technical (included in setup)</h3>
+    <ul style="columns:2;column-gap:32px">
+      <li>Dedicated cloud server (VPS)</li>
+      <li>Custom domain</li>
+      <li>HTTPS / SSL security</li>
+      <li>Daily database backups</li>
+      <li>Server security hardening &amp; firewall</li>
+      <li>Fast, push-button deployment</li>
+    </ul>
+  </div>
+
+  <!-- ONE-TIME -->
+  <h2>One-time build &amp; setup</h2>
+  <div class="card price-hero">
+    <div>
+      <div class="amount">3,000 <small>JD</small></div>
+      <p>Full platform built, branded, deployed to your domain, with your products loaded, plus handover &amp; training. One-time.</p>
+    </div>
+  </div>
+  <p class="note">Covers everything in "What's included" above, configured and live on your own domain &amp; server.</p>
+
+  <!-- ONGOING -->
+  <h2>Ongoing care plans (monthly)</h2>
+  <p style="margin-top:-6px;color:var(--muted)">Keeps the store online, backed up, secure and supported. Pick one:</p>
+  <div class="grid grid-3" style="margin-top:8px">
+    <div class="card plan">
+      <span class="tag">Basic</span>
+      <div class="mo">40 <small>JD / mo</small></div>
+      <ul>
+        <li>Hosting &amp; domain management</li>
+        <li>SSL + security updates</li>
+        <li>Daily backups</li>
+        <li>Uptime monitoring</li>
+      </ul>
+    </div>
+    <div class="card plan featured">
+      <span class="ribbon">Most popular</span>
+      <span class="tag">Standard</span>
+      <div class="mo">85 <small>JD / mo</small></div>
+      <ul>
+        <li>Everything in Basic</li>
+        <li>Email / WhatsApp support</li>
+        <li>Small content &amp; setting changes</li>
+        <li>Bug fixes &amp; minor tweaks</li>
+      </ul>
+    </div>
+    <div class="card plan">
+      <span class="tag">Premium</span>
+      <div class="mo">160 <small>JD / mo</small></div>
+      <ul>
+        <li>Everything in Standard</li>
+        <li>Priority support</li>
+        <li>Up to ~3 hrs of new features / month</li>
+        <li>Quarterly review &amp; improvements</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ADD-ONS -->
+  <h2>Optional add-ons</h2>
+  <div class="card">
+    <table>
+      <tr><th>Add-on</th><th>What it does</th><th>Price</th></tr>
+      <tr><td>Transactional email</td><td>Password-reset &amp; order emails from your domain (relay setup)</td><td class="amt">from 120 JD</td></tr>
+      <tr><td>SMS notifications</td><td>Order / status texts to customers via an SMS gateway</td><td class="amt">from 250 JD</td></tr>
+      <tr><td>WhatsApp Business API</td><td>Automated order updates &amp; messages via the official WhatsApp Cloud API</td><td class="amt">from 450 JD</td></tr>
+      <tr><td>Online payments</td><td>Card / wallet payment gateway alongside Cash-on-Delivery</td><td class="amt">quoted</td></tr>
+      <tr><td>Loyalty reporting &amp; promotions</td><td>Reports, campaigns &amp; follow-ups on top of the points system</td><td class="amt">from 300 JD</td></tr>
+      <tr><td>New feature / module</td><td>Anything beyond the included scope (wishlist, reviews, exports, etc.)</td><td class="amt">quoted</td></tr>
+    </table>
+    <p class="note">Add-ons are billed once (build), then maintained under your monthly plan.</p>
+  </div>
+
+  <!-- REPLICATION -->
+  <h2>A second store (new business)</h2>
+  <div class="card">
+    <p style="margin:0">Because the platform already exists, standing up a store for a <strong>different business</strong> is a replication — faster and cheaper than the first build:</p>
+    <table style="margin-top:12px">
+      <tr><th>Item</th><th>Price</th></tr>
+      <tr><td>New store setup (replication, their branding, their domain, products loaded)</td><td class="amt">from 1,800 JD</td></tr>
+      <tr><td>Their monthly care plan</td><td class="amt">40–160 JD / mo</td></tr>
+    </table>
+  </div>
+
+  <footer>
+    Prices in Jordanian Dinar (JOD), excluding any third-party service fees (e.g. SMS / WhatsApp message costs).<br>
+    Figures are a starting point — adjust per engagement. Internal pricing sheet — not for public distribution.
+  </footer>
+</div>
+</body>
+</html>

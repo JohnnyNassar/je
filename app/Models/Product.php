@@ -53,33 +53,44 @@ class Product extends Model
     }
 
     /**
-     * Every image path for this product — the cover (image_path) first, then any
-     * gallery images, de-duplicated. Returns raw storage paths, not URLs.
+     * Every image path for this product, in display order. The gallery is
+     * authoritative — its order (as arranged in the admin) is used as-is. The
+     * cover (image_path) is only used as a fallback when the gallery is empty.
+     * De-duplicated. Returns raw storage paths, not URLs.
      *
      * @return array<int, string>
      */
     public function imagePaths(): array
     {
         $paths = [];
-        if ($this->image_path) {
-            $paths[] = $this->image_path;
-        }
         foreach ((array) $this->gallery as $path) {
             if ($path) {
                 $paths[] = $path;
             }
         }
+        if (empty($paths) && $this->image_path) {
+            $paths[] = $this->image_path;
+        }
         return array_values(array_unique($paths));
     }
 
     /**
-     * Public asset URLs for every image, cover first. Convenient for views.
+     * Public asset URLs for every image, in display order. Convenient for views.
      *
      * @return array<int, string>
      */
     public function imageUrls(): array
     {
         return array_map(fn (string $path) => asset('storage/' . $path), $this->imagePaths());
+    }
+
+    /**
+     * The primary image URL — the first image in display order (first gallery
+     * image, or the cover when the gallery is empty). Null when there is none.
+     */
+    public function mainImageUrl(): ?string
+    {
+        return $this->imageUrls()[0] ?? null;
     }
 
     public function category()

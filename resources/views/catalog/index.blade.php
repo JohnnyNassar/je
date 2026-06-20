@@ -67,8 +67,8 @@
                     <a href="{{ route('catalog.show', $product) }}"
                        class="group snap-start shrink-0 w-44 sm:w-52 bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-card-hover hover:border-gray-300 transition">
                         <div class="relative aspect-square bg-gray-100 overflow-hidden">
-                            @if ($product->image_path)
-                                <img src="{{ asset('storage/' . $product->image_path) }}" alt="{{ $product->name }}" loading="lazy"
+                            @if ($product->mainImageUrl())
+                                <img src="{{ $product->mainImageUrl() }}" alt="{{ $product->name }}" loading="lazy"
                                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                             @endif
                             @if ($product->isOnSale())
@@ -194,8 +194,8 @@
                 <a href="{{ route('catalog.show', $product) }}"
                    class="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-card-hover hover:border-gray-300 transition-all duration-200">
                     <div class="relative aspect-square overflow-hidden bg-gray-100">
-                        @if ($product->image_path)
-                            <img src="{{ asset('storage/' . $product->image_path) }}"
+                        @if ($product->mainImageUrl())
+                            <img src="{{ $product->mainImageUrl() }}"
                                  alt="{{ $product->name }}"
                                  loading="lazy"
                                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">

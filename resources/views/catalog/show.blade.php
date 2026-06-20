@@ -52,7 +52,7 @@
                 'image' => $v->image_path ? asset('storage/' . $v->image_path) : null,
             ])->values();
             $galleryImages = $product->imageUrls();
-            $productImage = $product->image_path ? asset('storage/' . $product->image_path) : '';
+            $productImage = $galleryImages[0] ?? '';
         @endphp
         <div class="bg-white border border-gray-200 rounded-xl overflow-hidden"
              x-data="{
@@ -94,6 +94,18 @@
                             </svg>
                         </div>
                     </template>
+                    @if (count($galleryImages) > 1)
+                        <button type="button" aria-label="{{ __('Previous image') }}"
+                                @click="manualImage = gallery[(Math.max(0, gallery.indexOf(image)) - 1 + gallery.length) % gallery.length]"
+                                class="absolute top-1/2 -translate-y-1/2 start-2 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-white/80 hover:bg-white text-gray-700 shadow ring-1 ring-gray-200 focus:outline-none">
+                            <svg class="w-5 h-5 rtl:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        <button type="button" aria-label="{{ __('Next image') }}"
+                                @click="manualImage = gallery[(Math.max(0, gallery.indexOf(image)) + 1) % gallery.length]"
+                                class="absolute top-1/2 -translate-y-1/2 end-2 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-white/80 hover:bg-white text-gray-700 shadow ring-1 ring-gray-200 focus:outline-none">
+                            <svg class="w-5 h-5 rtl:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    @endif
                     @if ($product->isOnSale())
                         <span class="absolute top-3 start-3 inline-flex items-center rounded-md bg-accent-600 text-white px-2.5 py-1 text-xs font-bold uppercase tracking-wider shadow">
                             {{ __('Save') }} {{ $product->discount_percentage }}%
@@ -209,8 +221,8 @@
                 'image' => $v->image_path ? asset('storage/' . $v->image_path) : null,
             ])->values();
             $firstInStock = $product->variants->firstWhere('stock', '>', 0) ?? $product->variants->first();
-            $productImage = $product->image_path ? asset('storage/' . $product->image_path) : '';
             $galleryImages = $product->imageUrls();
+            $productImage = $galleryImages[0] ?? '';
         @endphp
         <div class="bg-white border border-gray-200 rounded-xl overflow-hidden"
              x-data="{
@@ -241,6 +253,18 @@
                             </svg>
                         </div>
                     </template>
+                    @if (count($galleryImages) > 1)
+                        <button type="button" aria-label="{{ __('Previous image') }}"
+                                @click="manualImage = gallery[(Math.max(0, gallery.indexOf(image)) - 1 + gallery.length) % gallery.length]"
+                                class="absolute top-1/2 -translate-y-1/2 start-2 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-white/80 hover:bg-white text-gray-700 shadow ring-1 ring-gray-200 focus:outline-none">
+                            <svg class="w-5 h-5 rtl:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        <button type="button" aria-label="{{ __('Next image') }}"
+                                @click="manualImage = gallery[(Math.max(0, gallery.indexOf(image)) + 1) % gallery.length]"
+                                class="absolute top-1/2 -translate-y-1/2 end-2 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-white/80 hover:bg-white text-gray-700 shadow ring-1 ring-gray-200 focus:outline-none">
+                            <svg class="w-5 h-5 rtl:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    @endif
                     @if ($product->isOnSale())
                         <span class="absolute top-3 start-3 inline-flex items-center rounded-md bg-accent-600 text-white px-2.5 py-1 text-xs font-bold uppercase tracking-wider shadow">
                             {{ __('Save') }} {{ $product->discount_percentage }}%
@@ -346,12 +370,22 @@
     @php $galleryImages = $product->imageUrls(); @endphp
     <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <div class="grid grid-cols-1 md:grid-cols-2">
-            <div @if (count($galleryImages) > 1) x-data="{ active: @js($galleryImages[0]) }" @endif>
+            <div @if (count($galleryImages) > 1) x-data="{ gallery: @js($galleryImages), active: @js($galleryImages[0]) }" @endif>
             <div class="relative aspect-square md:aspect-auto bg-gray-100 overflow-hidden">
                 @if (count($galleryImages) > 1)
                     <img :src="active" alt="{{ $product->name }}" class="w-full h-full object-cover">
-                @elseif ($product->image_path)
-                    <img src="{{ asset('storage/' . $product->image_path) }}"
+                    <button type="button" aria-label="{{ __('Previous image') }}"
+                            @click="active = gallery[(gallery.indexOf(active) - 1 + gallery.length) % gallery.length]"
+                            class="absolute top-1/2 -translate-y-1/2 start-2 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-white/80 hover:bg-white text-gray-700 shadow ring-1 ring-gray-200 focus:outline-none">
+                        <svg class="w-5 h-5 rtl:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    <button type="button" aria-label="{{ __('Next image') }}"
+                            @click="active = gallery[(gallery.indexOf(active) + 1) % gallery.length]"
+                            class="absolute top-1/2 -translate-y-1/2 end-2 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-white/80 hover:bg-white text-gray-700 shadow ring-1 ring-gray-200 focus:outline-none">
+                        <svg class="w-5 h-5 rtl:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                @elseif (count($galleryImages) === 1)
+                    <img src="{{ $galleryImages[0] }}"
                          alt="{{ $product->name }}"
                          class="w-full h-full object-cover">
                 @else
