@@ -80,6 +80,11 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 \Filament\View\PanelsRenderHook::BODY_END,
                 fn (): string => '<script src="' . asset('js/admin-table-scroll.js') . '?v=' . filemtime(public_path('js/admin-table-scroll.js')) . '"></script>'
+            )
+            // Live "Main" tag that follows the first product image as you reorder.
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::BODY_END,
+                fn (): string => '<script src="' . asset('js/product-images-main.js') . '?v=' . filemtime(public_path('js/product-images-main.js')) . '"></script>'
             );
     }
 }

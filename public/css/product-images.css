@@ -1,16 +1,16 @@
 /**
  * Admin "Product images" field: mark the first image as the main/big photo.
  *
- * The first item in the list is the cover shown online. On form load FilePond's
- * DOM order matches the saved order, so the first .filepond--item is the main
- * image. This adds a "Main" badge and a highlight ring so it's obvious which
- * image is the big one. Purely cosmetic.
+ * The first image in the list is the cover shown online. FilePond reorders
+ * items visually with CSS transforms (without changing DOM order), so a small
+ * companion script (product-images-main.js) tags the visually-top item with
+ * `.is-main-image`; this styles it. Purely cosmetic.
  */
-.product-images-field .filepond--list .filepond--item:first-child {
+.product-images-field .filepond--list .filepond--item.is-main-image {
     z-index: 2;
 }
 
-.product-images-field .filepond--list .filepond--item:first-child::after {
+.product-images-field .filepond--list .filepond--item.is-main-image::after {
     content: "★ Main";
     position: absolute;
     top: 8px;
@@ -28,8 +28,8 @@
 }
 
 /* Subtle ring around the main image so it reads as primary. */
-.product-images-field .filepond--list .filepond--item:first-child .filepond--file-wrapper,
-.product-images-field .filepond--list .filepond--item:first-child .filepond--image-preview-wrapper {
+.product-images-field .filepond--list .filepond--item.is-main-image .filepond--file-wrapper,
+.product-images-field .filepond--list .filepond--item.is-main-image .filepond--image-preview-wrapper {
     outline: 2px solid #16a34a;
     outline-offset: -2px;
     border-radius: 6px;
