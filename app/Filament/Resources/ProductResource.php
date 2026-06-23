@@ -72,30 +72,9 @@ class ProductResource extends Resource
                     ->numeric()
                     ->default(0)
                     ->helperText('Total stock. If you add variations below, this is set automatically from their stock.'),
-                Forms\Components\FileUpload::make('image_path')
-                    ->image()
-                    ->imageEditor()
-                    ->imageEditorAspectRatios([null, '1:1', '4:3', '3:4'])
-                    ->disk('public')
-                    ->directory('products')
-                    ->imagePreviewHeight('200')
-                    ->hintAction(
-                        \Filament\Forms\Components\Actions\Action::make('chooseFromLibrary')
-                            ->label('Choose from media library')
-                            ->icon('heroicon-o-photo')
-                            ->modalHeading('Choose an existing image')
-                            ->modalDescription('Showing your most-recent uploads. Filter by filename or click any to pick.')
-                            ->modalContent(fn () => view('filament.components.media-picker', [
-                                'statePath' => 'data.image_path',
-                                'dirs' => ['products', 'hero'],
-                            ]))
-                            ->modalSubmitAction(false)
-                            ->modalCancelActionLabel('Close')
-                            ->modalWidth('5xl')
-                    ),
                 Forms\Components\FileUpload::make('gallery')
-                    ->label('More images (gallery)')
-                    ->helperText('Optional. Extra photos shown after the cover image. Drag to reorder.')
+                    ->label('Product images')
+                    ->helperText('Drag to reorder. The first image is the main photo shown online and in the catalog.')
                     ->image()
                     ->imageEditor()
                     ->imageEditorAspectRatios([null, '1:1', '4:3', '3:4'])
@@ -104,8 +83,22 @@ class ProductResource extends Resource
                     ->appendFiles()
                     ->disk('public')
                     ->directory('products')
-                    ->imagePreviewHeight('120')
-                    ->columnSpanFull(),
+                    ->imagePreviewHeight('150')
+                    ->columnSpanFull()
+                    ->hintAction(
+                        \Filament\Forms\Components\Actions\Action::make('chooseFromLibrary')
+                            ->label('Choose from media library')
+                            ->icon('heroicon-o-photo')
+                            ->modalHeading('Choose an existing image')
+                            ->modalDescription('Showing your most-recent uploads. Filter by filename or click any to add it to the list.')
+                            ->modalContent(fn () => view('filament.components.media-picker', [
+                                'statePath' => 'data.gallery',
+                                'dirs' => ['products', 'hero'],
+                            ]))
+                            ->modalSubmitAction(false)
+                            ->modalCancelActionLabel('Close')
+                            ->modalWidth('5xl')
+                    ),
                 Forms\Components\Toggle::make('is_active')
                     ->default(true)
                     ->required(),

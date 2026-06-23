@@ -192,6 +192,23 @@ class Product extends Model
 
     protected static function booted(): void
     {
+        // Keep the gallery and the legacy image_path column in sync. The gallery
+        // is the single source of truth: its first image is the main photo.
+        // image_path is mirrored from it so the many places that still read the
+        // cover (admin table, hero, order snapshots, variants) keep working.
+        static::saving(function (self $product) {
+            $gallery = array_values(array_filter((array) $product->gallery, fn ($p) => filled($p)));
+
+            if (! empty($gallery)) {
+                $product->gallery = $gallery;          // normalise to a clean ordered list
+                $product->image_path = $gallery[0];    // first image = main photo
+            } elseif ($product->isDirty('image_path') && filled($product->image_path)) {
+                // Single-image writers (WhatsApp import, quick-add) set only
+                // image_path — mirror it into the list so display is consistent.
+                $product->gallery = [$product->image_path];
+            }
+        });
+
         static::saved(function (self $product) {
             if ($product->wasChanged('image_path') && $product->image_path) {
                 $abs = storage_path('app/public/' . ltrim($product->image_path, '/'));
