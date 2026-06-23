@@ -15,20 +15,9 @@ trait HandlesMediaPicking
         $key = preg_replace('/^data\./', '', $statePath);
 
         if (property_exists($this, 'data') && is_array($this->data)) {
-            // For a multi-image list (e.g. gallery) append to the existing
-            // selection; for a single-image field just set the value.
-            $existing = $this->data[$key] ?? null;
-            if (is_array($existing) || $key === 'gallery') {
-                $list = array_values(array_filter((array) $existing, fn ($p) => filled($p)));
-                $list[] = $path;
-                $value = array_values(array_unique($list));
-            } else {
-                $value = $path;
-            }
-
             // Merge into existing data, then re-fill through the form so any
             // component (e.g. FileUpload) does its proper hydration on the new value.
-            $merged = array_merge($this->data, [$key => $value]);
+            $merged = array_merge($this->data, [$key => $path]);
             if (method_exists($this, 'form')) {
                 try {
                     $this->form->fill($merged);

@@ -53,29 +53,27 @@ class Product extends Model
     }
 
     /**
-     * Every image path for this product, in display order. The gallery is
-     * authoritative — its order (as arranged in the admin) is used as-is. The
-     * cover (image_path) is only used as a fallback when the gallery is empty.
-     * De-duplicated. Returns raw storage paths, not URLs.
+     * Every image path for this product — the cover (image_path) first, then any
+     * gallery images, de-duplicated. Returns raw storage paths, not URLs.
      *
      * @return array<int, string>
      */
     public function imagePaths(): array
     {
         $paths = [];
+        if ($this->image_path) {
+            $paths[] = $this->image_path;
+        }
         foreach ((array) $this->gallery as $path) {
             if ($path) {
                 $paths[] = $path;
             }
         }
-        if (empty($paths) && $this->image_path) {
-            $paths[] = $this->image_path;
-        }
         return array_values(array_unique($paths));
     }
 
     /**
-     * Public asset URLs for every image, in display order. Convenient for views.
+     * Public asset URLs for every image, cover first. Convenient for views.
      *
      * @return array<int, string>
      */
@@ -85,8 +83,8 @@ class Product extends Model
     }
 
     /**
-     * The primary image URL — the first image in display order (first gallery
-     * image, or the cover when the gallery is empty). Null when there is none.
+     * The primary image URL — the cover, or the first gallery image when there
+     * is no cover. Null when there is none.
      */
     public function mainImageUrl(): ?string
     {
@@ -192,23 +190,6 @@ class Product extends Model
 
     protected static function booted(): void
     {
-        // Keep the gallery and the legacy image_path column in sync. The gallery
-        // is the single source of truth: its first image is the main photo.
-        // image_path is mirrored from it so the many places that still read the
-        // cover (admin table, hero, order snapshots, variants) keep working.
-        static::saving(function (self $product) {
-            $gallery = array_values(array_filter((array) $product->gallery, fn ($p) => filled($p)));
-
-            if (! empty($gallery)) {
-                $product->gallery = $gallery;          // normalise to a clean ordered list
-                $product->image_path = $gallery[0];    // first image = main photo
-            } elseif ($product->isDirty('image_path') && filled($product->image_path)) {
-                // Single-image writers (WhatsApp import, quick-add) set only
-                // image_path — mirror it into the list so display is consistent.
-                $product->gallery = [$product->image_path];
-            }
-        });
-
         static::saved(function (self $product) {
             if ($product->wasChanged('image_path') && $product->image_path) {
                 $abs = storage_path('app/public/' . ltrim($product->image_path, '/'));

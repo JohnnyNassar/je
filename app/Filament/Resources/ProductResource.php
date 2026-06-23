@@ -72,10 +72,32 @@ class ProductResource extends Resource
                     ->numeric()
                     ->default(0)
                     ->helperText('Total stock. If you add variations below, this is set automatically from their stock.'),
+                Forms\Components\FileUpload::make('image_path')
+                    ->label('Main image')
+                    ->helperText('The big cover photo shown on the product page.')
+                    ->image()
+                    ->imageEditor()
+                    ->imageEditorAspectRatios([null, '1:1', '4:3', '3:4'])
+                    ->disk('public')
+                    ->directory('products')
+                    ->imagePreviewHeight('200')
+                    ->hintAction(
+                        \Filament\Forms\Components\Actions\Action::make('chooseFromLibrary')
+                            ->label('Choose from media library')
+                            ->icon('heroicon-o-photo')
+                            ->modalHeading('Choose an existing image')
+                            ->modalDescription('Showing your most-recent uploads. Filter by filename or click any to pick.')
+                            ->modalContent(fn () => view('filament.components.media-picker', [
+                                'statePath' => 'data.image_path',
+                                'dirs' => ['products', 'hero'],
+                            ]))
+                            ->modalSubmitAction(false)
+                            ->modalCancelActionLabel('Close')
+                            ->modalWidth('5xl')
+                    ),
                 Forms\Components\FileUpload::make('gallery')
-                    ->label('Product images')
-                    ->helperText('Drag to reorder. The first image (marked “Main”) is the big photo shown online and in the catalog.')
-                    ->extraAttributes(['class' => 'product-images-field'])
+                    ->label('More images (gallery)')
+                    ->helperText('Optional. Extra photos shown after the main image. Drag to reorder.')
                     ->image()
                     ->imageEditor()
                     ->imageEditorAspectRatios([null, '1:1', '4:3', '3:4'])
@@ -84,22 +106,8 @@ class ProductResource extends Resource
                     ->appendFiles()
                     ->disk('public')
                     ->directory('products')
-                    ->imagePreviewHeight('150')
-                    ->columnSpanFull()
-                    ->hintAction(
-                        \Filament\Forms\Components\Actions\Action::make('chooseFromLibrary')
-                            ->label('Choose from media library')
-                            ->icon('heroicon-o-photo')
-                            ->modalHeading('Choose an existing image')
-                            ->modalDescription('Showing your most-recent uploads. Filter by filename or click any to add it to the list.')
-                            ->modalContent(fn () => view('filament.components.media-picker', [
-                                'statePath' => 'data.gallery',
-                                'dirs' => ['products', 'hero'],
-                            ]))
-                            ->modalSubmitAction(false)
-                            ->modalCancelActionLabel('Close')
-                            ->modalWidth('5xl')
-                    ),
+                    ->imagePreviewHeight('120')
+                    ->columnSpanFull(),
                 Forms\Components\Toggle::make('is_active')
                     ->default(true)
                     ->required(),
