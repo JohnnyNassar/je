@@ -1,0 +1,36 @@
+/**
+ * Admin "Product images" field: mark the first image as the main/big photo.
+ *
+ * The first item in the list is the cover shown online. On form load FilePond's
+ * DOM order matches the saved order, so the first .filepond--item is the main
+ * image. This adds a "Main" badge and a highlight ring so it's obvious which
+ * image is the big one. Purely cosmetic.
+ */
+.product-images-field .filepond--list .filepond--item:first-child {
+    z-index: 2;
+}
+
+.product-images-field .filepond--list .filepond--item:first-child::after {
+    content: "★ Main";
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #16a34a;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    padding: 2px 7px;
+    border-radius: 9999px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+    z-index: 3;
+}
+
+/* Subtle ring around the main image so it reads as primary. */
+.product-images-field .filepond--list .filepond--item:first-child .filepond--file-wrapper,
+.product-images-field .filepond--list .filepond--item:first-child .filepond--image-preview-wrapper {
+    outline: 2px solid #16a34a;
+    outline-offset: -2px;
+    border-radius: 6px;
+}

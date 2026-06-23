@@ -71,6 +71,11 @@ class AdminPanelProvider extends PanelProvider
                 \Filament\View\PanelsRenderHook::HEAD_END,
                 fn (): string => '<link rel="stylesheet" href="' . asset('css/admin-density.css') . '?v=' . filemtime(public_path('css/admin-density.css')) . '">'
             )
+            // "Main" badge on the first product image so the cover is obvious.
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::HEAD_END,
+                fn (): string => '<link rel="stylesheet" href="' . asset('css/product-images.css') . '?v=' . filemtime(public_path('css/product-images.css')) . '">'
+            )
             // Mirrored top horizontal scrollbar for wide list tables.
             ->renderHook(
                 \Filament\View\PanelsRenderHook::BODY_END,

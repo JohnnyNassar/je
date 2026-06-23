@@ -74,7 +74,8 @@ class ProductResource extends Resource
                     ->helperText('Total stock. If you add variations below, this is set automatically from their stock.'),
                 Forms\Components\FileUpload::make('gallery')
                     ->label('Product images')
-                    ->helperText('Drag to reorder. The first image is the main photo shown online and in the catalog.')
+                    ->helperText('Drag to reorder. The first image (marked “Main”) is the big photo shown online and in the catalog.')
+                    ->extraAttributes(['class' => 'product-images-field'])
                     ->image()
                     ->imageEditor()
                     ->imageEditorAspectRatios([null, '1:1', '4:3', '3:4'])
