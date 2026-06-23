@@ -62,6 +62,7 @@
                 productImage: @js($productImage),
                 selected: {},
                 manualImage: null,
+                variantPicked: false,
                 qty: 1,
                 init() {
                     let v = this.variants.find(x => x.stock > 0) || this.variants[0];
@@ -73,13 +74,16 @@
                 get max() { return this.current ? this.current.stock : 0; },
                 get image() {
                     if (this.manualImage) return this.manualImage;
-                    return (this.current && this.current.image) ? this.current.image : this.productImage;
+                    // Start on the first gallery image; only switch to a variant's own
+                    // photo once the shopper actively selects that variant.
+                    if (this.variantPicked && this.current && this.current.image) return this.current.image;
+                    return this.productImage;
                 },
                 available(optName, valKey) {
                     return this.variants.some(v => v.stock > 0 && v.opts[optName] === valKey
                         && this.options.every(o => o.name === optName || v.opts[o.name] === this.selected[o.name]));
                 },
-                pick(optName, valKey) { this.selected[optName] = valKey; this.qty = 1; this.manualImage = null; },
+                pick(optName, valKey) { this.selected[optName] = valKey; this.qty = 1; this.manualImage = null; this.variantPicked = true; },
              }">
             <div class="grid grid-cols-1 md:grid-cols-2">
                 <div>
@@ -230,13 +234,17 @@
                 productImage: @js($productImage),
                 gallery: @js($galleryImages),
                 manualImage: null,
+                variantPicked: false,
                 selectedId: {{ $firstInStock?->id ?? 'null' }},
                 qty: 1,
                 get current() { return this.variants.find(v => v.id === this.selectedId) || null; },
                 get max() { return this.current ? this.current.stock : 0; },
                 get image() {
                     if (this.manualImage) return this.manualImage;
-                    return (this.current && this.current.image) ? this.current.image : this.productImage;
+                    // Start on the first gallery image; only switch to a variant's own
+                    // photo once the shopper actively selects that variant.
+                    if (this.variantPicked && this.current && this.current.image) return this.current.image;
+                    return this.productImage;
                 },
              }"
              x-init="$watch('selectedId', () => { qty = 1; manualImage = null; })">
@@ -317,7 +325,7 @@
                         <div class="flex flex-wrap gap-2">
                             <template x-for="v in variants" :key="v.id">
                                 <button type="button"
-                                        @click="if (v.stock > 0) selectedId = v.id"
+                                        @click="if (v.stock > 0) { selectedId = v.id; variantPicked = true; }"
                                         :disabled="v.stock <= 0"
                                         :class="{
                                             'ring-2 ring-brand-600 border-brand-600 text-brand-700': selectedId === v.id,
