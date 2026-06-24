@@ -24,7 +24,7 @@ _Last updated: 2026-06-20_
 
 ### Product detail
 - Breadcrumb
-- **Image gallery** — cover image plus optional extra photos; a thumbnail strip swaps the main image (shown only when there's more than one)
+- **Image gallery** — cover image plus optional extra photos; a thumbnail strip and **prev/next arrows** (RTL-aware, loop around) swap the main image (both shown only when there's more than one). For products with variants, the page **starts on the main/cover image** and only switches to a variant's own photo once the shopper actively selects that variant
 - Locale-aware name + description (auto-picks Arabic or English)
 - Live "X left" indicator (green dot)
 - **Variant selectors** — two ways, depending on the product:
@@ -178,8 +178,9 @@ A per-customer rewards program: **every customer has their own points balance an
 
 ### Products
 - Bilingual name + description (EN / AR)
-- **Cover image** upload (stored in `storage/app/public/products/`) — auto-resized server-side to max 1600px, JPEG q85 via GD
-- **Image gallery** — additional photos via a multiple, drag-reorderable upload (also auto-resized); shown as a thumbnail strip on the storefront. The cover image stays the one used in grids/cart/orders
+- **Main image** (cover) upload (stored in `storage/app/public/products/`) — auto-resized server-side to max 1600px, JPEG q85 via GD; this is the big photo shown on the product page, in grids, cart and orders. Has an **in-browser crop / rotate / zoom editor** (works on existing images too) for trimming supplier banners off
+- **More images (gallery)** — additional photos via a multiple, drag-reorderable upload (also auto-resized, same crop editor); shown after the main image as a thumbnail strip + arrow carousel on the storefront
+- The Main image and gallery are **two independent fields**: the Main image is the big photo online and is set directly (it does not auto-follow the gallery's first image)
 - **Pick existing image from media library** as an alternative to upload — opens a 4-column thumbnail grid modal
 - Price + stock + active toggle
 - **Sale price** (`compare_at_price`) — when higher than current price, triggers Save% badge on public site
@@ -402,7 +403,7 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 
 ## Roadmap (not yet started)
 
-Prioritised after the 2026-05-25 review — the platform is feature-complete and live behind Coming Soon. _(2026-05-26: admin role tiers, customer tiers with wholesale pricing + VIP point multipliers, and a richer audit log shipped since — see Day 9. 2026-06-11: product cost price + profit with per-user cost access, and an admin/storefront UI density pass — see Day 10. 2026-06-14/15: product image galleries, staff draft preview + staff-only product #, admin products-table UX (top scrollbar, total count, sortable columns), **structured multi-axis variants** (Colour × Size × Dimension), and **2-level categories** with a standard taxonomy — see Days 12–15. 2026-06-18→20: a client **product-features sign-off sheet** (`/product-signoff.html`, EN + AR) with per-feature links + breadcrumb paths — see Day 16.)_
+Prioritised after the 2026-05-25 review — the platform is feature-complete and live behind Coming Soon. _(2026-05-26: admin role tiers, customer tiers with wholesale pricing + VIP point multipliers, and a richer audit log shipped since — see Day 9. 2026-06-11: product cost price + profit with per-user cost access, and an admin/storefront UI density pass — see Day 10. 2026-06-14/15: product image galleries, staff draft preview + staff-only product #, admin products-table UX (top scrollbar, total count, sortable columns), **structured multi-axis variants** (Colour × Size × Dimension), and **2-level categories** with a standard taxonomy — see Days 12–15. 2026-06-18→20: a client **product-features sign-off sheet** (`/product-signoff.html`, EN + AR) with per-feature links + breadcrumb paths — see Day 16. 2026-06-20→24: product-image **crop/rotate editor**, storefront **prev/next arrows** + start-on-main-image for variant products, and a switch to **git-based deployment** — see Day 17.)_
 
 ### 1. Launch readiness (go-live)
 - Review & **activate the imported product drafts** — names, stock, categories, Active toggle _(live: ~37 drafts vs 8 active)_

@@ -599,6 +599,46 @@ A client-facing deliverable, not new app code: an interactive **product-features
 
 ---
 
+## Day 17 — 2026-06-20 → 2026-06-24 (product-image editing + git-based deploy)
+
+Owner-driven session on product images. Net shipped: an **image crop editor**, storefront **prev/next arrows**, a **start-on-main-image** fix for variant products, and a switch to **git-based deployment**. A mid-session experiment (merging the cover + gallery into one "first = main" list) was built, deployed, then **reverted** at the owner's request — the back-and-forth is logged below because the dead-ends are the useful part.
+
+### Image crop / rotate editor (commit `c0630d0`)
+- Enabled Filament's `->imageEditor()` (crop / rotate / zoom, with `imageEditorAspectRatios`) on the product **Main image**, **gallery**, and **per-variant image** upload fields. Works on **existing** stored images too (not just new uploads) — confirmed by driving the admin in a browser. Primary use: trimming supplier marketing banners off the top of photos.
+- Investigated "auto-remove the logo/text" — concluded it's **inpainting** (AI), not doable with GD/PHP; documented third-party options (Cloudinary `e_gen_remove`, ClipDrop, Dewatermark) but shipped only the manual cropper.
+
+### Storefront prev/next arrows (commit `c0630d0`)
+- Added overlay **‹ ›** arrows on the main product image in all three render blocks (options / variants / no-variants). RTL-aware (`rtl:rotate-180`), loop around, shown only with 2+ images. New Tailwind classes (`bg-white/80`, `rtl:rotate-180`, …) needed a CSS rebuild (`npm run build`) — they aren't in git (`public/build` is gitignored).
+
+### Product page starts on the main image (commit `8d80e1f`)
+- For products with variants that have their **own image overrides** (e.g. #94 pool), the page was showing the auto-selected variant's photo as the big image on load, so the cover looked ignored. Fixed with a `variantPicked` flag: the big image **starts on the product's main image** and only switches to a variant photo once the shopper **actively taps** that variant.
+
+### The image-fields round-trip — merge, then revert
+- **Merged** (commit `1e149dd`): collapsed the separate cover + gallery into one reorderable **"Product images"** list where the first image is the main photo; `image_path` auto-synced to `gallery[0]` via a model `saving` hook; media-picker made to append; a backfill migration folded existing covers into galleries. Added a green **"★ Main"** badge (`3758e90`) and a live JS tag that follows the first image as you drag (`c3c8c33`).
+- **Couldn't make crop-in-place safe:** Filament's editor doesn't edit in place — on save it deletes the original and **re-uploads the cropped copy as a new pending file**, appended to the end. Four attempts to move it back to its slot all **corrupted the upload** (the DB saved a raw `livewire-file:…` reference → a broken image). Reordering only works once the file is *permanent* (post-save). Left crop as "jumps to end; drag it back" rather than ship corruption risk.
+- **Reverted** (commit `e0c8b37`): owner preferred the original **two separate fields** — a big **Main image** cover box above a **More images (gallery)** field. Restored cover-first display, dropped the sync hook / badge CSS+JS / merge form logic, and a migration **split the duplicated cover back out** of each gallery. Kept the crop editor and the storefront arrows (independent wins).
+- **Net end state:** two independent image fields. The Main image is the big photo online and is set directly; it does **not** auto-follow the gallery's first image. (The owner explicitly chose this over re-tying them, accepting that there's no auto "first = main".)
+
+### Git-based deployment (replaces tar+scp)
+- Prod (`/var/www/joreption`) is now a **git checkout** of `github.com/JohnnyNassar/je.git` on `main`. There is **no auto-pull** — a `git push` does **not** update the live site; deploys are run manually over SSH (`ssh root@178.18.244.125`):
+  ```
+  chown -R www-data:www-data /var/www/joreption
+  sudo -u www-data git pull --ff-only https://github.com/JohnnyNassar/je.git main
+  sudo -u www-data php artisan filament:assets        # editor JS — NOT in git
+  sudo -u www-data php artisan optimize:clear
+  sudo -u www-data bash -lc 'cd /var/www/joreption && npm run build'   # storefront CSS/JS — NOT in git
+  systemctl reload php8.3-fpm
+  ```
+- `www-data` owns the app but has **no GitHub SSH access**, so pull over the **HTTPS** URL (the repo is public). Some `.git` objects were root-owned and blocked the pull → `chown -R www-data` first. Two things never travel via `git pull` and must be regenerated each deploy: **Filament's published assets** (`filament:assets`) and the **Vite build** (`public/build` is gitignored).
+
+### ⚠️ Security — credentials in the public repo
+- The repo is **public** (cloneable over HTTPS, no auth). `joreption.txt` is **committed** and contains plaintext secrets: server root password, Contabo panel login, DB + Adminer passwords, Filament admin passwords, a Resend API key, a Gmail login. **Owed:** rotate every one of those, then `git rm --cached joreption.txt` + gitignore (history scrub optional — rotation is the real fix). Not yet done — flagged to owner repeatedly.
+
+### Misc
+- Built an automated **screenshot-slideshow MP4** of the image workflow (ffmpeg drawtext captions; font copied locally to dodge the Windows drive-letter `\:` escaping bug) — owner didn't want a slideshow; a live screen recorder (Win+Alt+R / Loom) is the right tool for fluid motion. Left `product-images-demo.mp4` in the project root (untracked).
+
+---
+
 ## Lessons learned (worth remembering)
 
 - **OPcache vs deploys.** PHP-FPM had `opcache.validate_timestamps=0` somewhere in its config, so simply replacing PHP files left old bytecode in memory and made my fixes look like they had no effect. **All deploys now `systemctl reload php8.3-fpm`** as the last step.
@@ -622,3 +662,8 @@ A client-facing deliverable, not new app code: an interactive **product-features
 - **Trait-based `canAccess()` gates Filament cleanly.** Overriding `public static function canAccess(): bool` on a Resource or custom Page both removes it from navigation and 403s on direct URL access — one trait (`AdminOnly`) covers both. Verify trait composition by force-loading the class (`class_exists`) since `php -l` won't catch a trait-method collision.
 - **Derived columns via model events.** Keeping `products.stock` as the sum of variant stock is done in `ProductVariant`'s `saved`/`deleted` events calling `Product::syncStockFromVariants()` with `saveQuietly()` — avoids re-firing the parent's events and keeps every existing stock query working without touching them.
 - **Filament Repeater `->relationship()`** auto-creates/updates/deletes child rows on parent save and fires each child's model events, so the stock roll-up above just works from the admin form too.
+- **Filament image editor re-uploads; it doesn't edit in place.** Cropping deletes the original and adds the cropped copy as a **new pending upload** (`livewire-file:…`), appended to the end of a multiple `FileUpload`. **Never reorder a still-pending entry** client-side (moving its key, or any `cmp.state` mutation while it's pending) — it breaks Filament's resolve-on-save and the DB stores a raw `livewire-file:…` string = a broken image. Reordering is only safe once the file is **permanent** (after a save). So "crop keeps its position" isn't achievable without a save in between.
+- **FilePond DOM order ≠ visual order.** Reordering changes each item's CSS `transform` (translateY), not its DOM position — so `.filepond--item:first-child` is **not** the visually-first item after a drag. To track the visual first, read on-screen position (`getBoundingClientRect`) via a small cosmetic script, not CSS `:first-child`.
+- **Two independent editable image fields always risk an admin-vs-online "which is main?" mismatch.** A separate "Main image" box + a gallery can disagree about the main photo. The only mismatch-free way to make "first image = main" is a **single ordered list** (first = main). If you keep two boxes, the Main box must be the one shown online and set directly (no auto-tie).
+- **The PWA service worker is network-first for HTML, cache-first for assets** (`public/sw.js`). So a stale *page* is rarely the SW's fault, but stale *images/CSS/JS* can be served from its cache — relevant when debugging "I changed it but still see the old thing".
+- **ffmpeg `drawtext` + Windows font paths.** The drive-letter colon (`C:/…`) breaks the filtergraph parser even when escaped. Easiest fix: copy the `.ttf` into the working dir and reference it relatively (`fontfile=font.ttf`), sidestepping all colon/backslash escaping.
