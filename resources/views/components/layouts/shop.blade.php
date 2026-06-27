@@ -20,6 +20,12 @@
          font-size knob in public/css/storefront-density.css to adjust. --}}
     <link rel="stylesheet" href="{{ asset('css/storefront-density.css') }}?v={{ filemtime(public_path('css/storefront-density.css')) }}">
     @include('partials.analytics')
+    {{-- Deter casual image saving: block dragging the image out to the desktop
+         and stop accidental selection. This is a speed bump, not real DRM — a
+         determined visitor can still grab images via DevTools or a screenshot. --}}
+    <style>
+        img { -webkit-user-drag: none; user-select: none; }
+    </style>
 </head>
 <body class="font-sans antialiased bg-gray-50 text-gray-900 min-h-screen flex flex-col">
     <header class="bg-white border-b border-gray-200 sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-white/95">
@@ -157,5 +163,16 @@
     </footer>
 
     @include('partials.cookie-notice')
+
+    {{-- Block right-click "Save image as…" and drag-to-save on images only, so
+         right-click still works normally on the rest of the page. --}}
+    <script>
+        document.addEventListener('contextmenu', function (e) {
+            if (e.target.tagName === 'IMG') e.preventDefault();
+        });
+        document.addEventListener('dragstart', function (e) {
+            if (e.target.tagName === 'IMG') e.preventDefault();
+        });
+    </script>
 </body>
 </html>

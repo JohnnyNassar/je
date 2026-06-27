@@ -35,6 +35,7 @@
             $h = 'text-base font-bold text-gray-950 dark:text-white';
             $sub = 'mt-4 font-semibold text-gray-900 dark:text-gray-100';
             $ul = 'mt-2 list-disc space-y-1 ps-5';
+            $ol = 'mt-2 list-decimal space-y-1 ps-5';
         @endphp
 
         {{-- Getting started --}}
@@ -100,10 +101,24 @@
         {{-- Categories --}}
         <section id="categories" class="{{ $card }}">
             <h3 class="{{ $h }}">Categories</h3>
+
+            <p class="{{ $sub }}">Adding a category — step by step</p>
+            <ol class="{{ $ol }}">
+                <li>In the sidebar, open <strong>Categories</strong>, then click <strong>New category</strong> (top-right).</li>
+                <li><strong>Parent category:</strong> leave it on <em>"— none (top-level category) —"</em> for a main category. To make a sub-category, pick its parent here. (Categories go <strong>2 levels deep</strong> — a sub-category can't itself have sub-categories.)</li>
+                <li><strong>Name (English):</strong> required — e.g. "Electronics".</li>
+                <li><strong>Name (Arabic):</strong> optional but recommended — the site shows each visitor the right language.</li>
+                <li><strong>Slug:</strong> leave blank and it's created automatically from the English name (it's the category's web address). Only set it by hand if you need a specific one.</li>
+                <li><strong>Position:</strong> a number that controls order — lower numbers appear first. You can leave it at 0 and just drag to reorder later (see below).</li>
+                <li><strong>Active:</strong> leave this on so the category shows on the site. Turn it off to hide it while you set things up.</li>
+                <li>Click <strong>Create</strong>. The category now appears in the list.</li>
+            </ol>
+
+            <p class="{{ $sub }}">After creating</p>
             <ul class="{{ $ul }}">
-                <li>Create categories under <strong>Categories</strong> (English + Arabic name). Drag to reorder how they appear on the site.</li>
-                <li>Assign products to a category from the product form, or in bulk from the Products list ("Set category").</li>
-                <li>The site shows a category filter strip; a category with no products simply won't show anything until you assign some.</li>
+                <li><strong>Reorder:</strong> on the Categories list, drag the rows by the handle to change the order they appear on the site (this updates "Position" for you).</li>
+                <li><strong>Put products in it:</strong> assign a category on the product form, or tick several in the Products list and use <em>"Set category"</em> to do them in bulk. The list shows a <strong>Products</strong> count for each category.</li>
+                <li><strong>Edit / delete:</strong> click a row to edit it; use the bulk actions to delete. A category with no products simply won't show anything on the site until you assign some.</li>
             </ul>
         </section>
 

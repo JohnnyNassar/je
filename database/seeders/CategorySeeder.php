@@ -23,6 +23,11 @@ class CategorySeeder extends Seeder
                 ['Audio', 'صوتيات'],
                 ['Cameras', 'كاميرات'],
                 ['Wearables', 'أجهزة قابلة للارتداء'],
+                // Enriched from the eBay category list (gap-filling additions).
+                ['TVs', 'التلفزيونات'],
+                ['Smart Home & Surveillance', 'المنزل الذكي والمراقبة'],
+                ['Gaming Consoles', 'أجهزة الألعاب'],
+                ['Drones', 'الطائرات المسيّرة'],
             ]],
             ['Home & Kitchen', 'المنزل والمطبخ', [
                 ['Kitchenware', 'أدوات المطبخ'],
@@ -30,6 +35,11 @@ class CategorySeeder extends Seeder
                 ['Bedding & Bath', 'مفروشات وحمام'],
                 ['Storage', 'تخزين وتنظيم'],
                 ['Cleaning', 'تنظيف'],
+                // Enriched from the eBay category list (gap-filling additions).
+                ['Large Appliances', 'الأجهزة الكبيرة'],
+                ['Small Kitchen Appliances', 'أجهزة المطبخ الصغيرة'],
+                ['Furniture', 'أثاث'],
+                ['Food & Beverages', 'أطعمة ومشروبات'],
             ]],
             ["Men's Fashion", 'أزياء رجالية', [
                 ['Clothing', 'ملابس'],
@@ -49,33 +59,48 @@ class CategorySeeder extends Seeder
                 ["Kids' Clothing", 'ملابس أطفال'],
                 ['Baby Care', 'عناية بالطفل'],
                 ['School Supplies', 'مستلزمات مدرسية'],
+                // Enriched from the eBay category list (gap-filling additions).
+                ['Strollers & Accessories', 'عربات أطفال وملحقاتها'],
             ]],
             ['Beauty & Personal Care', 'الجمال والعناية', [
                 ['Skincare', 'العناية بالبشرة'],
                 ['Makeup', 'مكياج'],
                 ['Hair Care', 'العناية بالشعر'],
                 ['Fragrances', 'عطور'],
+                // Enriched from the eBay category list (gap-filling additions).
+                ['Nail Care', 'العناية بالأظافر'],
+                ['Sun Protection & Tanning', 'الحماية من الشمس والتسمير'],
             ]],
             ['Sports & Outdoors', 'رياضة وهواء طلق', [
                 ['Fitness', 'لياقة بدنية'],
                 ['Camping', 'تخييم'],
                 ['Bikes', 'دراجات'],
                 ['Sportswear', 'ملابس رياضية'],
+                // Enriched from the eBay category list (gap-filling additions).
+                ['Fishing', 'صيد الأسماك'],
             ]],
             ['Health & Wellness', 'الصحة والعافية', [
                 ['Supplements', 'مكملات غذائية'],
                 ['First Aid', 'إسعافات أولية'],
                 ['Personal Care', 'عناية شخصية'],
+                // Enriched from the eBay category list (gap-filling addition).
+                ['Oral Care', 'العناية بالفم والأسنان'],
             ]],
             ['Automotive', 'سيارات', [
                 ['Car Accessories', 'إكسسوارات سيارات'],
                 ['Car Care', 'العناية بالسيارة'],
                 ['Tools', 'أدوات'],
+                // Enriched from the eBay category list (gap-filling addition).
+                ['Oils, Fluids & Lubricants', 'الزيوت والسوائل ومواد التشحيم'],
             ]],
             ['Garden & Tools', 'الحديقة والأدوات', [
                 ['Garden', 'حديقة'],
                 ['Hand Tools', 'أدوات يدوية'],
                 ['Power Tools', 'أدوات كهربائية'],
+                // Enriched from the eBay category list (gap-filling additions).
+                ['Plants, Seeds & Bulbs', 'النباتات والبذور والأبصال'],
+                ['Watering Equipment', 'معدات الري'],
+                ['Garden Furniture', 'أثاث الحديقة'],
             ]],
         ];
 
