@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ImageCoverController;
 use App\Http\Controllers\Admin\QuickAddController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
@@ -11,6 +12,9 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('quick-add', [QuickAddController::class, 'show'])->name('quick-add');
     Route::post('quick-add', [QuickAddController::class, 'store'])->name('quick-add.store');
+
+    Route::get('image-cover/{product}', [ImageCoverController::class, 'show'])->name('image-cover');
+    Route::post('image-cover/{product}', [ImageCoverController::class, 'save'])->name('image-cover.save');
 });
 
 Route::get('/', [CatalogController::class, 'index'])->name('catalog.index');

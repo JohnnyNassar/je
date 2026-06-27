@@ -340,6 +340,13 @@ class ProductResource extends Resource
                     ->color('gray')
                     ->url(fn (Product $record) => route('catalog.show', $record))
                     ->openUrlInNewTab(),
+                Tables\Actions\Action::make('coverLogo')
+                    ->label('Cover logo')
+                    ->icon('heroicon-m-paint-brush')
+                    ->color('gray')
+                    ->visible(fn (Product $record): bool => (bool) $record->image_path)
+                    ->url(fn (Product $record) => route('admin.image-cover', $record))
+                    ->openUrlInNewTab(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
