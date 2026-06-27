@@ -22,8 +22,15 @@
         button.ghost { background: transparent; }
         button:disabled { opacity: .4; cursor: not-allowed; }
         .swatch { width: 26px; height: 26px; border-radius: 6px; border: 1px solid #475569; cursor: pointer; padding: 0; }
-        .stage { padding: 1rem; display: flex; justify-content: center; }
-        .canvas-wrap { position: relative; max-width: 900px; width: 100%; }
+        .layout { display: flex; gap: 0; align-items: flex-start; }
+        .thumbs { width: 130px; flex: 0 0 130px; padding: 1rem .5rem; display: flex; flex-direction: column; gap: .6rem; max-height: calc(100vh - 110px); overflow-y: auto; border-right: 1px solid #334155; }
+        .thumb { position: relative; border: 2px solid transparent; border-radius: 8px; overflow: hidden; cursor: pointer; background: #fff; padding: 0; }
+        .thumb.active { border-color: #2563eb; }
+        .thumb img { width: 100%; height: 84px; object-fit: cover; display: block; }
+        .thumb .cap { font-size: .68rem; color: #cbd5e1; background: #1e293b; padding: .2rem .35rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .thumb .edited { position: absolute; top: 4px; right: 4px; background: #16a34a; color: #fff; font-size: .6rem; padding: 1px 5px; border-radius: 999px; }
+        .stage { flex: 1; padding: 1rem; display: flex; justify-content: center; }
+        .canvas-wrap { position: relative; max-width: 820px; width: 100%; }
         canvas { width: 100%; height: auto; display: block; border-radius: 8px; background: #fff; touch-action: none; cursor: crosshair; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
         .hint { text-align: center; color: #94a3b8; font-size: .8rem; padding: 0 1rem 1.5rem; }
         .toast { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); background: #16a34a; color: #fff; padding: .6rem 1rem; border-radius: 8px; font-size: .85rem; opacity: 0; transition: opacity .2s; pointer-events: none; }
@@ -46,23 +53,32 @@
         <span style="flex:1"></span>
         <button id="undo" class="ghost" disabled>Undo</button>
         <button id="reset" class="ghost" disabled>Reset</button>
-        <button id="save" class="primary">Save</button>
+        <button id="save" class="primary">Save this image</button>
     </div>
 
-    <div class="stage">
-        <div class="canvas-wrap">
-            <canvas id="canvas"></canvas>
+    <div class="layout">
+        <div class="thumbs" id="thumbs">
+            @foreach ($images as $i => $im)
+                <button class="thumb" data-index="{{ $i }}" data-path="{{ $im['path'] }}" data-url="{{ $im['url'] }}" data-mime="{{ $im['mime'] }}">
+                    <img src="{{ $im['url'] }}" alt="">
+                    <span class="cap">{{ $im['label'] }}</span>
+                </button>
+            @endforeach
+        </div>
+
+        <div class="stage">
+            <div class="canvas-wrap">
+                <canvas id="canvas"></canvas>
+            </div>
         </div>
     </div>
-    <p class="hint">Drag across the logo to drop a colored box over it. Add as many boxes as you need. “Save” overwrites the image (the original is backed up the first time).</p>
+    <p class="hint">Pick an image on the left, drag across the logo to drop a colored box over it, then “Save this image”. Repeat for each image. The original of each is backed up the first time you save it.</p>
 
     <div class="toast" id="toast"></div>
 
     <script>
-        const IMAGE_URL = @json($imageUrl);
-        const SAVE_URL  = @json(route('admin.image-cover.save', $product));
-        const MIME      = @json($mime);
-        const CSRF      = document.querySelector('meta[name=csrf-token]').content;
+        const SAVE_URL = @json(route('admin.image-cover.save', $product));
+        const CSRF     = document.querySelector('meta[name=csrf-token]').content;
 
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
@@ -71,19 +87,35 @@
         const resetBtn = document.getElementById('reset');
         const saveBtn = document.getElementById('save');
         const toast = document.getElementById('toast');
+        const thumbsEl = document.getElementById('thumbs');
 
         let img = new Image();
-        let boxes = [];          // committed rects {x,y,w,h,color} in image coordinates
+        let boxes = [];          // committed rects for the CURRENT image
         let drag = null;         // in-progress rect
+        let current = null;      // { path, mime, thumbBtn }
 
-        img.onload = () => {
-            canvas.width = img.naturalWidth;
-            canvas.height = img.naturalHeight;
-            redraw();
-        };
-        img.src = IMAGE_URL;
+        function loadImage(url, onready) {
+            const next = new Image();
+            next.onload = () => {
+                img = next;
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                boxes = [];
+                redraw();
+                if (onready) onready();
+            };
+            next.src = url;
+        }
+
+        function selectThumb(btn) {
+            document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            current = { path: btn.dataset.path, mime: btn.dataset.mime, thumbBtn: btn };
+            loadImage(btn.dataset.url);
+        }
 
         function redraw() {
+            if (!img.naturalWidth) return;
             ctx.drawImage(img, 0, 0);
             for (const b of boxes) paintBox(b);
             if (drag) paintBox(drag);
@@ -96,23 +128,20 @@
             ctx.fillRect(b.x, b.y, b.w, b.h);
         }
 
-        // Map a pointer event to image-space coordinates.
         function toImageCoords(e) {
             const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
             return {
-                x: (e.clientX - rect.left) * scaleX,
-                y: (e.clientY - rect.top) * scaleY,
+                x: (e.clientX - rect.left) * (canvas.width / rect.width),
+                y: (e.clientY - rect.top) * (canvas.height / rect.height),
             };
         }
 
         canvas.addEventListener('pointerdown', (e) => {
+            if (!current) return;
             canvas.setPointerCapture(e.pointerId);
             const p = toImageCoords(e);
             drag = { x: p.x, y: p.y, w: 0, h: 0, color: colorInput.value };
         });
-
         canvas.addEventListener('pointermove', (e) => {
             if (!drag) return;
             const p = toImageCoords(e);
@@ -120,10 +149,8 @@
             drag.h = p.y - drag.y;
             redraw();
         });
-
         function endDrag() {
             if (!drag) return;
-            // Normalize negative width/height, ignore tiny accidental clicks.
             let { x, y, w, h, color } = drag;
             if (w < 0) { x += w; w = -w; }
             if (h < 0) { y += h; h = -h; }
@@ -136,9 +163,10 @@
 
         document.querySelectorAll('.swatch').forEach(s =>
             s.addEventListener('click', () => { colorInput.value = s.dataset.color; }));
-
         undoBtn.addEventListener('click', () => { boxes.pop(); redraw(); });
         resetBtn.addEventListener('click', () => { boxes = []; redraw(); });
+        thumbsEl.querySelectorAll('.thumb').forEach(btn =>
+            btn.addEventListener('click', () => selectThumb(btn)));
 
         function showToast(msg, isError) {
             toast.textContent = msg;
@@ -147,22 +175,30 @@
         }
 
         saveBtn.addEventListener('click', async () => {
+            if (!current) { showToast('Pick an image first', true); return; }
             saveBtn.disabled = true;
             saveBtn.textContent = 'Saving…';
             try {
-                const dataUrl = canvas.toDataURL(MIME, 0.92);
+                const dataUrl = canvas.toDataURL(current.mime, 0.92);
                 const res = await fetch(SAVE_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
-                    body: JSON.stringify({ image: dataUrl }),
+                    body: JSON.stringify({ image: dataUrl, path: current.path }),
                 });
                 const json = await res.json();
                 if (json.ok) {
                     showToast('Saved ✓');
-                    boxes = [];
-                    img = new Image();
-                    img.onload = () => { canvas.width = img.naturalWidth; canvas.height = img.naturalHeight; redraw(); };
-                    img.src = json.image_url; // cache-busted, reflects the saved file
+                    // Mark the thumb as edited and refresh it + the canvas to the saved file.
+                    const btn = current.thumbBtn;
+                    btn.dataset.url = json.image_url;
+                    btn.querySelector('img').src = json.image_url;
+                    if (!btn.querySelector('.edited')) {
+                        const tag = document.createElement('span');
+                        tag.className = 'edited';
+                        tag.textContent = '✓';
+                        btn.appendChild(tag);
+                    }
+                    loadImage(json.image_url);
                 } else {
                     showToast(json.message || 'Save failed', true);
                 }
@@ -170,9 +206,13 @@
                 showToast('Save failed', true);
             } finally {
                 saveBtn.disabled = false;
-                saveBtn.textContent = 'Save';
+                saveBtn.textContent = 'Save this image';
             }
         });
+
+        // Start on the first image.
+        const first = thumbsEl.querySelector('.thumb');
+        if (first) selectThumb(first);
     </script>
 </body>
 </html>
