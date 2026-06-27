@@ -4,7 +4,7 @@ A bilingual (English / Arabic, with RTL) Cash-on-Delivery e-commerce platform mi
 
 Built with Laravel 11 + Filament 3 + Tailwind 3 + Alpine.js + MariaDB 10.11. Hosted on Contabo Cloud VPS 10, Ubuntu 24.04 LTS.
 
-_Last updated: 2026-06-20_
+_Last updated: 2026-06-27_
 
 ---
 
@@ -21,6 +21,7 @@ _Last updated: 2026-06-20_
 - **"Save X%" red ribbon** on any product where `compare_at_price > price`, plus crossed-out original price on cards + detail
 - Pagination (12 per page)
 - Empty-state with "Clear filters"
+- **Image-save deterrent** — right-click "Save image as" and drag-to-save are disabled on images storefront-wide (product pages, grid, thumbnails). A casual deterrent only (DevTools / screenshots still work); watermarking would be the real protection
 
 ### Product detail
 - Breadcrumb
@@ -173,7 +174,7 @@ A per-customer rewards program: **every customer has their own points balance an
 - In-app channel is live (new-order bell alerts). **Email is wired** — saved SMTP settings drive Laravel mail at runtime, with a "Send test email" button; powers password-reset emails once a relay's credentials are entered. SMS/WhatsApp capture settings now, sending wired per channel once provider credentials are supplied.
 
 ### Help & user guides (admin)
-- In-admin **Help** page: a full plain-language guide to every area of the platform, for the owner and staff
+- In-admin **Help** page: a full plain-language guide to every area of the platform, for the owner and staff — including a numbered **step-by-step "adding a category"** walkthrough that matches the admin form
 - **Getting Started** page (top of the sidebar, all admins): a bilingual **step-by-step onboarding guide** with an **English ⇄ العربية toggle** (choice remembered) — Arabic renders full RTL. Numbered cards cover sign-in/password, adding a product, variations, categories, media and tips. Tailored to catalog work, so it's the friendly first stop for a new staff member
 
 ### Products
@@ -181,6 +182,7 @@ A per-customer rewards program: **every customer has their own points balance an
 - **Main image** (cover) upload (stored in `storage/app/public/products/`) — auto-resized server-side to max 1600px, JPEG q85 via GD; this is the big photo shown on the product page, in grids, cart and orders. Has an **in-browser crop / rotate / zoom editor** (works on existing images too) for trimming supplier banners off
 - **More images (gallery)** — additional photos via a multiple, drag-reorderable upload (also auto-resized, same crop editor); shown after the main image as a thumbnail strip + arrow carousel on the storefront
 - The Main image and gallery are **two independent fields**: the Main image is the big photo online and is set directly (it does not auto-follow the gallery's first image)
+- **"Cover logo" tool** (row action on the Products list) — hides a supplier logo/watermark (typically top-centre) by **painting solid boxes** over it instead of cropping (which would cut into the product). A canvas page with a thumbnail strip of **every** image (Main + each Gallery + each variant): drag to draw boxes, colour picker (default white), Undo/Reset, per-image Save. Works with mouse and touch. Overwrites each file **in place** (no DB change) and keeps a one-time original backup under `storage/app/public/_originals/`
 - **Pick existing image from media library** as an alternative to upload — opens a 4-column thumbnail grid modal
 - Price + stock + active toggle
 - **Sale price** (`compare_at_price`) — when higher than current price, triggers Save% badge on public site
@@ -215,7 +217,7 @@ A per-customer rewards program: **every customer has their own points balance an
 - Drag-to-reorder via position field
 - Active toggle
 - Products-count badge
-- A **standard taxonomy** (10 parents / 40 bilingual sub-categories — Electronics, Home & Kitchen, Men's/Women's Fashion, Kids & Baby, Beauty, Sports, Health, Automotive, Garden & Tools) is seeded via `CategorySeeder` (idempotent)
+- A **standard taxonomy** (10 parents / 57 bilingual sub-categories — Electronics, Home & Kitchen, Men's/Women's Fashion, Kids & Baby, Beauty, Sports, Health, Automotive, Garden & Tools) is seeded via `CategorySeeder` (idempotent). The sub-category set was **enriched** with 17 gap-filling entries adapted from an eBay category list (TVs, Gaming Consoles, Large Appliances, Furniture, Plants/Watering, etc.); the raw bilingual extraction is kept at `docs/categories-from-ebay-en-ar.csv`
 
 ### Coupons
 - Code (case-insensitive), percentage or fixed amount
@@ -403,7 +405,7 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 
 ## Roadmap (not yet started)
 
-Prioritised after the 2026-05-25 review — the platform is feature-complete and live behind Coming Soon. _(2026-05-26: admin role tiers, customer tiers with wholesale pricing + VIP point multipliers, and a richer audit log shipped since — see Day 9. 2026-06-11: product cost price + profit with per-user cost access, and an admin/storefront UI density pass — see Day 10. 2026-06-14/15: product image galleries, staff draft preview + staff-only product #, admin products-table UX (top scrollbar, total count, sortable columns), **structured multi-axis variants** (Colour × Size × Dimension), and **2-level categories** with a standard taxonomy — see Days 12–15. 2026-06-18→20: a client **product-features sign-off sheet** (`/product-signoff.html`, EN + AR) with per-feature links + breadcrumb paths — see Day 16. 2026-06-20→24: product-image **crop/rotate editor**, storefront **prev/next arrows** + start-on-main-image for variant products, and a switch to **git-based deployment** — see Day 17.)_
+Prioritised after the 2026-05-25 review — the platform is feature-complete and live behind Coming Soon. _(2026-05-26: admin role tiers, customer tiers with wholesale pricing + VIP point multipliers, and a richer audit log shipped since — see Day 9. 2026-06-11: product cost price + profit with per-user cost access, and an admin/storefront UI density pass — see Day 10. 2026-06-14/15: product image galleries, staff draft preview + staff-only product #, admin products-table UX (top scrollbar, total count, sortable columns), **structured multi-axis variants** (Colour × Size × Dimension), and **2-level categories** with a standard taxonomy — see Days 12–15. 2026-06-18→20: a client **product-features sign-off sheet** (`/product-signoff.html`, EN + AR) with per-feature links + breadcrumb paths — see Day 16. 2026-06-20→24: product-image **crop/rotate editor**, storefront **prev/next arrows** + start-on-main-image for variant products, and a switch to **git-based deployment** — see Day 17. 2026-06-27: a storefront **image-save deterrent**, a **"Cover logo"** image tool (paint boxes over supplier logos across Main/gallery/variant images), a step-by-step **category guide** in Help, and **+17 enriched sub-categories** from an eBay list — see Day 18.)_
 
 ### 1. Launch readiness (go-live)
 - Review & **activate the imported product drafts** — names, stock, categories, Active toggle _(live: ~37 drafts vs 8 active)_

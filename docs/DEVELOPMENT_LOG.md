@@ -639,6 +639,37 @@ Owner-driven session on product images. Net shipped: an **image crop editor**, s
 
 ---
 
+## Day 18 — 2026-06-27 (image protection, logo-cover tool, category enrichment)
+
+Owner-driven session: deterring image theft, a **"Cover logo"** image tool (boxes instead of cropping), enriching the category taxonomy from an eBay list the owner supplied, and a prod→local catalog sync to test on real images. Three deploys, all via the Day-17 manual git-pull SSH sequence.
+
+### Storefront image-save deterrent (commit `9253c56`)
+- Added to the shop layout: CSS (`img { -webkit-user-drag: none; user-select: none }`) + JS blocking `contextmenu` and `dragstart` **scoped to `<img>`** (so right-click still works elsewhere). Covers every storefront product photo at once — product pages, catalog grid, thumbnails, related strip.
+- Framed honestly to the owner: a **casual deterrent, not DRM**. DevTools/Network tab, JS-off, and screenshots still get the image. The real protection is **watermarking** (offered as a follow-up).
+
+### Help page — step-by-step "adding a category" (commit `9253c56`)
+- Rewrote the admin Help page's Categories section into a numbered guide matching the real form (top-level vs sub-category + the 2-level cap, EN/AR names, auto-slug, position, active), plus an "after creating" block (drag-reorder, assign products singly/in bulk, edit/delete).
+
+### Category taxonomy enrichment from the eBay block-list (commit `9253c56`)
+- Owner supplied `docs/eBay-Block-category-list.pdf` (eBay's *blocked-category* list, ~153 rows of `ID  Parent:Child`, multi-marketplace/multilingual). `pdftotext -layout` to extract; dropped the IDs and **12 non-English rows**, split on `:`, translated to Arabic → saved the raw extraction as `docs/categories-from-ebay-en-ar.csv` (31 parents / 141 children) for reference.
+- **Key call: did *not* replace the existing taxonomy.** The eBay list is a partial "blocked" subset — missing whole departments the store already had (Women's/Men's fashion, makeup) and full of irrelevant entries (bullion, beekeeping, car rental). Discovered `CategorySeeder` already existed and was **already seeded on prod** (and prod had 4 extra owner-made top-level categories: `swimming pool`, `Grill cover`, `swimming goggles`, `fans` — flagged as likely mis-created, left untouched).
+- Instead **enriched** the existing seeder: appended **17 genuinely-missing** sub-categories to existing parents only (additive, idempotent `updateOrCreate`), e.g. Electronics→TVs/Smart Home/Gaming Consoles/Drones, Home & Kitchen→Large Appliances/Furniture/Food & Beverages, Garden & Tools→Plants/Watering/Garden Furniture. Skipped anything overlapping an existing child (no "Smart Watches" since "Wearables" exists). Local 50→67 categories; prod seeded via `db:seed --class=CategorySeeder --force`.
+
+### "Cover logo" image tool (commits `b45fff5`, `01a2832`)
+- New admin tool to hide supplier logos (usually **top-centre**) by **painting solid boxes** over them rather than cropping — cropping a top-centre logo cuts into the product. Reached via a **"Cover logo"** row action (paint-brush icon) on Products.
+- `Admin\ImageCoverController` (`show`/`save`) + a standalone canvas Blade page (`admin/image-cover.blade.php`, **vanilla JS, pointer events** so it works with mouse *and* touch): drag to draw boxes, colour picker (default white) + white/black swatches, Undo/Reset, per-image Save. The browser composites on `<canvas>`; the server decodes the data-URL and **overwrites the file in place**, keeping a **one-time original backup** under `storage/app/public/_originals/`.
+- Built main-image-only first for review (`b45fff5`), then **extended to all of a product's images** (`01a2832`): a left **thumbnail strip** of Main + each Gallery image + each variant image; click to load on canvas, cover, save, next (saved thumbs get a ✓). `save()` **validates the posted path is one of that product's image paths** before writing — prevents arbitrary-file overwrite. Because files are overwritten at their existing paths, **no DB columns change**.
+- Not AI removal: inpainting was ruled out Day 17. A box is trivial and works well on a plain background; on a busy photo it reads as "censored" (a clean crop is better there) — documented as a second tool for a different situation.
+
+### Prod → local catalog sync (dev workflow, not deployed)
+- To test the multi-image tool on real galleries, pulled **catalog only** down to local — products, categories, product_variants, product_options + the image files — **deliberately excluding customer PII** (customers/orders left on prod). Local now mirrors prod's catalog (46 products / 74 categories / 9 variants / 11 with galleries).
+- `mysqldump` run **on the server** with DB creds read from its own `.env` via a bootstrapped `php -r` writing a temp `--defaults-extra-file` (password never crossed the wire); images streamed with `tar czf - | tar xzf -` over SSH.
+
+### Pricing discussion
+- Advised the owner (freelancer, Amman) on pricing this platform for a client: price on value not hours; **one-time build ~4,000–5,000 JOD + ~150 JOD/mo retainer** (hosting included); charge change-requests separately; don't itemise per-feature.
+
+---
+
 ## Lessons learned (worth remembering)
 
 - **OPcache vs deploys.** PHP-FPM had `opcache.validate_timestamps=0` somewhere in its config, so simply replacing PHP files left old bytecode in memory and made my fixes look like they had no effect. **All deploys now `systemctl reload php8.3-fpm`** as the last step.
@@ -667,3 +698,7 @@ Owner-driven session on product images. Net shipped: an **image crop editor**, s
 - **Two independent editable image fields always risk an admin-vs-online "which is main?" mismatch.** A separate "Main image" box + a gallery can disagree about the main photo. The only mismatch-free way to make "first image = main" is a **single ordered list** (first = main). If you keep two boxes, the Main box must be the one shown online and set directly (no auto-tie).
 - **The PWA service worker is network-first for HTML, cache-first for assets** (`public/sw.js`). So a stale *page* is rarely the SW's fault, but stale *images/CSS/JS* can be served from its cache — relevant when debugging "I changed it but still see the old thing".
 - **ffmpeg `drawtext` + Windows font paths.** The drive-letter colon (`C:/…`) breaks the filtergraph parser even when escaped. Easiest fix: copy the `.ttf` into the working dir and reference it relatively (`fontfile=font.ttf`), sidestepping all colon/backslash escaping.
+- **MariaDB dump → old client = "Unknown command '\\-'".** MariaDB 10.11's `mariadb-dump` prepends a `/*M!999999\- enable the sandbox mode */` line that the older XAMPP MySQL client can't parse. Strip that one line (`grep -v 'enable the sandbox mode'`) before importing. Dumping **data-only** (`--no-create-info`) into the matching local schema, with `SET FOREIGN_KEY_CHECKS=0` + `TRUNCATE` first, also sidesteps collation (`utf8mb4_uca1400_*`) and FK-order issues on import.
+- **Overwrite-in-place = no DB writes.** The "Cover logo" tool overwrites each image at its **existing** storage path, so the product/gallery/variant DB columns never change — the only safety needed is validating the posted path belongs to the product before writing (don't let the client name an arbitrary path). A one-time copy to `_originals/` keeps edits reversible.
+- **Don't pull prod DB creds to the client.** To `mysqldump` from prod, bootstrap Laravel **on the server** (`php -r` requiring `vendor/autoload.php` then `bootstrap/app.php`) to read `config('database')` and write a `--defaults-extra-file`; the password stays server-side and only the SQL streams back over SSH.
+- **A supplied "category list" may be a trap, not a taxonomy.** The eBay file was a *blocked-category* subset — looked like a catalog, but importing it wholesale would have replaced a good taxonomy with a worse, incomplete one. Check what an external list actually *is* before seeding from it; enrich the existing structure additively instead.
