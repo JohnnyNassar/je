@@ -670,6 +670,23 @@ Owner-driven session: deterring image theft, a **"Cover logo"** image tool (boxe
 
 ---
 
+## Day 19 — 2026-06-28 (cover-logo edits invisible online — cache-busting fix)
+
+Owner reported that a **"Cover logo" save looked successful but the change never appeared** on the live product page (product 91). Diagnosed entirely from production over SSH + HTTP — **the save was never broken**; it was a caching bug.
+
+### Diagnosis (read-only, prod)
+- The file *was* being written: product 91's main image on disk differed from its `_originals/` backup (md5 mismatch), with today's timestamps — saves were succeeding and `put()` was writing. Storage **writable by www-data**, symlink intact, so the initial "permissions" hypothesis was **wrong**.
+- Fetching the image URL over HTTPS returned the **new (covered)** bytes — nginx was already serving the edit. No CDN in front. The stale view was pure browser cache.
+- Root cause in the nginx static-asset block: `Cache-Control: public, max-age=2592000, immutable` on **all** images. `immutable` tells browsers never to revalidate — but the Cover-logo tool **overwrites images at the same URL**, so an already-loaded image stayed stale for ~30 days. The admin canvas looked fine only because it requests `…?t=<timestamp>` (a different URL that dodges the cache).
+
+### Fix (commit `4d1488a`, deployed)
+- New `storage_image_url(?string $path)` helper appends `?v=<filemtime>` to `/storage` image URLs — the query changes exactly when the file is overwritten, busting the cache on edit even under `immutable`. Mirrors the existing `filemtime`-versioned CSS `<link>`.
+- Routed `Product::imageUrls()` (and thus `mainImageUrl()`) plus every storefront render site through it: catalog index/show, cart, checkout, order confirmation, track, my-orders, and the variant + related-product thumbnails.
+- Hardened `ImageCoverController::save()` to return a real error if `copy()`/`put()` fail (the public disk is `throw=false`, so write failures were silent) — defensive, not the cause here.
+- Deployed **code-only** via the Day-17 manual git-pull SSH sequence (`git pull` → `optimize:clear` → `reload php8.3-fpm`); no DB or uploaded-image data touched. Verified on prod: product 91 renders `…?v=1782669081` and that URL serves the covered bytes.
+
+---
+
 ## Lessons learned (worth remembering)
 
 - **OPcache vs deploys.** PHP-FPM had `opcache.validate_timestamps=0` somewhere in its config, so simply replacing PHP files left old bytecode in memory and made my fixes look like they had no effect. **All deploys now `systemctl reload php8.3-fpm`** as the last step.
@@ -700,5 +717,8 @@ Owner-driven session: deterring image theft, a **"Cover logo"** image tool (boxe
 - **ffmpeg `drawtext` + Windows font paths.** The drive-letter colon (`C:/…`) breaks the filtergraph parser even when escaped. Easiest fix: copy the `.ttf` into the working dir and reference it relatively (`fontfile=font.ttf`), sidestepping all colon/backslash escaping.
 - **MariaDB dump → old client = "Unknown command '\\-'".** MariaDB 10.11's `mariadb-dump` prepends a `/*M!999999\- enable the sandbox mode */` line that the older XAMPP MySQL client can't parse. Strip that one line (`grep -v 'enable the sandbox mode'`) before importing. Dumping **data-only** (`--no-create-info`) into the matching local schema, with `SET FOREIGN_KEY_CHECKS=0` + `TRUNCATE` first, also sidesteps collation (`utf8mb4_uca1400_*`) and FK-order issues on import.
 - **Overwrite-in-place = no DB writes.** The "Cover logo" tool overwrites each image at its **existing** storage path, so the product/gallery/variant DB columns never change — the only safety needed is validating the posted path belongs to the product before writing (don't let the client name an arbitrary path). A one-time copy to `_originals/` keeps edits reversible.
+- **`immutable` cache + overwrite-in-place don't mix.** nginx served `/storage` images with `Cache-Control: …, immutable`, which is correct for content-hashed build assets but wrong for images the Cover-logo tool **overwrites at the same URL** — browsers never revalidate, so edits looked like "the save didn't work" (it did; the bytes on disk and over HTTP were already the new ones). Fix is to make the **URL** change when the file changes: append `?v=<filemtime>` (`storage_image_url()` helper). The edit-tool's own `?t=<timestamp>` cache-buster masks this during testing — always verify the *public* page, not just the editor.
+- **`Storage::put()`/`copy()` with `throw=false` fail silently.** Our public disk sets `'throw' => false`, so a failed write returns `false` instead of raising — a controller that ignores the return value reports success while nothing was saved. Check the boolean return (or set `throw=true`) so a real permission problem surfaces instead of a fake "Saved ✓".
+- **Diagnose prod from prod.** "Saved but not showing" was solved without a browser: SSH to compare the on-disk file vs its `_originals/` backup (md5), then `curl` the public URL and md5 *that* — pinpointing write-succeeded-but-cached vs not-written, in two commands.
 - **Don't pull prod DB creds to the client.** To `mysqldump` from prod, bootstrap Laravel **on the server** (`php -r` requiring `vendor/autoload.php` then `bootstrap/app.php`) to read `config('database')` and write a `--defaults-extra-file`; the password stays server-side and only the SQL streams back over SSH.
 - **A supplied "category list" may be a trap, not a taxonomy.** The eBay file was a *blocked-category* subset — looked like a catalog, but importing it wholesale would have replaced a good taxonomy with a worse, incomplete one. Check what an external list actually *is* before seeding from it; enrich the existing structure additively instead.
