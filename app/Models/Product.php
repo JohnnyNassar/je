@@ -79,7 +79,7 @@ class Product extends Model
      */
     public function imageUrls(): array
     {
-        return array_map(fn (string $path) => asset('storage/' . $path), $this->imagePaths());
+        return array_map(fn (string $path) => storage_image_url($path), $this->imagePaths());
     }
 
     /**

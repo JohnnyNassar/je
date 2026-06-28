@@ -58,12 +58,28 @@ class ImageCoverController extends Controller
         $path = $data['path'];
 
         // One-time backup of the original (with the logo) so edits are reversible.
+        // Bail out before overwriting if the backup can't be made — otherwise a
+        // failed write below would leave us with neither the edit nor a backup.
         $backup = '_originals/' . basename($path);
         if ($disk->exists($path) && ! $disk->exists($backup)) {
-            $disk->copy($path, $backup);
+            if (! $disk->copy($path, $backup)) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'Could not back up the original — check storage permissions on the server.',
+                ], 500);
+            }
         }
 
-        $disk->put($path, $binary);
+        // The public disk is configured with throw=false, so put() returns false
+        // (no exception) when the web-server user can't write. Check it explicitly
+        // so we never report success while nothing was actually saved.
+        if (! $disk->put($path, $binary)) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Could not save the image — the file is not writable on the server.',
+            ], 500);
+        }
+
         $product->touch();
 
         return response()->json([

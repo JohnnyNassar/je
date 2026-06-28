@@ -110,7 +110,7 @@
                     <li class="py-3 flex items-center gap-3">
                         <div class="w-12 h-12 shrink-0 rounded-md overflow-hidden bg-gray-100 relative">
                             @if ($thumb)
-                                <img src="{{ asset('storage/' . $thumb) }}" alt="" class="w-full h-full object-cover">
+                                <img src="{{ storage_image_url($thumb) }}" alt="" class="w-full h-full object-cover">
                             @endif
                             <span class="absolute -top-1.5 -end-1.5 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-brand-600 rounded-full ring-2 ring-white">
                                 {{ $item['quantity'] }}

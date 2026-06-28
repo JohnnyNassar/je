@@ -17,7 +17,7 @@
         @if ($heroImage)
             {{-- Custom hero image with dark overlay for readability --}}
             <div class="absolute inset-0 bg-cover bg-center"
-                 style="background-image: url('{{ asset('storage/' . $heroImage) }}');"></div>
+                 style="background-image: url('{{ storage_image_url($heroImage) }}');"></div>
             <div class="absolute inset-0 bg-gradient-to-r from-brand-900/85 via-brand-900/60 to-brand-900/30 pointer-events-none"></div>
         @else
             {{-- Garage-door texture overlay (fallback when no hero image) --}}

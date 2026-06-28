@@ -52,7 +52,7 @@
                             @php($firstItem = $order->items->first())
                             <div class="w-[64px] h-[64px] shrink-0 rounded-md overflow-hidden bg-gray-100">
                                 @if ($firstItem && $firstItem->product && $firstItem->product->image_path)
-                                    <img src="{{ asset('storage/' . $firstItem->product->image_path) }}" alt="" class="w-full h-full object-cover">
+                                    <img src="{{ storage_image_url($firstItem->product->image_path) }}" alt="" class="w-full h-full object-cover">
                                 @endif
                             </div>
                             <div class="flex-1 min-w-0">

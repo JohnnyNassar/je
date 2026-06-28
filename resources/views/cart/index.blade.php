@@ -27,7 +27,7 @@
                             <div class="flex items-center gap-4">
                             <a href="{{ route('catalog.show', $product) }}" class="shrink-0 w-[90px] h-[70px] rounded-md overflow-hidden bg-gray-100 flex items-center justify-center">
                                 @if ($thumb)
-                                    <img src="{{ asset('storage/' . $thumb) }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
+                                    <img src="{{ storage_image_url($thumb) }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
                                 @endif
                             </a>
                             <div class="flex-1 min-w-0">

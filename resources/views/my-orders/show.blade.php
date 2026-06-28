@@ -48,7 +48,7 @@
                     <li class="px-5 sm:px-7 py-4 flex items-center gap-4">
                         <div class="w-[70px] h-[70px] shrink-0 rounded-md overflow-hidden bg-gray-100">
                             @if ($item->product && $item->product->image_path)
-                                <img src="{{ asset('storage/' . $item->product->image_path) }}" alt="" class="w-full h-full object-cover">
+                                <img src="{{ storage_image_url($item->product->image_path) }}" alt="" class="w-full h-full object-cover">
                             @endif
                         </div>
                         <div class="flex-1 min-w-0">

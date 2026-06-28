@@ -49,7 +49,7 @@
                 'opts' => (object) ($v->option_values ?? []),
                 'stock' => (int) $v->stock,
                 'price' => money_format($v->effectivePrice()),
-                'image' => $v->image_path ? asset('storage/' . $v->image_path) : null,
+                'image' => storage_image_url($v->image_path),
             ])->values();
             $galleryImages = $product->imageUrls();
             $productImage = $galleryImages[0] ?? '';
@@ -222,7 +222,7 @@
                 'name' => $v->name,
                 'stock' => (int) $v->stock,
                 'price' => money_format($v->effectivePrice()),
-                'image' => $v->image_path ? asset('storage/' . $v->image_path) : null,
+                'image' => storage_image_url($v->image_path),
             ])->values();
             $firstInStock = $product->variants->firstWhere('stock', '>', 0) ?? $product->variants->first();
             $galleryImages = $product->imageUrls();
@@ -503,7 +503,7 @@
                        class="group snap-start shrink-0 w-44 sm:w-52 bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-card-hover hover:border-gray-300 transition">
                         <div class="relative aspect-square bg-gray-100 overflow-hidden">
                             @if ($item->image_path)
-                                <img src="{{ asset('storage/' . $item->image_path) }}" alt="{{ $item->name }}" loading="lazy"
+                                <img src="{{ storage_image_url($item->image_path) }}" alt="{{ $item->name }}" loading="lazy"
                                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                             @endif
                             @if ($item->isOnSale())
