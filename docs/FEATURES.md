@@ -2,9 +2,11 @@
 
 A bilingual (English / Arabic, with RTL) Cash-on-Delivery e-commerce platform migrated from a WhatsApp group to a live web site at <https://joreption.com>.
 
+It now covers **two businesses**: the online shop (behind the Coming Soon splash) and the **JorEption Bazar** — a physical garage-sale event at 5th Circle, Amman, whose vendor table booking is **live and public** at <https://joreption.com/bazar>.
+
 Built with Laravel 11 + Filament 3 + Tailwind 3 + Alpine.js + MariaDB 10.11. Hosted on Contabo Cloud VPS 10, Ubuntu 24.04 LTS.
 
-_Last updated: 2026-06-27_
+_Last updated: 2026-07-18_
 
 ---
 
@@ -122,6 +124,39 @@ A per-customer rewards program: **every customer has their own points balance an
 - When on: every public visitor sees a branded splash page
 - Admins (logged in) **bypass** automatically
 - Custom EN/AR headlines configurable
+- **`/bazar` is exempt** — the physical event is publicly bookable even while the shop itself is hidden (as is `/privacy`)
+
+---
+
+## JorEption Bazar — table booking (`/bazar`, public)
+
+The physical garage-sale bazaar at **5th Circle, Amman**: **Thursdays 18:00–00:00** and **Fridays 16:00–00:00**, from **23 Jul to 30 Oct 2026** — **30 trading nights**. Vendors rent a table for **30 JD per night**, paid in cash on the night (no payment gateway, matching the COD model).
+
+### Event page
+- Bilingual EN/AR hero: location, both time windows, price per table
+- **Night picker** across all 30 nights, each showing how many tables are still free
+- Full season schedule as a clickable grid, with `Full` / `N free` per night
+- Reachable at `/bazar`; `/bazaar` redirects to it (people type both spellings)
+- Linked from the storefront header and footer
+
+### Interactive floor plan
+- An **SVG plan generated from the database**, not a traced image — so the map and availability can never drift apart
+- 100 tables laid out per the architect's drawing: **Section A (14) · B (12) · C (56) · D (6) · Restaurants (12)**
+- Colour-coded by section, greyed when already booked, faded for the restaurant units
+- Tap a free table to select it (keyboard accessible); taken tables are inert
+- Legend, and horizontal scroll on narrow screens
+
+### Booking flow
+- Pick night → tap table → name, phone, optional shop name and what they sell
+- Creates a **pending** booking; the admin confirms it
+- Price is taken from the table record, never from the submitted form
+- Vendors are linked to the existing `customers` table **by phone**, so a vendor who also shops isn't duplicated
+- Private confirmation page (own session, or any logged-in staff member)
+- Bookings are written to the **activity log** explicitly (event `placed`-style `booked`), since no admin is behind the write
+- **Double-booking is impossible at the database level** — a unique index over `(night, table, active_slot)` where `active_slot` is `1` while held and `NULL` once cancelled. MariaDB treats NULLs as distinct, so only one live booking per table-night can exist while cancelled bookings stay on record. Holds under simultaneous submissions; the app catches the constraint violation and asks the vendor to pick another table
+
+### Restaurants
+The 12 restaurant units are drawn on the plan for orientation but are **not rentable** (`is_bookable = false`), so vendor capacity is **88 tables per night**, not 100 — about **79,200 JD** of season capacity at full occupancy.
 
 ---
 
@@ -237,6 +272,11 @@ A per-customer rewards program: **every customer has their own points balance an
 - **Promotions** — time-boxed point boosts: **multiply points** (×2 double, ×3 triple) or **bonus points** per order, with optional minimum-order total and start/end dates, an on/off toggle, and a live Running / Scheduled / Ended / Off status. The best active promo is auto-applied when an order is delivered (and previewed at checkout)
 - **Settings** — enable toggle, earn rate (points per currency), point value (currency per point), minimum redeem, **VIP points multiplier**
 - Per-customer **points** column + manual **"Adjust points"** action on Customers (records a ledger entry); points-earned / redeemed columns on Orders
+
+### Bazaar (dedicated nav group, admin-only)
+- **Bookings** — every table request, with a **pending-count badge** in the sidebar as the to-do list. Filter by night, status or section; search by vendor name or phone. Row actions: **Confirm**, **Cancel** (releases the table for someone else), **WhatsApp** (opens `wa.me` with the vendor's number normalised from any local format), and Edit. The table picker on the form **only lists tables still free on the chosen night**, so an admin can't collide with the double-booking constraint
+- **Nights** — the 30 trading nights: date, hours, **booked / free counts**, **confirmed takings** per night, and an "open for booking" toggle to close a night without deleting its bookings. A per-row shortcut jumps to that night's bookings
+- **Tables** — the 100 tables: number, section, price, bookable and active toggles, plus a **bulk "Set price"** action. Floor-plan coordinates live here too (collapsed; normally set by the seeder)
 
 ### Settings
 - Currency (code / symbol / position)
@@ -365,6 +405,9 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 - `order_items` — order + product + **variant** (id + name snapshot) + product_name + unit_price + quantity + line_total
 - `loyalty_transactions` — customer + order + points (±) + type (earn | redeem | adjust) + description (the points ledger)
 - `loyalty_promotions` — name + type (multiplier | bonus) + multiplier / bonus_points + min_order_total + starts_at / ends_at + active (time-boxed point boosts)
+- `bazaar_nights` — event_date (unique) + starts_at / ends_at (**datetimes**, since the night runs past midnight into the next day) + is_active
+- `bazaar_tables` — number (unique) + section (A/B/C/D/RESTAURANT) + price + floor-plan geometry (pos_x, pos_y, width, height, rotation) + is_active + **is_bookable** (drawn vs rentable)
+- `bazaar_bookings` — night + table + optional customer + vendor name/phone/business/goods + price + status (pending | confirmed | cancelled) + notes + **`active_slot`** (1 while held, NULL once cancelled — backs the unique index that makes double-booking impossible)
 - `settings` — key/value, cached (includes `hero_image_path`, `hero_product_id`, `coming_soon_*`, currency, `google_analytics_id`)
 - `activity_logs` — audit trail: log_name + event + description + subject (morph) + causer (morph) + properties (old/new) + **ip_address** + **user_agent** + timestamp
 - `password_reset_tokens` — used by both `users` and `customers` brokers
@@ -384,6 +427,10 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 | `/checkout` | guest | Checkout form |
 | `/orders/{order}/confirmation` | guest | Order confirmation |
 | `/track` | guest | Track-my-order lookup |
+| `/bazar` | guest | Bazaar event page + interactive floor plan (**exempt from Coming Soon**) |
+| `/bazar/book` | guest (POST) | Create a pending table booking |
+| `/bazar/booking/{booking}` | own session / staff | Booking confirmation |
+| `/bazaar` | guest | Redirects to `/bazar` |
 | `/login` `/register` `/forgot-password` `/reset-password/{token}` | guest | Customer auth |
 | `/my-orders` `/my-orders/{order}` | customer | Logged-in customer's orders |
 | `/admin` | filament panel | Filament dashboard |
@@ -405,7 +452,7 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 
 ## Roadmap (not yet started)
 
-Prioritised after the 2026-05-25 review — the platform is feature-complete and live behind Coming Soon. _(2026-05-26: admin role tiers, customer tiers with wholesale pricing + VIP point multipliers, and a richer audit log shipped since — see Day 9. 2026-06-11: product cost price + profit with per-user cost access, and an admin/storefront UI density pass — see Day 10. 2026-06-14/15: product image galleries, staff draft preview + staff-only product #, admin products-table UX (top scrollbar, total count, sortable columns), **structured multi-axis variants** (Colour × Size × Dimension), and **2-level categories** with a standard taxonomy — see Days 12–15. 2026-06-18→20: a client **product-features sign-off sheet** (`/product-signoff.html`, EN + AR) with per-feature links + breadcrumb paths — see Day 16. 2026-06-20→24: product-image **crop/rotate editor**, storefront **prev/next arrows** + start-on-main-image for variant products, and a switch to **git-based deployment** — see Day 17. 2026-06-27: a storefront **image-save deterrent**, a **"Cover logo"** image tool (paint boxes over supplier logos across Main/gallery/variant images), a step-by-step **category guide** in Help, and **+17 enriched sub-categories** from an eBay list — see Day 18.)_
+Prioritised after the 2026-05-25 review — the platform is feature-complete and live behind Coming Soon. _(2026-05-26: admin role tiers, customer tiers with wholesale pricing + VIP point multipliers, and a richer audit log shipped since — see Day 9. 2026-06-11: product cost price + profit with per-user cost access, and an admin/storefront UI density pass — see Day 10. 2026-06-14/15: product image galleries, staff draft preview + staff-only product #, admin products-table UX (top scrollbar, total count, sortable columns), **structured multi-axis variants** (Colour × Size × Dimension), and **2-level categories** with a standard taxonomy — see Days 12–15. 2026-06-18→20: a client **product-features sign-off sheet** (`/product-signoff.html`, EN + AR) with per-feature links + breadcrumb paths — see Day 16. 2026-06-20→24: product-image **crop/rotate editor**, storefront **prev/next arrows** + start-on-main-image for variant products, and a switch to **git-based deployment** — see Day 17. 2026-06-27: a storefront **image-save deterrent**, a **"Cover logo"** image tool (paint boxes over supplier logos across Main/gallery/variant images), a step-by-step **category guide** in Help, and **+17 enriched sub-categories** from an eBay list — see Day 18. 2026-06-28: fixed cover-logo edits not appearing online (`immutable` cache vs overwrite-in-place → `?v=<filemtime>` URLs) — see Day 19. **2026-07-18: the JorEption Bazar table-booking system shipped and went live at `/bazar`** — 30 nights, 100 tables, a generated interactive floor plan, and a database-level double-booking guard — see Day 21.)_
 
 ### 1. Launch readiness (go-live)
 - Review & **activate the imported product drafts** — names, stock, categories, Active toggle _(live: ~37 drafts vs 8 active)_
@@ -413,7 +460,15 @@ Prioritised after the 2026-05-25 review — the platform is feature-complete and
 - Set the **WhatsApp number** _(`admin_whatsapp` is empty on prod)_, branding and hero on the live site
 - ✅ **Cash-on-Delivery checkout verified** end-to-end on production (2026-05-26, including wholesale tier pricing)
 - **Enable loyalty** on prod if you want the points program / VIP multiplier active _(`loyalty_enabled` is currently off)_
-- Flip **Coming Soon off** and announce to the WhatsApp group
+- Flip **Coming Soon off** and announce to the WhatsApp group — _note the **bazaar is already live and public** at `/bazar` without this, so the event can be announced before the shop is ready_
+- 🔴 **Credential rotation — before announcing anything.** Outstanding since Day 17 and now the highest-risk open item, since `/bazar` is live and about to be shared widely. Details are tracked privately in `docs/PIPELINE.md` (deliberately not committed)
+
+### 1b. Bazaar follow-ups
+- **Visually check the floor plan** against the architect's drawing (`docs/JorEptionBazar.jpeg`) — the data is verified, the *look* has never been eyeballed
+- Decide whether the **12 restaurant units** are rentable (currently not → 88 bookable, not 100), and at what price
+- Add the **venue address + Google Maps link** to the event page (deliberately left out rather than invented)
+- **Vendor-facing extras** not built: booking lookup by phone (like `/track` for orders), automated WhatsApp/SMS confirmation on approval, a public vendor directory ("who's at table 42"), and per-table QR codes
+- **Recurring bookings** — a vendor wanting the same table every week must book each night separately
 
 ### 2. SEO & discoverability
 - Verify **Google Search Console** + submit a sitemap
