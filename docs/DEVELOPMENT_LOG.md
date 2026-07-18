@@ -687,6 +687,61 @@ Owner reported that a **"Cover logo" save looked successful but the change never
 
 ---
 
+## Day 20 — 2026-06-29 (planning session — videos, marketplace direction, pipeline doc)
+
+No app code shipped — an advisory/planning session with the owner. Captured what to take to the client.
+
+### Inquiries answered
+- **Cover-logo access for a staff member ("Yasmine").** The tool is gated by `isAdmin()` (admin/super_admin). Options given: promote her to **Administrator**, or add a scoped **`can_cover_logo`** flag mirroring the existing `can_view_cost` pattern (lets a Staff user use just this tool). **Left for the owner to choose — not actioned.**
+- **Product videos — options & limitations.** Bandwidth (not storage — 140 GB free) is the real constraint; ffmpeg is **not** installed on prod and uploads are capped at 2 MB today. Recommended a **two-role** model: short clips = muted autoplay-loop, self-hosted; long videos = poster + tap-to-play, self-host now / move to a managed CDN (Bunny / Cloudflare Stream) if traffic grows. Client wants a **mix of both** + autoplay-loop presentation.
+- **Multi-seller marketplace.** Owner clarified the intent: **don't convert joreption.com** — instead **reuse this codebase as a separate marketplace product on another server**. Marketplace model (many sellers, one storefront, commission), **not SaaS**. Recommended a single repo with a `PLATFORM_MODE=single|marketplace` flag over a hard fork; the hard part is COD payout reconciliation, not the code. **Deferred** (recorded for later).
+
+### Deliverables (docs only)
+- **`docs/PIPELINE.md`** — new consolidated list of proposed/pending work (videos 🟡, marketplace ⏸️, pre-launch & security debt) with per-item "decisions needed from client" blocks, for the owner to review with the client.
+- **`public/project-status.html`** — a self-contained, **tabbed** status page (Delivered / Latest update / Inquiries / Pipeline) matching the `product-signoff*.html` branding; deep-links per tab + Print→PDF. **Kept local & uncommitted on purpose:** its Pipeline tab describes the security debt (plaintext creds in the *public* repo, root SSH password), so it must not be committed or hosted publicly as-is.
+
+---
+
+## Day 21 — 2026-07-18 (JorEption Bazar — physical event table booking)
+
+The owner surfaced `docs/JorEptionBazar.jpeg`: a CAD floor plan by **Venti design studio** for a physical **garage-sale bazaar at 5th Circle, Amman** — 100 tables. The business is not just a single-owner shop; it now has a ~100-vendor physical event. First night is **Thu 23 Jul 2026**, five days after this session.
+
+**Schedule:** Thursdays 18:00–00:00 and Fridays 16:00–00:00, 23 Jul → 30 Oct 2026 = **exactly 30 nights**. **30 JD per table per night.**
+
+### Reading the floor plan
+Decoded the drawing against its own legend (A 14 · B 12 · C 56 · D 6 · Restaurants 12 = 100) and derived per-number section assignment: 1–12 restaurants, 13–18 D, 19–22 B, 23–47 C, 48–53 B, 54–77 C, 78–83 A, 84–85 B, 86–89 A, 90–96 C, 97–100 A. The totals landing exactly on the legend was the independent check that the reading was right. Owner said the image was "the idea" and could be redrawn, so the plan is **regenerated as an SVG from the database** rather than traced — no dependency on Venti's DWG.
+
+### Schema (`2026_07_18_000000_create_bazaar_tables_and_bookings`)
+- `bazaar_nights` — 30 rows. `starts_at`/`ends_at` are **datetimes not times**, because the event runs to midnight so the end legitimately falls on the next day.
+- `bazaar_tables` — 100 rows with `section`, `price`, and SVG geometry (`pos_x/pos_y/width/height/rotation`). `is_bookable` separates "drawn on the plan" from "vendors can rent it", so the 12 restaurant units show for orientation but aren't sold → **88 bookable**.
+- `bazaar_bookings` — night + table + vendor + `status` (pending/confirmed/cancelled).
+- **Double-booking is prevented in the database, not in app code.** A nullable `active_slot` column holds `1` while a booking occupies the table and `NULL` once cancelled, under a unique index on `(night, table, active_slot)`. MariaDB treats NULLs as distinct, so only one live booking per table-night can exist while cancelled rows are retained for history — and the guarantee survives two vendors submitting simultaneously.
+- `BazaarSeeder` is idempotent (`updateOrCreate` on date / number), so re-running updates geometry without touching bookings.
+
+### Admin (new **Bazaar** nav group, `AdminOnly`)
+Bookings (sort 1, pending-count nav badge, Confirm / Cancel / WhatsApp row actions), Nights (sort 2, booked / free / confirmed-takings per night), Tables (sort 3, config + bulk set-price). The booking form's table picker **only lists tables still free on the chosen night**, so an admin can never hit the unique-index error.
+
+### Public `/bazar`
+Bilingual EN/AR event page: hero (where/when/price), night picker, **generated interactive SVG floor plan** (free = section colour and clickable, taken = grey, restaurants = faded), tap-a-table → vendor details form → pending booking → private confirmation page. Full 30-night schedule with per-night availability. `/bazaar` redirects to `/bazar`. Payment stays COD-style: **cash on the night**, no gateway. Vendors are linked to `customers` by phone, so a vendor who also shops isn't duplicated. Storefront bookings are logged explicitly to `activity_logs` (the `LogsActivity` trait skips them — no admin behind the write), wrapped in try/catch.
+
+**`ComingSoonMode` now exempts `bazar*`/`bazaar*`** so the event is publicly reachable while the shop itself is still behind the splash.
+
+### Test suite (`tests/Feature/BazaarTest.php`, 25 tests)
+Season seeding vs the legend, Thursday/Friday-only, the double-booking rejection, cancel-then-rebook, availability maths, phone→wa.me normalisation, all admin pages rendering, guest redirect, public page EN + **AR RTL with no untranslated leakage**, booking creation, taken-table rejection, restaurant rejection, closed-night rejection, validation, and confirmation-page privacy.
+
+### ⚠️ Fixed a test-suite landmine (pre-existing)
+`phpunit.xml` had the sqlite lines **commented out** while seven suites use `RefreshDatabase` — so `php artisan test` would `migrate:fresh` the **development database**, destroying the catalogue synced down from production on Day 18. Added `DB_DATABASE=joreption_test` (new isolated database) and `APP_URL=http://localhost` (without it every HTTP test 404s, because the local `/joreption` alias makes `$this->get('/admin/…')` build `/joreption/admin/…`). Verified the dev DB is byte-identical before and after a full run.
+
+**Still failing and worth deleting:** the 19 Breeze scaffolding tests (`tests/Feature/Auth/*`, `ProfileTest`) target routes this project removed when it replaced Breeze auth with the `customer` guard + Filament's profile page — they throw `RouteNotFoundException`. Dead tests, not regressions.
+
+### Notes worth remembering
+- **Push correctness into the database when money and scarcity are involved.** Application-level "is this table free?" checks lose races. The nullable-column-in-a-unique-index trick gives a hard guarantee *and* keeps cancellation history — app code just catches `QueryException` and shows "someone just took it".
+- **A legend is a checksum.** Deriving section membership per table number and finding the totals match the architect's stated counts exactly is far stronger evidence of a correct reading than eyeballing colours.
+- **Drawn ≠ sellable.** Splitting `is_active` from `is_bookable` let the restaurant units appear on the map for orientation without ever being rentable, and corrected season capacity from 100 to 88 tables (≈79,200 JD, not 90,000).
+- **The browser automation tooling could not reach this machine.** Chrome resolved `localhost` to an unrelated Ubuntu/nginx host and could not reach the LAN IP either, so the admin and storefront were verified by **rendering them through the HTTP kernel in feature tests** instead of by driving a browser. Faster and more repeatable anyway; the only thing left unverified is the map's visual fidelity, which the owner should eyeball at `/bazar`.
+
+---
+
 ## Lessons learned (worth remembering)
 
 - **OPcache vs deploys.** PHP-FPM had `opcache.validate_timestamps=0` somewhere in its config, so simply replacing PHP files left old bytecode in memory and made my fixes look like they had no effect. **All deploys now `systemctl reload php8.3-fpm`** as the last step.

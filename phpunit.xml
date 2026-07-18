@@ -19,11 +19,18 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <!-- No URL sub-path under test. The real app is served from a
+             /joreption alias locally but from the domain root in production;
+             without this, $this->get('/admin/...') builds /joreption/admin/...
+             and every HTTP test 404s. -->
+        <env name="APP_URL" value="http://localhost"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_STORE" value="array"/>
-        <!-- <env name="DB_CONNECTION" value="sqlite"/> -->
-        <!-- <env name="DB_DATABASE" value=":memory:"/> -->
+        <!-- Tests MUST NOT run against the development database: several suites
+             use RefreshDatabase, which would migrate:fresh it and destroy the
+             catalogue synced down from production. Isolated database instead. -->
+        <env name="DB_DATABASE" value="joreption_test"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>

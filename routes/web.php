@@ -39,6 +39,13 @@ Route::post('/track', [\App\Http\Controllers\TrackOrderController::class, 'looku
 
 Route::view('/privacy', 'legal.privacy')->name('privacy');
 
+// JorEption Bazar — the physical event at 5th Circle, Amman.
+// "bazaar" is aliased because people type both spellings.
+Route::get('/bazar', [\App\Http\Controllers\BazaarController::class, 'index'])->name('bazaar.index');
+Route::post('/bazar/book', [\App\Http\Controllers\BazaarController::class, 'store'])->name('bazaar.book');
+Route::get('/bazar/booking/{booking}', [\App\Http\Controllers\BazaarController::class, 'confirmation'])->name('bazaar.confirmation');
+Route::redirect('/bazaar', '/bazar');
+
 // Customer auth (guest-accessible)
 Route::middleware('guest:customer')->group(function () {
     Route::get('/login', [\App\Http\Controllers\CustomerAuth\LoginController::class, 'show'])->name('customer.login');

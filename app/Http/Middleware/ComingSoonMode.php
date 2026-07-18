@@ -17,7 +17,10 @@ class ComingSoonMode
             return $next($request);
         }
 
-        if ($request->is('admin*') || $request->is('livewire*') || $request->is('privacy') || auth()->check()) {
+        // The bazaar runs while the shop itself is still behind the splash, so
+        // its pages stay publicly reachable regardless of coming-soon mode.
+        if ($request->is('admin*') || $request->is('livewire*') || $request->is('privacy')
+            || $request->is('bazar*') || $request->is('bazaar*') || auth()->check()) {
             return $next($request);
         }
 
