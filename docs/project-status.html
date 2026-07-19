@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Joreption — Project Status</title>
+<link rel="icon" type="image/jpeg" href="https://joreption.com/images/logo.jpg">
+<style>
+  :root{
+    --brand:#287d88; --brand-d:#1f525c; --brand-l:#d6f1f2;
+    --ok:#15803d; --ok-bg:#dcfce7;
+    --warn:#b45309; --warn-bg:#fef3c7;
+    --hold:#475569; --hold-bg:#e2e8f0;
+    --info:#1d4ed8; --info-bg:#dbeafe;
+    --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --bg:#eef1f5;
+  }
+  *{box-sizing:border-box}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;margin:0;background:var(--bg);color:var(--ink);line-height:1.55}
+  a{color:var(--brand)}
+  .wrap{max-width:980px;margin:0 auto;padding:0 16px}
+
+  header{background:linear-gradient(135deg,var(--brand-d),var(--brand));color:#fff}
+  .head-in{display:flex;gap:16px;align-items:center;padding:22px 0}
+  .head-in img{width:54px;height:54px;border-radius:10px;object-fit:cover;box-shadow:0 0 0 2px rgba(255,255,255,.25)}
+  header h1{margin:0;font-size:1.5rem}
+  header .sub{color:rgba(255,255,255,.85);font-size:.9rem;margin-top:2px}
+  .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;padding:0 0 20px}
+  .meta div{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 12px;font-size:.95rem;font-weight:600}
+  .meta .k{display:block;color:rgba(255,255,255,.7);font-size:.72rem;font-weight:400;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+
+  .tabbar{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  .tabbar-in{display:flex;flex-wrap:wrap;gap:8px;padding:10px 0}
+  .tab{border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 14px;font-size:.85rem;cursor:pointer;color:var(--ink);display:inline-flex;align-items:center;gap:7px}
+  .tab:hover{background:#f8fafc}
+  .tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .tab .n{font-size:.72rem;background:rgba(0,0,0,.08);border-radius:99px;padding:1px 7px}
+  .tab.active .n{background:rgba(255,255,255,.25)}
+
+  main{padding:18px 0 60px}
+  .panel{display:none}
+  .panel.active{display:block}
+  .intro{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:.9rem;color:var(--muted)}
+  .intro b{color:var(--brand-d)}
+
+  section.grp{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:16px;overflow:hidden}
+  .grp-head{display:flex;align-items:center;gap:10px;padding:13px 16px;background:#fbfdfd;border-bottom:1px solid var(--line)}
+  .grp-head .ic{width:30px;height:30px;border-radius:8px;background:var(--brand-l);color:var(--brand-d);display:flex;align-items:center;justify-content:center;font-size:1rem;flex:none}
+  .grp-head h2{margin:0;font-size:1.02rem;flex:1}
+  .grp-body{padding:6px 16px 12px}
+
+  .item{border-bottom:1px solid #f1f3f5;padding:11px 0;display:flex;gap:11px;align-items:flex-start}
+  .item:last-child{border-bottom:none}
+  .item .bullet{flex:none;margin-top:1px}
+  .item .body{flex:1}
+  .item .t{font-weight:600}
+  .item .d{font-size:.86rem;color:var(--muted);margin-top:2px}
+  .badge{flex:none;font-size:.72rem;font-weight:700;border-radius:99px;padding:2px 9px;white-space:nowrap}
+  .b-ok{background:var(--ok-bg);color:var(--ok)}
+  .b-warn{background:var(--warn-bg);color:var(--warn)}
+  .b-hold{background:var(--hold-bg);color:var(--hold)}
+  .b-info{background:var(--info-bg);color:var(--info)}
+  code{font-family:ui-monospace,Menlo,monospace;font-size:.8rem;background:#f1f5f9;border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+
+  .decisions{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px 14px;margin-top:8px;font-size:.85rem}
+  .decisions .h{font-weight:700;color:var(--warn);margin-bottom:4px}
+  .decisions ul{margin:0;padding-inline-start:18px}
+
+  footer{text-align:center;color:var(--muted);font-size:.78rem;padding:20px}
+  @media print{
+    .tabbar,.no-print{display:none!important}
+    body{background:#fff}
+    .panel{display:block!important}
+    .panel:before{content:attr(data-print-title);display:block;font-size:1.2rem;font-weight:700;color:var(--brand-d);margin:18px 0 6px;border-bottom:2px solid var(--brand-l);padding-bottom:4px}
+    header{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="head-in">
+      <img src="https://joreption.com/images/logo.jpg" alt="Joreption">
+      <div>
+        <h1>Joreption — Project Status</h1>
+        <div class="sub">Features &amp; inquiries · requested, delivered, and in the pipeline</div>
+      </div>
+    </div>
+    <div class="meta">
+      <div><span class="k">Status</span>Live behind “Coming Soon”</div>
+      <div><span class="k">Milestones</span>19 build days</div>
+      <div><span class="k">Stack</span>Laravel 11 · Filament 3</div>
+      <div><span class="k">Updated</span>2026-06-29</div>
+    </div>
+  </div>
+</header>
+
+<div class="tabbar">
+  <div class="wrap tabbar-in">
+    <button class="tab active" data-tab="delivered">✅ Delivered <span class="n">8 areas</span></button>
+    <button class="tab" data-tab="latest">🛠 Latest update <span class="n">1</span></button>
+    <button class="tab" data-tab="inquiries">❓ Inquiries <span class="n">4</span></button>
+    <button class="tab" data-tab="pipeline">⏳ Pipeline <span class="n">5</span></button>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <!-- DELIVERED -->
+  <div class="panel active" id="tab-delivered" data-print-title="Delivered">
+    <div class="intro">Everything below is <b>built and running in production</b>. Full detail lives in <code>FEATURES.md</code>; build history in <code>DEVELOPMENT_LOG.md</code> (Days 1–19).</div>
+
+    <section class="grp">
+      <div class="grp-head"><div class="ic">🛍️</div><h2>Customer storefront</h2></div>
+      <div class="grp-body">
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Bilingual EN/AR catalog</div><div class="d">Full RTL, language switcher, locale persisted in session.</div></div><span class="badge b-ok">Live</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Browsing &amp; product detail</div><div class="d">Grid, 2-level categories, search, featured carousel; gallery (cover + gallery, thumbnail strip + prev/next arrows), related products.</div></div><span class="badge b-ok">Live</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Structured multi-axis variants</div><div class="d">Colour × Size × Dimension with live price / stock / image swap.</div></div><span class="badge b-ok">Live</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Cart &amp; COD checkout</div><div class="d">Multi-item, stock decrement in a transaction; order confirmation with WhatsApp deep link.</div></div><span class="badge b-ok">Live</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Track-my-order &amp; customer accounts</div><div class="d">Track without login; optional accounts with My Orders + storefront-login audit.</div></div><span class="badge b-ok">Live</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Loyalty points</div><div class="d">Optional program with VIP multipliers, customer tiers + wholesale pricing.</div></div><span class="badge b-ok">Live</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Branding, currency, Coming Soon, PWA</div><div class="d">Custom hero, JOD currency, gated launch, PWA shell + service worker, image-save deterrent.</div></div><span class="badge b-ok">Live</span></div>
+      </div>
+    </section>
+
+    <section class="grp">
+      <div class="grp-head"><div class="ic">⚙️</div><h2>Admin panel (Filament)</h2></div>
+      <div class="grp-body">
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Products</div><div class="d">Bilingual CRUD, main + gallery images, crop/rotate editor, “Cover logo” tool, media-library picker, cost price &amp; profit (per-user cost access), variants repeater.</div></div><span class="badge b-ok">Live</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Orders · Customers · Categories · Coupons</div><div class="d">Order status workflow + pending badge; taxonomy seed + enrichment; coupons.</div></div><span class="badge b-ok">Live</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Roles, audit log &amp; dashboard</div><div class="d">super_admin / admin / staff tiers, super-admin activity log, stats dashboard (14-day chart, latest orders).</div></div><span class="badge b-ok">Live</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Settings, Help/onboarding, Loyalty mgmt</div><div class="d">Bilingual EN/AR onboarding guides; loyalty reporting/promotions config.</div></div><span class="badge b-ok">Live</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Mobile Quick Add (PWA)</div><div class="d">Camera capture → publish, admin-only.</div></div><span class="badge b-ok">Live</span></div>
+      </div>
+    </section>
+
+    <section class="grp">
+      <div class="grp-head"><div class="ic">🧱</div><h2>Data import &amp; infrastructure</h2></div>
+      <div class="grp-body">
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">WhatsApp chat importer</div><div class="d">~678 product posts parsed → drafts with image matching.</div></div><span class="badge b-ok">Live</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Production VPS</div><div class="d">Nginx + PHP 8.3-FPM + MariaDB + Redis + Let’s Encrypt; daily DB backups; OPcache; Redis sessions/cache.</div></div><span class="badge b-ok">Live</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Git-based deployment</div><div class="d">Push to GitHub → manual SSH pull on the server.</div></div><span class="badge b-ok">Live</span></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- LATEST -->
+  <div class="panel" id="tab-latest" data-print-title="Latest update">
+    <div class="intro">Most recent work — <b>Day 19 (2026-06-28/29)</b>.</div>
+    <section class="grp">
+      <div class="grp-head"><div class="ic">🩹</div><h2>“Cover logo” edits now show online</h2></div>
+      <div class="grp-body">
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Reported issue</div><div class="d">A Cover-logo save looked successful but the change never appeared on the live product page.</div></div><span class="badge b-info">Diagnosed</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Root cause</div><div class="d">The save worked — the file was written and served correctly. nginx caches <code>/storage</code> images as <code>immutable</code>, so browsers kept showing the stale copy at the same URL.</div></div><span class="badge b-info">Found</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Fix shipped</div><div class="d">Added a <code>?v=&lt;file-mtime&gt;</code> cache-buster across all storefront image URLs so an in-place edit changes the URL and defeats the cache; hardened the controller against silent write failures.</div></div><span class="badge b-ok">Deployed</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Verified on production</div><div class="d">Confirmed product 91 now renders a versioned URL serving the covered image. Commits <code>4d1488a</code> + <code>9373d24</code>.</div></div><span class="badge b-ok">Verified</span></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- INQUIRIES -->
+  <div class="panel" id="tab-inquiries" data-print-title="Inquiries">
+    <div class="intro">Advisory questions answered (no build unless noted).</div>
+    <section class="grp">
+      <div class="grp-head"><div class="ic">❓</div><h2>Questions &amp; answers</h2></div>
+      <div class="grp-body">
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Is the brush / white-override admin-only?</div><div class="d">Yes — both Cover-logo endpoints are gated by an admin check.</div></div><span class="badge b-ok">Answered</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">How to give Yasmine access to “Cover Logo”?</div><div class="d">Either set her role to Administrator, or add a scoped <code>can_cover_logo</code> flag (mirroring the existing <code>can_view_cost</code> pattern). Not yet actioned.</div></div><span class="badge b-hold">Awaiting choice</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Product video — options &amp; limitations</div><div class="d">Hybrid plan (self-host short clips / CDN for long video); bandwidth is the real constraint. Saved to the pipeline.</div></div><span class="badge b-warn">In pipeline</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Multi-seller marketplace — options &amp; limitations</div><div class="d">Reuse this codebase as a separate marketplace via a <code>PLATFORM_MODE</code> flag; COD payouts are the hard part. Saved to the pipeline.</div></div><span class="badge b-hold">Deferred</span></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- PIPELINE -->
+  <div class="panel" id="tab-pipeline" data-print-title="Pipeline">
+    <div class="intro">Proposed / pending work — <b>awaiting client decisions</b>. Mirrors <code>docs/PIPELINE.md</code>.</div>
+
+    <section class="grp">
+      <div class="grp-head"><div class="ic">🎬</div><h2>Product videos</h2></div>
+      <div class="grp-body">
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Two roles, not one</div><div class="d">Short clips = muted autoplay loop in the gallery (self-host on the VPS). Long videos = poster + tap-to-play (self-host if low volume, else a managed CDN like Bunny / Cloudflare Stream).</div></div><span class="badge b-warn">Proposed</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Real constraint = bandwidth, not storage</div><div class="d">140 GB free, so storing is easy. Serving long video from the single VPS pipe (no adaptive bitrate) is the limit a CDN solves later.</div></div><span class="badge b-warn">Proposed</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Build (~1 day for v1)</div><div class="d">Install ffmpeg, raise upload limits + chunked uploads, <code>videos</code> JSON field, Filament upload + transcode/poster, storefront players.</div></div><span class="badge b-warn">Proposed</span></div>
+        <div class="decisions">
+          <div class="h">Decisions needed from client</div>
+          <ul>
+            <li>Confirm short-autoplay / long-tap-to-play split.</li>
+            <li>One video per product, or several?</li>
+            <li>Clip-vs-long by admin toggle, or auto-detected by duration?</li>
+            <li>Expected volume &amp; who uploads.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="grp">
+      <div class="grp-head"><div class="ic">🏪</div><h2>Multi-seller marketplace (separate product)</h2></div>
+      <div class="grp-body">
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Reuse, don’t convert</div><div class="d">Keep joreption.com single-owner; spin up a separate marketplace on another server reusing ~80% of this codebase. Marketplace model (many sellers, one storefront, commission) — not SaaS.</div></div><span class="badge b-hold">Deferred</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Cleanest approach</div><div class="d">One repo with a <code>PLATFORM_MODE=single|marketplace</code> flag — no second codebase to maintain.</div></div><span class="badge b-hold">Deferred</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">The hard 20%</div><div class="d">Seller accounts + tenancy, order-splitting, commission/payout ledger. Biggest risk is COD payout reconciliation, not the code. Weeks, not days.</div></div><span class="badge b-hold">Deferred</span></div>
+      </div>
+    </section>
+
+    <section class="grp">
+      <div class="grp-head"><div class="ic">🚦</div><h2>Pre-launch &amp; hygiene</h2></div>
+      <div class="grp-body">
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Launch readiness</div><div class="d">Activate imported drafts; fix mis-entered variants (e.g. product 91’s colour chooser); set the live WhatsApp number; decide on loyalty; flip Coming Soon off.</div></div><span class="badge b-warn">To do</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Security debt (before announcing)</div><div class="d">Rotate all secrets in <code>joreption.txt</code> + untrack it (plaintext creds are in the public repo); disable root SSH password login.</div></div><span class="badge b-warn">To do</span></div>
+        <div class="item"><span class="bullet">•</span><div class="body"><div class="t">Infra &amp; growth</div><div class="d">Webhook auto-deploy; SEO (Search Console + sitemap + meta/OG); outbound WhatsApp/SMS order notifications.</div></div><span class="badge b-hold">Later</span></div>
+      </div>
+    </section>
+  </div>
+
+</main>
+
+<footer>Joreption · internal project status · generated 2026-06-29 · not indexed</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.panel');
+  tabs.forEach(t => t.addEventListener('click', () => {
+    tabs.forEach(x => x.classList.remove('active'));
+    panels.forEach(p => p.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('tab-' + t.dataset.tab).classList.add('active');
+    if (location.hash !== '#' + t.dataset.tab) history.replaceState(null, '', '#' + t.dataset.tab);
+  }));
+  // Open the tab named in the URL hash, if any.
+  const h = location.hash.replace('#', '');
+  const match = [...tabs].find(t => t.dataset.tab === h);
+  if (match) match.click();
+</script>
+</body>
+</html>

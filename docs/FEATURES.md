@@ -461,7 +461,7 @@ Prioritised after the 2026-05-25 review — the platform is feature-complete and
 - ✅ **Cash-on-Delivery checkout verified** end-to-end on production (2026-05-26, including wholesale tier pricing)
 - **Enable loyalty** on prod if you want the points program / VIP multiplier active _(`loyalty_enabled` is currently off)_
 - Flip **Coming Soon off** and announce to the WhatsApp group — _note the **bazaar is already live and public** at `/bazar` without this, so the event can be announced before the shop is ready_
-- 🔴 **Credential rotation — before announcing anything.** Outstanding since Day 17 and now the highest-risk open item, since `/bazar` is live and about to be shared widely. Details are tracked privately in `docs/PIPELINE.md` (deliberately not committed)
+- 🔴 **Credential rotation — before announcing anything.** Outstanding since Day 17 and now the highest-risk open item, since `/bazar` is live and about to be shared widely. Tracked in `docs/PIPELINE.md` §3
 
 ### 1b. Bazaar follow-ups
 - **Visually check the floor plan** against the architect's drawing (`docs/JorEptionBazar.jpeg`) — the data is verified, the *look* has never been eyeballed

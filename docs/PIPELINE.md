@@ -2,7 +2,7 @@
 
 Proposed/explored work that is **not yet started** and is **awaiting client sign-off**. Detailed feature catalogue of what already exists lives in `FEATURES.md`; build history in `DEVELOPMENT_LOG.md`. This file is the shortlist to review with the client.
 
-> A tabbed visual version of the overall status (delivered / inquiries / pipeline) exists at **`public/project-status.html`** — kept **local & uncommitted** because it spells out the security debt; do not host it publicly as-is.
+> A tabbed visual version of the overall status (delivered / inquiries / pipeline) lives at **`docs/project-status.html`**. It is tracked, but deliberately **outside `public/`** so it is *not* served on joreption.com — it spells out the security debt, and that must not be a page on the live site. Open it as a local file, or send the file itself to the client. **If you move it back into `public/`, it becomes a public URL.**
 
 _Last updated: 2026-07-18._
 
