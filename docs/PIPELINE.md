@@ -126,6 +126,29 @@ Also worth settling: the signature block pre-fills the first party as **شركة
 
 ---
 
+## 4b. 🔴 Backups cover the database only — uploaded files have no copy
+
+Found 2026-07-20 while answering "where do the uploads go?". `/usr/local/bin/joreption-backup.sh` is, in full:
+
+```bash
+mariadb-dump --no-tablespaces joreption | gzip > /var/backups/joreption/db-$DATE.sql.gz
+find /var/backups/joreption -name "db-*.sql.gz" -mtime +14 -delete
+```
+
+Nothing under `storage/app` is included. **A lost server therefore loses:**
+
+| At risk | Size | Consequence |
+|---|---|---|
+| Vendor certificates (`storage/app/bazaar-documents`) | grows from 0 | Legally-relevant health and trade documents; re-collecting means chasing up to 100 vendors |
+| Product images (`storage/app/public/products`) | **140 MB** | Every product on the storefront becomes a broken image |
+| Cover-logo originals (`storage/app/public/_originals`) | 22 MB | The undo copy for every logo-covered image |
+
+The database restores perfectly and **every image and document in it is a dangling reference**. This is not a space problem — the disk is 4% used with 140 GB free; the script was simply only ever written for the database.
+
+**Fix (~10 minutes):** add `storage/app` to the nightly job — `tar czf files-$DATE.tar.gz -C /var/www/joreption storage/app` — keeping fewer file snapshots than the 14 daily DB dumps (7 is plenty at ~165 MB each), or `rsync` incrementally to cut the size. **Better still, off-server**: everything currently lives on one machine, so a disk or provider failure takes the backups with it. Offered to the owner; awaiting a go-ahead.
+
+---
+
 ## 5. 🟡 Minor / quick decisions
 
 - **Cover-logo access for staff ("Yasmine").** The "Cover logo" tool is admin-only (`isAdmin()`). To let a Staff member use it: either **promote her to Administrator** (broad — grants all back-office powers), or add a scoped **`can_cover_logo`** flag mirroring the existing `can_view_cost` pattern (a migration + a `Toggle` in the user form + swapping the controller's two guards to `canCoverLogo()`). **Owner to decide.**

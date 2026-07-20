@@ -161,8 +161,10 @@ The physical garage-sale bazaar at **5th Circle, Amman**: **Thursdays and Friday
 - **13 bilingual categories** (Food, Drinks, Sweets & bakery, Beauty & personal care, Clothing, Accessories, Home & kitchen, Toys, Electronics, Handmade, Plants, Second-hand, Other), reorderable in the admin
 - Four are flagged **`requires_health_certificate`** — anything eaten, drunk or applied to the body (leasing contract, Art. 31). A vendor **cannot book those categories without uploading one**; the field appears the moment such a category is picked
 - A **work / trade licence** upload is offered to every vendor
-- Accepted: PDF, JPG, PNG, WebP, up to 5 MB. Executables are rejected by mime allow-list
-- **Files are stored on the private `local` disk** (`storage/app/bazaar-documents`), **never under `public/`**, and are only released through an authenticated admin route that streams them. Deleting a booking deletes its files
+- **Up to 4 files of each kind** — a licence and its renewal, or a certificate per product line. Picking more files **adds to the list** rather than replacing it (a file input natively replaces its whole selection, so the page holds the list and writes it back via `DataTransfer`); each file shows with its size and a remove button, duplicates are ignored, and the cap warns instead of truncating
+- Accepted: PDF, JPG, PNG, WebP, up to **5 MB each**. Executables are rejected by mime allow-list
+- **Server limits are kept above the form's** — `upload_max_filesize` 8 MB, `post_max_size` 64 MB, nginx `client_max_body_size` 80 MB. This matters: PHP discards an oversized upload *before* validation runs, so a mismatch shows up to the vendor as "certificate missing" with no explanation. A test asserts the runtime limits are at least as large as the form accepts
+- **Files are stored on the private `local` disk** at **`storage/app/bazaar-documents/`**, outside the web root — the `public/storage` symlink points at `storage/app/public`, a different folder, so no URL reaches them. Saved under random generated names (the vendor's original filename is kept in the database), and only released through an authenticated admin route that streams them. Deleting a booking deletes its files
 - Uploads are written *before* the booking transaction, so a storage failure can't leave a booking without its paperwork — and are discarded if the insert then fails
 
 ### Deposit
@@ -380,6 +382,8 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 - Credentials in `/root/.joreption-secrets` on the server (rotate as needed)
 
 ### Backups
+> ⚠️ **Database only.** `/usr/local/bin/joreption-backup.sh` runs `mariadb-dump | gzip` and nothing else, so **no uploaded file is backed up** — not vendor certificates, not the 140 MB of product images, not the Cover-logo originals. A restore would bring back a perfect database in which every image and document is a broken link. See `PIPELINE.md`.
+
 - Daily MariaDB dump at 03:00 (`/usr/local/bin/joreption-backup.sh`)
 - Stored in `/var/backups/joreption/`, gzipped
 - 14-day retention (older files auto-removed)
