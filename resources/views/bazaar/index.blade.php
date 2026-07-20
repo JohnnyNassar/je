@@ -53,12 +53,56 @@
                      selected: null,
                      selectedNumber: null,
                      categoryId: '{{ old('bazaar_vendor_category_id') }}',
-                     workFiles: [],
-                     healthFiles: [],
                      needsHealth: {{ \Illuminate\Support\Js::from($categories->pluck('requires_health_certificate', 'id')) }},
+                     maxFiles: 4,
+                     docs: { work: [], health: [] },
+                     tooMany: '',
+
                      get healthRequired() {
                          return this.categoryId !== '' && this.needsHealth[this.categoryId] === true;
                      },
+
+                     /*
+                      * A file input replaces its whole FileList on every pick, so
+                      * choosing a second file would drop the first. Keep our own
+                      * list, then write it back to the input through a DataTransfer
+                      * so the form still submits real files with no JS on the server.
+                      */
+                     addFiles(kind, el) {
+                         this.tooMany = '';
+                         const existing = this.docs[kind];
+
+                         for (const file of Array.from(el.files)) {
+                             const duplicate = existing.some(f => f.name === file.name && f.size === file.size);
+                             if (duplicate) continue;
+                             if (existing.length >= this.maxFiles) {
+                                 this.tooMany = '{{ __('You can attach up to :count files.', ['count' => 4]) }}';
+                                 break;
+                             }
+                             existing.push(file);
+                         }
+
+                         this.syncInput(kind, el);
+                     },
+
+                     removeFile(kind, index) {
+                         this.docs[kind].splice(index, 1);
+                         this.tooMany = '';
+                         this.syncInput(kind, this.$refs[kind + 'Input']);
+                     },
+
+                     syncInput(kind, el) {
+                         if (! el || typeof DataTransfer === 'undefined') return;
+                         const bag = new DataTransfer();
+                         this.docs[kind].forEach(f => bag.items.add(f));
+                         el.files = bag.files;
+                     },
+
+                     humanSize(bytes) {
+                         const kb = bytes / 1024;
+                         return kb >= 1024 ? (kb / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(kb)) + ' KB';
+                     },
+
                      select(id, number) {
                          this.selected = id;
                          this.selectedNumber = number;
@@ -197,18 +241,31 @@
                                     </p>
                                 </div>
 
+                                <p x-show="tooMany" x-cloak x-text="tooMany" role="alert"
+                                   class="text-xs text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1.5"></p>
+
                                 <div>
                                     <label for="work_certificate" class="block text-sm font-medium text-gray-700 mb-1">
                                         {{ __('Work or trade licence') }}
                                         <span class="text-gray-400 font-normal">({{ __('optional') }})</span>
                                     </label>
                                     <input type="file" name="work_certificate[]" id="work_certificate" multiple
+                                           x-ref="workInput"
                                            accept=".pdf,.jpg,.jpeg,.png,.webp"
-                                           x-on:change="workFiles = Array.from($event.target.files).map(f => f.name)"
+                                           x-on:change="addFiles('work', $event.target)"
                                            class="w-full text-sm text-gray-600 file:me-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100">
-                                    <ul x-show="workFiles.length" x-cloak class="mt-1.5 space-y-0.5">
-                                        <template x-for="name in workFiles" :key="name">
-                                            <li class="text-xs text-gray-600 truncate" x-text="'• ' + name"></li>
+
+                                    <ul x-show="docs.work.length" x-cloak class="mt-2 space-y-1">
+                                        <template x-for="(file, i) in docs.work" :key="file.name + file.size">
+                                            <li class="flex items-center justify-between gap-2 rounded bg-white border border-gray-200 px-2.5 py-1.5">
+                                                <span class="text-xs text-gray-700 truncate" x-text="file.name"></span>
+                                                <span class="flex items-center gap-2 shrink-0">
+                                                    <span class="text-xs text-gray-400" x-text="humanSize(file.size)"></span>
+                                                    <button type="button" x-on:click="removeFile('work', i)"
+                                                            class="text-gray-400 hover:text-red-600 text-sm leading-none"
+                                                            :aria-label="'{{ __('Remove') }} ' + file.name">&times;</button>
+                                                </span>
+                                            </li>
                                         </template>
                                     </ul>
                                 </div>
@@ -218,15 +275,26 @@
                                         {{ __('Health certificate') }} <span class="text-red-500">*</span>
                                     </label>
                                     <input type="file" name="health_certificate[]" id="health_certificate" multiple
+                                           x-ref="healthInput"
                                            accept=".pdf,.jpg,.jpeg,.png,.webp"
-                                           x-bind:required="healthRequired && healthFiles.length === 0"
-                                           x-on:change="healthFiles = Array.from($event.target.files).map(f => f.name)"
+                                           x-bind:required="healthRequired && docs.health.length === 0"
+                                           x-on:change="addFiles('health', $event.target)"
                                            class="w-full text-sm text-gray-600 file:me-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100">
-                                    <ul x-show="healthFiles.length" x-cloak class="mt-1.5 space-y-0.5">
-                                        <template x-for="name in healthFiles" :key="name">
-                                            <li class="text-xs text-gray-600 truncate" x-text="'• ' + name"></li>
+
+                                    <ul x-show="docs.health.length" x-cloak class="mt-2 space-y-1">
+                                        <template x-for="(file, i) in docs.health" :key="file.name + file.size">
+                                            <li class="flex items-center justify-between gap-2 rounded bg-white border border-gray-200 px-2.5 py-1.5">
+                                                <span class="text-xs text-gray-700 truncate" x-text="file.name"></span>
+                                                <span class="flex items-center gap-2 shrink-0">
+                                                    <span class="text-xs text-gray-400" x-text="humanSize(file.size)"></span>
+                                                    <button type="button" x-on:click="removeFile('health', i)"
+                                                            class="text-gray-400 hover:text-red-600 text-sm leading-none"
+                                                            :aria-label="'{{ __('Remove') }} ' + file.name">&times;</button>
+                                                </span>
+                                            </li>
                                         </template>
                                     </ul>
+
                                     <p class="mt-1 text-xs text-amber-700">
                                         {{ __('Required for food, drink and personal-care stalls before you can trade.') }}
                                     </p>
