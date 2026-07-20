@@ -65,10 +65,22 @@
             </div>
 
             @if ($booking->documents->isNotEmpty())
-                <p class="mt-4 text-sm text-gray-600">
-                    {{ __('Received:') }}
-                    {{ $booking->documents->map(fn ($d) => __($d->kind_label))->join('، ', ' · ') }}
-                </p>
+                <div class="mt-4 rounded-lg bg-gray-50 px-4 py-3 text-start">
+                    <p class="text-xs text-gray-500">
+                        {{ __('Received:') }}
+                        @foreach ($booking->documentSummary() as $label => $count)
+                            {{ __($label) }}@if ($count > 1) &times;{{ $count }}@endif{{ ! $loop->last ? ' · ' : '' }}
+                        @endforeach
+                    </p>
+                    <ul class="mt-1.5 space-y-0.5">
+                        @foreach ($booking->documents as $document)
+                            <li class="text-sm text-gray-700 truncate">
+                                {{ $document->original_name }}
+                                <span class="text-xs text-gray-400">({{ $document->size_for_humans }})</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
             @endif
 
             @if ($booking->isMissingHealthCertificate())

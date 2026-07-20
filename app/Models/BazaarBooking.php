@@ -121,6 +121,23 @@ class BazaarBooking extends Model
         return $this->documents->firstWhere('kind', $kind);
     }
 
+    /** A vendor may attach several of each kind — a licence and its renewal, say. */
+    public function documentsOf(string $kind): \Illuminate\Support\Collection
+    {
+        return $this->documents->where('kind', $kind)->values();
+    }
+
+    /** ["Health certificate" => 2, "Work / trade licence" => 1] */
+    public function documentSummary(): array
+    {
+        return $this->documents
+            ->groupBy('kind')
+            ->mapWithKeys(fn ($group, $kind) => [
+                BazaarBookingDocument::KINDS[$kind] ?? $kind => $group->count(),
+            ])
+            ->all();
+    }
+
     /** True when the category demands a health certificate and none is attached. */
     public function isMissingHealthCertificate(): bool
     {

@@ -207,12 +207,102 @@ class BazaarTest extends TestCase
         $this->assertSame(0, BazaarBooking::count());
     }
 
+    public function test_several_documents_can_be_attached_to_one_booking(): void
+    {
+        Storage::fake('local');
+
+        $this->bookAs($this->foodCategory(), [
+            'health_certificate' => [
+                UploadedFile::fake()->create('health-2026.pdf', 150, 'application/pdf'),
+                UploadedFile::fake()->image('kitchen-clearance.jpg'),
+            ],
+            'work_certificate' => [
+                UploadedFile::fake()->create('licence.pdf', 120, 'application/pdf'),
+                UploadedFile::fake()->image('renewal.png'),
+                UploadedFile::fake()->image('registration.jpg'),
+            ],
+        ])->assertRedirect();
+
+        $booking = BazaarBooking::latest('id')->first();
+
+        $this->assertCount(5, $booking->documents, 'every file is kept');
+        $this->assertCount(2, $booking->documentsOf(BazaarBookingDocument::KIND_HEALTH));
+        $this->assertCount(3, $booking->documentsOf(BazaarBookingDocument::KIND_WORK));
+        $this->assertFalse($booking->isMissingHealthCertificate());
+
+        // Original filenames survive, and every file actually landed on disk.
+        $this->assertContains('kitchen-clearance.jpg', $booking->documents->pluck('original_name')->all());
+        foreach ($booking->documents as $document) {
+            Storage::disk('local')->assertExists($document->path);
+        }
+
+        // assertEquals, not assertSame: the grouping order follows insertion
+        // and carries no meaning.
+        $this->assertEquals(
+            ['Health certificate' => 2, 'Work / trade licence' => 3],
+            $booking->documentSummary()
+        );
+    }
+
+    public function test_too_many_files_of_one_kind_are_rejected(): void
+    {
+        Storage::fake('local');
+
+        $this->bookAs($this->plainCategory(), [
+            'work_certificate' => array_map(
+                fn ($i) => UploadedFile::fake()->image("licence-{$i}.jpg"),
+                range(1, 5)
+            ),
+        ])->assertSessionHasErrors('work_certificate');
+
+        $this->assertSame(0, BazaarBooking::count());
+    }
+
+    /**
+     * Guards a bug found on production: php's upload_max_filesize was 2 MB
+     * while validation allowed 5 MB, so a large phone photo was discarded
+     * before validation ran and the vendor was told the file was missing.
+     */
+    public function test_the_size_limit_is_enforced_and_within_the_servers_own_limit(): void
+    {
+        Storage::fake('local');
+
+        $this->bookAs($this->plainCategory(), [
+            'work_certificate' => [UploadedFile::fake()->create('huge.pdf', 6000, 'application/pdf')],
+        ])->assertSessionHasErrors('work_certificate.0');
+
+        $this->assertSame(0, BazaarBooking::count());
+
+        // PHP must be able to receive a file as large as we claim to accept,
+        // otherwise the rejection happens silently before Laravel sees it.
+        $uploadMax = $this->toBytes(ini_get('upload_max_filesize'));
+        $postMax = $this->toBytes(ini_get('post_max_size'));
+
+        $this->assertGreaterThanOrEqual(5 * 1024 * 1024, $uploadMax,
+            'upload_max_filesize must allow the 5 MB the form accepts');
+        $this->assertGreaterThanOrEqual(8 * 5 * 1024 * 1024, $postMax,
+            'post_max_size must allow 4 files of each kind at 5 MB');
+    }
+
+    private function toBytes(string $value): int
+    {
+        $unit = strtolower(substr(trim($value), -1));
+        $number = (int) $value;
+
+        return match ($unit) {
+            'g' => $number * 1024 ** 3,
+            'm' => $number * 1024 ** 2,
+            'k' => $number * 1024,
+            default => $number,
+        };
+    }
+
     public function test_a_food_vendor_can_book_when_the_certificate_is_attached(): void
     {
         Storage::fake('local');
 
         $this->bookAs($this->foodCategory(), [
-            'health_certificate' => UploadedFile::fake()->create('health.pdf', 200, 'application/pdf'),
+            'health_certificate' => [UploadedFile::fake()->create('health.pdf', 200, 'application/pdf')],
         ])->assertRedirect();
 
         $booking = BazaarBooking::latest('id')->first();
@@ -232,7 +322,7 @@ class BazaarTest extends TestCase
         Storage::fake('local');
 
         $this->bookAs($this->plainCategory(), [
-            'work_certificate' => UploadedFile::fake()->image('licence.jpg'),
+            'work_certificate' => [UploadedFile::fake()->image('licence.jpg')],
         ])->assertRedirect();
 
         $booking = BazaarBooking::latest('id')->first();
@@ -245,8 +335,8 @@ class BazaarTest extends TestCase
         Storage::fake('local');
 
         $this->bookAs($this->plainCategory(), [
-            'work_certificate' => UploadedFile::fake()->create('payload.php', 10, 'application/x-httpd-php'),
-        ])->assertSessionHasErrors('work_certificate');
+            'work_certificate' => [UploadedFile::fake()->create('payload.php', 10, 'application/x-httpd-php')],
+        ])->assertSessionHasErrors('work_certificate.0');
 
         $this->assertSame(0, BazaarBooking::count());
     }
@@ -266,7 +356,7 @@ class BazaarTest extends TestCase
         Storage::fake('local');
 
         $this->bookAs($this->foodCategory(), [
-            'health_certificate' => UploadedFile::fake()->create('health.pdf', 100, 'application/pdf'),
+            'health_certificate' => [UploadedFile::fake()->create('health.pdf', 100, 'application/pdf')],
         ]);
 
         $document = BazaarBookingDocument::latest('id')->first();
@@ -285,7 +375,7 @@ class BazaarTest extends TestCase
         Storage::fake('local');
 
         $this->bookAs($this->foodCategory(), [
-            'health_certificate' => UploadedFile::fake()->create('health.pdf', 100, 'application/pdf'),
+            'health_certificate' => [UploadedFile::fake()->create('health.pdf', 100, 'application/pdf')],
         ]);
 
         $booking = BazaarBooking::latest('id')->first();

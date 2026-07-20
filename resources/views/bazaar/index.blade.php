@@ -53,6 +53,8 @@
                      selected: null,
                      selectedNumber: null,
                      categoryId: '{{ old('bazaar_vendor_category_id') }}',
+                     workFiles: [],
+                     healthFiles: [],
                      needsHealth: {{ \Illuminate\Support\Js::from($categories->pluck('requires_health_certificate', 'id')) }},
                      get healthRequired() {
                          return this.categoryId !== '' && this.needsHealth[this.categoryId] === true;
@@ -191,7 +193,7 @@
                                 <div>
                                     <h4 class="text-sm font-semibold text-gray-900">{{ __('Certificates') }}</h4>
                                     <p class="mt-1 text-xs text-gray-600">
-                                        {{ __('PDF or photo, up to 5 MB each. Only the bazaar team can see these.') }}
+                                        {{ __('PDF or photo, up to 5 MB each. You can attach up to 4 of each. Only the bazaar team can see these.') }}
                                     </p>
                                 </div>
 
@@ -200,19 +202,31 @@
                                         {{ __('Work or trade licence') }}
                                         <span class="text-gray-400 font-normal">({{ __('optional') }})</span>
                                     </label>
-                                    <input type="file" name="work_certificate" id="work_certificate"
+                                    <input type="file" name="work_certificate[]" id="work_certificate" multiple
                                            accept=".pdf,.jpg,.jpeg,.png,.webp"
+                                           x-on:change="workFiles = Array.from($event.target.files).map(f => f.name)"
                                            class="w-full text-sm text-gray-600 file:me-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100">
+                                    <ul x-show="workFiles.length" x-cloak class="mt-1.5 space-y-0.5">
+                                        <template x-for="name in workFiles" :key="name">
+                                            <li class="text-xs text-gray-600 truncate" x-text="'• ' + name"></li>
+                                        </template>
+                                    </ul>
                                 </div>
 
                                 <div x-show="healthRequired" x-cloak>
                                     <label for="health_certificate" class="block text-sm font-medium text-gray-700 mb-1">
                                         {{ __('Health certificate') }} <span class="text-red-500">*</span>
                                     </label>
-                                    <input type="file" name="health_certificate" id="health_certificate"
+                                    <input type="file" name="health_certificate[]" id="health_certificate" multiple
                                            accept=".pdf,.jpg,.jpeg,.png,.webp"
-                                           x-bind:required="healthRequired"
+                                           x-bind:required="healthRequired && healthFiles.length === 0"
+                                           x-on:change="healthFiles = Array.from($event.target.files).map(f => f.name)"
                                            class="w-full text-sm text-gray-600 file:me-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100">
+                                    <ul x-show="healthFiles.length" x-cloak class="mt-1.5 space-y-0.5">
+                                        <template x-for="name in healthFiles" :key="name">
+                                            <li class="text-xs text-gray-600 truncate" x-text="'• ' + name"></li>
+                                        </template>
+                                    </ul>
                                     <p class="mt-1 text-xs text-amber-700">
                                         {{ __('Required for food, drink and personal-care stalls before you can trade.') }}
                                     </p>

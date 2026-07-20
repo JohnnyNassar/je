@@ -13,6 +13,7 @@ use App\Models\Setting;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -21,8 +22,18 @@ class BazaarController extends Controller
     /** Session key holding the bookings made in this browser session. */
     private const SESSION_KEY = 'bazaar_bookings';
 
-    /** Certificates are scans and photos; 5 MB covers a phone camera shot. */
+    /**
+     * Certificates are scans and phone photos; 5 MB covers a camera shot.
+     *
+     * Keep this in step with the server: php's upload_max_filesize must exceed
+     * MAX_UPLOAD_KB, and post_max_size (and nginx client_max_body_size) must
+     * exceed MAX_FILES_PER_KIND * 2 * MAX_UPLOAD_KB -- otherwise PHP discards
+     * the upload before validation runs and the vendor is told their
+     * certificate is missing with no explanation.
+     */
     private const MAX_UPLOAD_KB = 5120;
+
+    private const MAX_FILES_PER_KIND = 4;
 
     private const ALLOWED_MIMES = 'pdf,jpg,jpeg,png,webp';
 
@@ -68,11 +79,19 @@ class BazaarController extends Controller
             'vendor_phone' => ['required', 'string', 'max:32', 'regex:/^[\d\s\-\+\(\)]{9,}$/'],
             'vendor_business' => ['nullable', 'string', 'max:255'],
             'goods_description' => ['nullable', 'string', 'max:2000'],
-            'work_certificate' => ['nullable', 'file', 'mimes:'.self::ALLOWED_MIMES, 'max:'.self::MAX_UPLOAD_KB],
-            'health_certificate' => ['nullable', 'file', 'mimes:'.self::ALLOWED_MIMES, 'max:'.self::MAX_UPLOAD_KB],
+            'work_certificate' => ['nullable', 'array', 'max:'.self::MAX_FILES_PER_KIND],
+            'work_certificate.*' => ['file', 'mimes:'.self::ALLOWED_MIMES, 'max:'.self::MAX_UPLOAD_KB],
+            'health_certificate' => ['nullable', 'array', 'max:'.self::MAX_FILES_PER_KIND],
+            'health_certificate.*' => ['file', 'mimes:'.self::ALLOWED_MIMES, 'max:'.self::MAX_UPLOAD_KB],
         ], [
             'vendor_phone.regex' => __('Please enter a valid phone number.'),
             'bazaar_vendor_category_id.required' => __('Please choose what you sell.'),
+            'work_certificate.max' => __('You can attach up to :count files.', ['count' => self::MAX_FILES_PER_KIND]),
+            'health_certificate.max' => __('You can attach up to :count files.', ['count' => self::MAX_FILES_PER_KIND]),
+            'work_certificate.*.max' => __('Each file must be under 5 MB.'),
+            'health_certificate.*.max' => __('Each file must be under 5 MB.'),
+            'work_certificate.*.mimes' => __('Please upload a PDF or an image.'),
+            'health_certificate.*.mimes' => __('Please upload a PDF or an image.'),
         ]);
 
         $period = BazaarPeriod::findOrFail($data['bazaar_period_id']);
@@ -103,16 +122,22 @@ class BazaarController extends Controller
 
         // Files are stored before the booking so a storage failure can't leave a
         // paid-for booking without its paperwork; on a failed write we roll the
-        // uploads back ourselves.
+        // uploads back ourselves. A vendor may attach several of each kind --
+        // a licence and its renewal, or a certificate per product line.
         $stored = [];
 
         try {
             foreach ([
-                BazaarBookingDocument::KIND_WORK => $request->file('work_certificate'),
-                BazaarBookingDocument::KIND_HEALTH => $request->file('health_certificate'),
-            ] as $kind => $file) {
-                if ($file instanceof UploadedFile) {
-                    $stored[$kind] = [
+                BazaarBookingDocument::KIND_WORK => $request->file('work_certificate', []),
+                BazaarBookingDocument::KIND_HEALTH => $request->file('health_certificate', []),
+            ] as $kind => $files) {
+                foreach (Arr::wrap($files) as $file) {
+                    if (! $file instanceof UploadedFile) {
+                        continue;
+                    }
+
+                    $stored[] = [
+                        'kind' => $kind,
                         'path' => $file->store(BazaarBookingDocument::DIRECTORY, 'local'),
                         'original_name' => mb_substr((string) $file->getClientOriginalName(), 0, 255),
                         'mime' => $file->getClientMimeType(),
@@ -152,8 +177,8 @@ class BazaarController extends Controller
                     'status' => BazaarBooking::STATUS_PENDING,
                 ]);
 
-                foreach ($stored as $kind => $file) {
-                    $booking->documents()->create($file + ['kind' => $kind]);
+                foreach ($stored as $file) {
+                    $booking->documents()->create($file);
                 }
 
                 return $booking;
@@ -188,7 +213,7 @@ class BazaarController extends Controller
                     'category' => $category->name_en,
                     'price' => $booking->price,
                     'deposit' => $booking->deposit,
-                    'documents' => array_keys($stored),
+                    'documents' => count($stored),
                 ]],
             ]);
         } catch (\Throwable $e) {
