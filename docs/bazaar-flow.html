@@ -1,0 +1,846 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JorEption Bazar — How table booking works</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body, h1, h2, h3, p, dl, dd, table, figure, figcaption { margin: 0; }
+  table { border-collapse: collapse; }
+  button { font: inherit; color: inherit; }
+
+  :root {
+    --ground:#f6f9f9; --surface:#ffffff; --surface-sunk:#eef3f3;
+    --ink:#0d2226; --ink-soft:#4a6367; --ink-faint:#7c9296;
+    --rule:#d5e1e2; --rule-strong:#b9cbcd;
+
+    --brand:#0f4248; --brand-mid:#287d88; --brand-wash:#e7f0f0;
+
+    /* the plan's own legend — the real section colours */
+    --sec-a:#4f7fe0; --sec-b:#e05252; --sec-c:#f0b429; --sec-d:#3faa5a; --sec-r:#b57edc;
+
+    --state-pending:#b06f10; --state-pending-bg:#fdf3e3;
+    --state-ok:#2c7a54;      --state-ok-bg:#e6f4ec;
+    --state-dead:#b3413f;    --state-dead-bg:#fceceb;
+    --taken:#94a9ac;
+    --plan-bg:#fbfdfd; --plan-edge:#dde7e8;
+
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --measure: 68ch;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground:#0a1315; --surface:#101c1f; --surface-sunk:#16262a;
+      --ink:#e4eded; --ink-soft:#a2b6b9; --ink-faint:#6f868a;
+      --rule:#22383c; --rule-strong:#325055;
+      --brand:#7fc4cd; --brand-mid:#4ea6b2; --brand-wash:#14282c;
+      --sec-a:#7ba2ec; --sec-b:#ef7f7f; --sec-c:#f5c65c; --sec-d:#6ac48a; --sec-r:#c9a1e6;
+      --state-pending:#e8b563; --state-pending-bg:#2a2113;
+      --state-ok:#6fc79b;      --state-ok-bg:#12291f;
+      --state-dead:#ef8a88;    --state-dead-bg:#2b1615;
+      --taken:#55696d;
+      --plan-bg:#0d191c; --plan-edge:#23383d;
+    }
+  }
+  html[data-theme="dark"] {
+    --ground:#0a1315; --surface:#101c1f; --surface-sunk:#16262a;
+    --ink:#e4eded; --ink-soft:#a2b6b9; --ink-faint:#6f868a;
+    --rule:#22383c; --rule-strong:#325055;
+    --brand:#7fc4cd; --brand-mid:#4ea6b2; --brand-wash:#14282c;
+    --sec-a:#7ba2ec; --sec-b:#ef7f7f; --sec-c:#f5c65c; --sec-d:#6ac48a; --sec-r:#c9a1e6;
+    --state-pending:#e8b563; --state-pending-bg:#2a2113;
+    --state-ok:#6fc79b; --state-ok-bg:#12291f;
+    --state-dead:#ef8a88; --state-dead-bg:#2b1615;
+    --taken:#55696d; --plan-bg:#0d191c; --plan-edge:#23383d;
+  }
+  html[data-theme="light"] {
+    --ground:#f6f9f9; --surface:#ffffff; --surface-sunk:#eef3f3;
+    --ink:#0d2226; --ink-soft:#4a6367; --ink-faint:#7c9296;
+    --rule:#d5e1e2; --rule-strong:#b9cbcd;
+    --brand:#0f4248; --brand-mid:#287d88; --brand-wash:#e7f0f0;
+    --sec-a:#4f7fe0; --sec-b:#e05252; --sec-c:#f0b429; --sec-d:#3faa5a; --sec-r:#b57edc;
+    --state-pending:#b06f10; --state-pending-bg:#fdf3e3;
+    --state-ok:#2c7a54; --state-ok-bg:#e6f4ec;
+    --state-dead:#b3413f; --state-dead-bg:#fceceb;
+    --taken:#94a9ac; --plan-bg:#fbfdfd; --plan-edge:#dde7e8;
+  }
+
+  body {
+    background: var(--ground); color: var(--ink);
+    font-family: var(--sans); font-size: 16px; line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 62rem; margin-inline: auto; padding: 3rem 1.5rem 5rem; }
+  p { max-width: var(--measure); }
+  a { color: var(--brand-mid); }
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid var(--brand-mid); outline-offset: 2px;
+  }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: .7rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+  h1 {
+    font-size: clamp(2rem, 5vw, 2.9rem); line-height: 1.08;
+    letter-spacing: -.025em; font-weight: 750; text-wrap: balance; margin-top: .6rem;
+  }
+  h2 { font-size: 1.4rem; letter-spacing: -.015em; font-weight: 700; text-wrap: balance; }
+  h3 { font-size: 1rem; font-weight: 680; letter-spacing: -.005em; }
+  .lede { font-size: 1.08rem; color: var(--ink-soft); margin-top: 1rem; }
+
+  section { margin-top: 3.5rem; }
+  .sec-head {
+    display: flex; align-items: baseline; gap: .9rem;
+    border-top: 2px solid var(--ink); padding-top: .85rem; margin-bottom: 1.6rem;
+  }
+  .sec-head .num {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: .1em;
+    color: var(--ink-faint); padding-top: .3rem;
+  }
+
+  /* ---- reveal on scroll ------------------------------------------- */
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity .55s ease, transform .55s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+
+  /* ---- fact strip -------------------------------------------------- */
+  .facts {
+    display: grid; gap: 1px; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    background: var(--rule); border: 1px solid var(--rule); margin-top: 2.5rem;
+  }
+  .fact { background: var(--surface); padding: .9rem 1rem; }
+  .fact dt {
+    font-family: var(--mono); font-size: .66rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+  .fact dd {
+    margin-top: .3rem; font-size: 1.15rem; font-weight: 680;
+    font-variant-numeric: tabular-nums; letter-spacing: -.01em;
+  }
+  .fact dd small { font-size: .8rem; font-weight: 500; color: var(--ink-soft); }
+
+  /* ---- the plan ---------------------------------------------------- */
+  figure.plan { margin-top: 1rem; }
+  .plan-frame {
+    border: 1px solid var(--plan-edge); background: var(--plan-bg);
+    padding: .75rem; overflow-x: auto;
+  }
+  .plan-frame svg { display: block; width: 100%; min-width: 34rem; height: auto; }
+
+  .tbl rect {
+    transition: fill .25s ease, opacity .3s ease, transform .25s ease;
+    transform-box: fill-box; transform-origin: center;
+  }
+  .tbl { opacity: 0; }
+  .tbl.drawn { opacity: 1; transition: opacity .4s ease; }
+  .tbl.free { cursor: pointer; }
+  .tbl.free:hover rect, .tbl.free:focus-visible rect { transform: scale(1.18); }
+  .tbl text {
+    font-family: var(--mono); font-size: 9px; font-weight: 600;
+    fill: #fff; pointer-events: none; user-select: none;
+  }
+  .tbl.booked text { fill: var(--ink-faint); }
+  .tbl.rest rect { opacity: .42; }
+  .tbl.rest text { fill: var(--ink-faint); }
+  @keyframes pop { 0%{transform:scale(1)} 45%{transform:scale(1.45)} 100%{transform:scale(1)} }
+  .tbl.justbooked rect { animation: pop .45s ease; }
+
+  .plan-bar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.1rem;
+    margin-top: .9rem;
+  }
+  .counter {
+    font-family: var(--mono); font-size: .82rem; color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .counter b { color: var(--ink); font-size: 1.05rem; }
+  .btn {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase;
+    background: var(--surface); border: 1px solid var(--rule-strong); color: var(--ink-soft);
+    padding: .4rem .8rem; border-radius: 3px; cursor: pointer; transition: border-color .2s, color .2s;
+  }
+  .btn:hover { border-color: var(--brand-mid); color: var(--brand-mid); }
+  figcaption { font-size: .84rem; color: var(--ink-faint); margin-top: .8rem; max-width: var(--measure); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: .5rem .9rem; margin-top: 1rem; }
+  .lg {
+    display: inline-flex; align-items: center; gap: .45rem; font-size: .82rem;
+    color: var(--ink-soft); font-variant-numeric: tabular-nums;
+  }
+  .sw { width: .85rem; height: .85rem; border-radius: 2px; flex: none; }
+
+  /* ---- steps ------------------------------------------------------- */
+  .step {
+    display: grid; grid-template-columns: 3.2rem 1fr; gap: 0 1.2rem;
+    padding: 1.5rem 0; border-bottom: 1px solid var(--rule);
+  }
+  .step:first-of-type { border-top: 1px solid var(--rule); }
+  .step .idx {
+    font-family: var(--mono); font-size: .95rem; font-weight: 600;
+    color: var(--brand-mid); font-variant-numeric: tabular-nums; padding-top: .1rem;
+  }
+  .step .body > p { margin-top: .45rem; color: var(--ink-soft); }
+  .behind {
+    margin-top: .8rem; background: var(--surface-sunk);
+    border-inline-start: 2px solid var(--rule-strong); padding: .6rem .85rem;
+    font-size: .88rem; color: var(--ink-soft); max-width: var(--measure);
+  }
+  .behind b {
+    display: block; font-family: var(--mono); font-size: .63rem; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--ink-faint); margin-bottom: .25rem; font-weight: 500;
+  }
+  code {
+    font-family: var(--mono); font-size: .86em; background: var(--brand-wash);
+    padding: .1em .35em; border-radius: 2px;
+  }
+
+  /* ---- states ------------------------------------------------------ */
+  .states { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-bottom: 1.4rem; }
+  .chip {
+    display: inline-flex; align-items: center; gap: .5rem;
+    font-family: var(--mono); font-size: .78rem; letter-spacing: .04em;
+    padding: .45rem .8rem; border-radius: 999px; font-weight: 600; border: 1px solid currentColor;
+  }
+  .chip.pending { color: var(--state-pending); background: var(--state-pending-bg); }
+  .chip.ok      { color: var(--state-ok);      background: var(--state-ok-bg); }
+  .chip.dead    { color: var(--state-dead);    background: var(--state-dead-bg); }
+  .arrow { color: var(--ink-faint); font-size: 1.1rem; }
+  .arrow small { font-family: var(--mono); font-size: .68rem; letter-spacing: .06em; }
+
+  .scroll-x { overflow-x: auto; }
+  .state-table { width: 100%; margin-top: .5rem; font-size: .92rem; }
+  .state-table th, .state-table td {
+    text-align: start; padding: .6rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top;
+  }
+  .state-table th {
+    font-family: var(--mono); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-faint); font-weight: 500; border-bottom: 1px solid var(--rule-strong);
+  }
+  .state-table td:first-child { white-space: nowrap; }
+
+  /* ---- race demo --------------------------------------------------- */
+  .race {
+    border: 1px solid var(--rule-strong); background: var(--surface);
+    padding: 1.3rem 1.4rem; margin-top: 1.4rem;
+  }
+  .race-stage {
+    display: grid; grid-template-columns: 1fr auto 1fr; gap: 1rem; align-items: center;
+    margin: 1.2rem 0 .4rem;
+  }
+  .lane { text-align: center; }
+  .lane .who {
+    font-family: var(--mono); font-size: .68rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+  .packet {
+    margin: .5rem auto 0; width: 100%; max-width: 11rem;
+    border: 1px solid var(--rule-strong); background: var(--surface-sunk);
+    padding: .5rem .6rem; font-size: .78rem; font-family: var(--mono);
+    border-radius: 3px; opacity: .35; transition: opacity .3s ease, transform .5s ease, border-color .3s, background .3s;
+  }
+  .race.run .packet { opacity: 1; }
+  .race.sent .lane-a .packet { transform: translateX(28%); }
+  .race.sent .lane-b .packet { transform: translateX(-28%); }
+  .race.settled .lane-a .packet {
+    border-color: var(--state-ok); background: var(--state-ok-bg); color: var(--state-ok); transform: none;
+  }
+  .race.settled .lane-b .packet {
+    border-color: var(--state-dead); background: var(--state-dead-bg); color: var(--state-dead); transform: none;
+  }
+  .verdict {
+    display: block; margin-top: .35rem; font-size: .68rem; letter-spacing: .08em;
+    text-transform: uppercase; opacity: 0; transition: opacity .35s ease .1s;
+  }
+  .race.settled .verdict { opacity: 1; }
+
+  .db {
+    border: 1px solid var(--rule-strong); background: var(--surface-sunk);
+    padding: .7rem .8rem; text-align: center; border-radius: 3px;
+    transition: border-color .3s ease, box-shadow .3s ease;
+  }
+  .race.settled .db { border-color: var(--brand-mid); }
+  .db .k {
+    font-family: var(--mono); font-size: .6rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+  .db .rule-line {
+    font-family: var(--mono); font-size: .72rem; margin-top: .35rem;
+    color: var(--brand-mid); white-space: nowrap;
+  }
+  .race-cap { font-size: .86rem; color: var(--ink-soft); min-height: 2.6em; margin-top: .6rem; }
+
+  .slot {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin-top: 1.1rem;
+  }
+  .slot > div { background: var(--surface); padding: .85rem 1rem; }
+  .slot .k { font-family: var(--mono); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+  .slot .v { margin-top: .3rem; font-size: .92rem; color: var(--ink-soft); }
+  .slot .v strong { color: var(--ink); font-family: var(--mono); }
+
+  .stores { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
+  .store { border: 1px solid var(--rule); background: var(--surface); padding: 1rem 1.1rem; }
+  .store h3 { font-family: var(--mono); font-size: .84rem; color: var(--brand-mid); }
+  .store p { font-size: .88rem; color: var(--ink-soft); margin-top: .5rem; }
+
+  .qa { border-top: 1px solid var(--rule); padding: 1.1rem 0; }
+  .qa:last-of-type { border-bottom: 1px solid var(--rule); }
+  .qa p { margin-top: .4rem; color: var(--ink-soft); font-size: .93rem; }
+
+  footer { margin-top: 3.5rem; padding-top: 1.2rem; border-top: 1px solid var(--rule); font-size: .82rem; color: var(--ink-faint); }
+  footer p { max-width: none; }
+
+  @media (max-width: 40rem) {
+    .race-stage { grid-template-columns: 1fr; }
+    .race.sent .lane-a .packet, .race.sent .lane-b .packet { transform: translateY(10%); }
+  }
+  @media (max-width: 34rem) {
+    .step { grid-template-columns: 1fr; gap: .5rem; }
+    .step .idx { padding-top: 0; }
+  }
+
+  /* motion is decoration here — the page must read identically without it */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .reveal { opacity: 1; transform: none; }
+    .tbl { opacity: 1; }
+  }
+
+  @media print {
+    :root {
+      --ground:#fff; --surface:#fff; --surface-sunk:#f4f7f7;
+      --ink:#000; --ink-soft:#333; --ink-faint:#666; --rule:#ccc; --rule-strong:#999;
+      --brand-wash:#f0f4f4; --plan-bg:#fff; --plan-edge:#bbb;
+    }
+    body { font-size: 11pt; }
+    .wrap { max-width: none; padding: 0; }
+    .reveal { opacity: 1 !important; transform: none !important; }
+    .tbl { opacity: 1 !important; }
+    .btn, .plan-bar .btn { display: none; }
+    section, .step, .qa, .race, .store, figure.plan { break-inside: avoid; }
+    .plan-frame svg { min-width: 0; }
+    a { text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">JorEption Bazar &middot; 5th Circle, Amman &middot; joreption.com/bazar</p>
+    <h1>How a vendor books a table</h1>
+    <p class="lede">
+      The bazaar runs Thursdays and Fridays between 23 July and 30 October 2026 — 30 trading nights,
+      sold as <strong>15 weekends</strong>. This is what happens from the moment a vendor opens the page
+      to the moment they're standing at their table, and what the system does behind each step to make
+      sure two people are never sold the same one.
+    </p>
+
+    <dl class="facts">
+      <div class="fact"><dt>Bookable weekends</dt><dd><span data-count="15">15</span> <small>Thu + Fri</small></dd></div>
+      <div class="fact"><dt>Tables drawn</dt><dd><span data-count="100">100</span></dd></div>
+      <div class="fact"><dt>Rentable</dt><dd><span data-count="88">88</span> <small>restaurants excluded</small></dd></div>
+      <div class="fact"><dt>Per table / weekend</dt><dd><span data-count="30">30</span> <small>JD</small></dd></div>
+      <div class="fact"><dt>Deposit</dt><dd><span data-count="10">10</span> <small>JD, refundable</small></dd></div>
+      <div class="fact"><dt>Payment</dt><dd>Cash <small>on the night</small></dd></div>
+    </dl>
+
+    <p style="margin-top:1.2rem; color:var(--ink-soft); font-size:.95rem">
+      One fee covers <strong>both nights</strong>. Both open at <strong>6:00 PM</strong> and run to
+      midnight, per Article 21 of the leasing contract.
+    </p>
+  </header>
+
+  <section>
+    <div class="sec-head"><span class="num">01</span><h2>The floor plan, as vendors see it</h2></div>
+
+    <p>
+      Every table in its real position at the venue. Free tables carry their section colour;
+      booked ones are grey and can't be picked; the twelve restaurant units along the top are
+      faded, drawn for orientation only. <strong>Tap any coloured table below</strong> — it behaves
+      exactly as the live page does.
+    </p>
+
+    <figure class="plan reveal">
+      <div class="plan-frame">
+        <svg id="plan" viewBox="165 50 690 520" role="img"
+             aria-label="Bazaar floor plan: 100 numbered tables in sections A, B, C, D plus twelve restaurant units">
+          <rect x="172" y="56" width="676" height="508" rx="6" fill="none"
+                stroke="var(--plan-edge)" stroke-width="1.5"></rect>
+          <text x="496" y="66" text-anchor="middle" font-size="10"
+                fill="var(--ink-faint)" font-family="var(--mono)" letter-spacing="1.5">RESTAURANTS</text>
+          <g id="tables"></g>
+        </svg>
+      </div>
+
+      <div class="plan-bar">
+        <span class="counter"><b id="freeCount">88</b> of 88 free &middot; <span id="bookedCount">0</span> booked</span>
+        <button class="btn" id="resetPlan" type="button">Reset plan</button>
+      </div>
+
+      <div class="legend">
+        <span class="lg"><span class="sw" style="background:var(--sec-a)"></span>Section A &middot; 14</span>
+        <span class="lg"><span class="sw" style="background:var(--sec-b)"></span>Section B &middot; 12</span>
+        <span class="lg"><span class="sw" style="background:var(--sec-c)"></span>Section C &middot; 56</span>
+        <span class="lg"><span class="sw" style="background:var(--sec-d)"></span>Section D &middot; 6</span>
+        <span class="lg"><span class="sw" style="background:var(--sec-r);opacity:.45"></span>Restaurants &middot; 12</span>
+        <span class="lg"><span class="sw" style="background:var(--taken)"></span>Already booked</span>
+      </div>
+
+      <figcaption>
+        Drawn from the same records that store the bookings — which is why the map and the
+        availability can never disagree. On the live page the greyed tables are whichever ones
+        are already taken for the night the vendor picked.
+      </figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="num">02</span><h2>The vendor's five steps</h2></div>
+
+    <div class="step reveal">
+      <div class="idx">1</div>
+      <div class="body">
+        <h3>They open the page</h3>
+        <p><code>joreption.com/bazar</code> — no account, no login. The page opens in English or Arabic
+          depending on their browser, and the whole layout flips to right-to-left for Arabic.</p>
+        <div class="behind">
+          <b>Behind it</b>
+          The shop itself is still hidden behind the Coming Soon splash. The bazaar page is deliberately
+          exempt from that, so the event can be advertised while the store stays private.
+        </div>
+      </div>
+    </div>
+
+    <div class="step reveal">
+      <div class="idx">2</div>
+      <div class="body">
+        <h3>They pick a weekend</h3>
+        <p>A dropdown lists all 15 weekends, each showing how many tables are still free —
+          <em>Thu 23 – Fri 24 July — 88 free</em>. Booking one weekend gets them both nights.</p>
+        <div class="behind">
+          <b>Behind it</b>
+          Choosing a weekend reloads the page rather than filtering in the browser, so the availability
+          shown is always read fresh from the database — never a stale copy left over from when the
+          page was first opened. Nights still exist as their own records underneath, so selling single
+          days later is a settings change rather than a rebuild.
+        </div>
+      </div>
+    </div>
+
+    <div class="step reveal">
+      <div class="idx">3</div>
+      <div class="body">
+        <h3>They tap a table on the plan</h3>
+        <p>The plan above, with whichever tables are already taken greyed out. Picking one selects it
+          and opens the form; they can change their mind before submitting.</p>
+      </div>
+    </div>
+
+    <div class="step reveal">
+      <div class="idx">4</div>
+      <div class="body">
+        <h3>They leave their details and paperwork</h3>
+        <p>Name, phone and <strong>what they sell</strong> are required; shop name and product detail
+          are optional. Anyone may attach a work or trade licence — and if they pick <strong>food,
+          drinks, sweets or personal care</strong>, a health certificate becomes required and they
+          cannot book without it. The total shows <strong>30 JD + 10 JD deposit = 40 JD</strong>,
+          payable in cash on the night.</p>
+        <div class="behind">
+          <b>Behind it</b>
+          The fee is read from the table's own record and the deposit from your settings — never from
+          the submitted form, so neither can be altered by editing the page. The certificate rule comes
+          from Article 31 of the leasing contract. Uploads are stored privately, outside the public web
+          folder, and only you can open them. The vendor is also matched to an existing customer record
+          by phone number, so someone who already shops with you isn't duplicated.
+        </div>
+      </div>
+    </div>
+
+    <div class="step reveal">
+      <div class="idx">5</div>
+      <div class="body">
+        <h3>They get a confirmation</h3>
+        <p>A page showing their table number, section, night, hours, and the amount due. The booking is
+          <em>requested</em>, not yet guaranteed — you still have to confirm it.</p>
+        <div class="behind">
+          <b>Behind it</b>
+          That page is private: only the browser that made the booking can open it, or a logged-in staff
+          member. Someone guessing at web addresses can't read another vendor's name and phone number.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="num">03</span><h2>What you do next</h2></div>
+
+    <p>Every new request lands in the admin under <strong>Bazaar &rarr; Bookings</strong>, with a count
+      badge in the sidebar so pending requests act as your to-do list.</p>
+
+    <div class="states" role="img" aria-label="Booking states: pending becomes either confirmed or cancelled">
+      <span class="chip pending">PENDING</span>
+      <span class="arrow">&rarr; <small>you confirm</small></span>
+      <span class="chip ok">CONFIRMED</span>
+      <span class="arrow">/</span>
+      <span class="chip dead">CANCELLED</span>
+    </div>
+
+    <div class="scroll-x">
+      <table class="state-table">
+        <thead>
+          <tr><th scope="col">State</th><th scope="col">Meaning</th><th scope="col">Does it hold the table?</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="chip pending">PENDING</span></td>
+            <td>A vendor asked for the table. The default for every new request.</td>
+            <td><strong>Yes</strong> — nobody else can take it while you decide.</td>
+          </tr>
+          <tr>
+            <td><span class="chip ok">CONFIRMED</span></td>
+            <td>You've agreed it. The vendor keeps the table; you collect the 30 JD on the night.</td>
+            <td><strong>Yes</strong></td>
+          </tr>
+          <tr>
+            <td><span class="chip dead">CANCELLED</span></td>
+            <td>Fell through. The record is kept so you retain the history of who asked.</td>
+            <td><strong>No</strong> — the table goes straight back on sale.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="margin-top:1.4rem">Each row also has a <strong>WhatsApp</strong> button that opens a chat
+      with that vendor. It fixes up however they typed their number — <code>079&hellip;</code>,
+      <code>+962&hellip;</code>, <code>00962&hellip;</code> all become a working link.</p>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="num">04</span><h2>Why two vendors can't get the same table</h2></div>
+
+    <p>This is the part worth understanding, because it's the one thing that would genuinely embarrass
+      you on the night — two people turning up for table 42.</p>
+
+    <div class="race reveal" id="race">
+      <p style="margin:0">
+        Say two vendors both want table 42 for the same weekend, and both press submit in the same
+        second. Watch what happens:
+      </p>
+
+      <div class="race-stage">
+        <div class="lane lane-a">
+          <div class="who">Vendor A</div>
+          <div class="packet">
+            book table 42
+            <span class="verdict">&#10003; got it</span>
+          </div>
+        </div>
+
+        <div class="db">
+          <div class="k">The database</div>
+          <div class="rule-line">UNIQUE (weekend, table)</div>
+        </div>
+
+        <div class="lane lane-b">
+          <div class="who">Vendor B</div>
+          <div class="packet">
+            book table 42
+            <span class="verdict">&#10007; rejected</span>
+          </div>
+        </div>
+      </div>
+
+      <p class="race-cap" id="raceCap">Both requests are on their way.</p>
+      <button class="btn" id="replayRace" type="button">Replay</button>
+    </div>
+
+    <p style="margin-top:1.6rem">
+      The obvious way to build this is to check availability just before saving. That fails exactly
+      here: both checks run before either save finishes, both see a free table, and both bookings go
+      through. So the rule isn't enforced by the booking code at all — it's enforced by the database,
+      which physically cannot store two live bookings for the same table in the same weekend.
+    </p>
+
+    <p>
+      The marker that makes it work is called <code>active_slot</code>. While a booking holds the table
+      it's set to <code>1</code>; when the booking is cancelled it's emptied.
+    </p>
+
+    <div class="slot">
+      <div>
+        <div class="k">Holding the table</div>
+        <div class="v"><strong>active_slot = 1</strong><br>Counts toward the rule. A second booking for
+          the same table and night is rejected outright.</div>
+      </div>
+      <div>
+        <div class="k">Cancelled</div>
+        <div class="v"><strong>active_slot = empty</strong><br>The database treats empty values as all
+          different from one another, so any number of cancelled bookings can sit alongside one live
+          booking.</div>
+      </div>
+    </div>
+
+    <p style="margin-top:1.1rem">
+      So the guarantee holds however the booking was made — the public page, the admin panel, or two
+      people clicking at once — while cancelled requests stay on file instead of being erased. The
+      vendor who loses by a second sees <em>"table 42 was just booked by someone else, please pick
+      another"</em> rather than an error.
+    </p>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="num">05</span><h2>What gets stored</h2></div>
+    <div class="stores">
+      <div class="store reveal">
+        <h3>weekends</h3>
+        <p>One row per bookable weekend — 15 of them. This is what a vendor actually buys, and it can
+          be closed to new bookings without deleting anything already booked for it.</p>
+      </div>
+      <div class="store reveal">
+        <h3>nights</h3>
+        <p>One row per trading night — 30, two per weekend. Carries the opening hours. Kept separate
+          so single days could be sold later without rebuilding anything.</p>
+      </div>
+      <div class="store reveal">
+        <h3>tables</h3>
+        <p>One row per table — 100. Number, section, price per weekend, its position on the plan, and
+          whether vendors may rent it. The twelve restaurant units are drawn but not rentable.</p>
+      </div>
+      <div class="store reveal">
+        <h3>categories</h3>
+        <p>What vendors may choose from, and which of those need a health certificate. Editable —
+          add a category or change its rule without touching code.</p>
+      </div>
+      <div class="store reveal">
+        <h3>bookings</h3>
+        <p>One row per request. Which weekend, which table, the vendor's details and category, the fee
+          and deposit agreed, whether the deposit has been returned, the state, and your private notes.</p>
+      </div>
+      <div class="store reveal">
+        <h3>documents</h3>
+        <p>Certificates attached to a booking. The files themselves sit outside the public web folder
+          and are only ever released to a signed-in staff member.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="num">06</span><h2>Situations that come up</h2></div>
+
+    <div class="qa"><h3>A vendor wants the same table every week</h3>
+      <p>They book each weekend separately — there's no repeat option yet. Worth adding if regulars appear.</p></div>
+    <div class="qa"><h3>A food vendor turns up without a health certificate</h3>
+      <p>They can't have booked online without uploading one — the form refuses it. If you took the
+        booking by hand, the bookings list flags it and the Confirm dialog warns you before you approve.</p></div>
+    <div class="qa"><h3>Returning the deposit</h3>
+      <p>You collect 40 JD on the night — 30 for the table, 10 held. After the weekend, if nothing is
+        damaged, hit <strong>Deposit returned</strong> on the booking and it's recorded with the date.
+        Each weekend shows how much you're still holding.</p></div>
+    <div class="qa"><h3>A vendor loses their confirmation page</h3>
+      <p>There's no way for them to find it again on their own. They contact you, and you look them up
+        in the admin by name or phone. A phone-based lookup, like order tracking has, would close this.</p></div>
+    <div class="qa"><h3>You need to cancel a weekend entirely</h3>
+      <p>Switch it off in <strong>Bazaar &rarr; Weekends</strong>. It stops accepting new bookings
+        while existing ones stay on record, so you still have everyone's number to call.</p></div>
+    <div class="qa"><h3>You want to charge a different price</h3>
+      <p>Prices sit on each table, so you can charge more for a prime spot. Change one table, or select
+        several and set them together. The deposit is a single setting for all bookings.</p></div>
+    <div class="qa"><h3>Nobody is told automatically</h3>
+      <p>Confirming a booking doesn't message the vendor — you click the WhatsApp button yourself.
+        Automatic confirmations would reuse the messaging settings already in the admin.</p></div>
+  </section>
+
+  <footer>
+    <p>Live at <a href="https://joreption.com/bazar">joreption.com/bazar</a> &middot;
+      Season 23 July &ndash; 30 October 2026 &middot; Thursdays and Fridays, both 6pm&ndash;midnight
+      &middot; 15 weekends &middot; 88 rentable tables of 100 &middot; 30 JD per table per weekend
+      plus a 10 JD refundable deposit, cash on the night.</p>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* real table geometry, exported from the bazaar_tables records */
+  var TABLES = [{"n":1,"s":"R","x":300,"y":70,"w":29,"h":22,"r":0,"b":0},{"n":2,"s":"R","x":333,"y":70,"w":29,"h":22,"r":0,"b":0},{"n":3,"s":"R","x":366,"y":70,"w":29,"h":22,"r":0,"b":0},{"n":4,"s":"R","x":399,"y":70,"w":29,"h":22,"r":0,"b":0},{"n":5,"s":"R","x":432,"y":70,"w":29,"h":22,"r":0,"b":0},{"n":6,"s":"R","x":465,"y":70,"w":29,"h":22,"r":0,"b":0},{"n":7,"s":"R","x":498,"y":70,"w":29,"h":22,"r":0,"b":0},{"n":8,"s":"R","x":531,"y":70,"w":29,"h":22,"r":0,"b":0},{"n":9,"s":"R","x":564,"y":70,"w":29,"h":22,"r":0,"b":0},{"n":10,"s":"R","x":597,"y":70,"w":29,"h":22,"r":0,"b":0},{"n":11,"s":"R","x":630,"y":70,"w":29,"h":22,"r":0,"b":0},{"n":12,"s":"R","x":663,"y":70,"w":29,"h":22,"r":0,"b":0},{"n":13,"s":"D","x":800,"y":110,"w":29,"h":22,"r":0,"b":1},{"n":14,"s":"D","x":800,"y":136,"w":29,"h":22,"r":0,"b":1},{"n":15,"s":"D","x":800,"y":162,"w":29,"h":22,"r":0,"b":1},{"n":16,"s":"D","x":800,"y":188,"w":29,"h":22,"r":0,"b":1},{"n":17,"s":"D","x":800,"y":214,"w":29,"h":22,"r":0,"b":1},{"n":18,"s":"D","x":800,"y":240,"w":29,"h":22,"r":0,"b":1},{"n":19,"s":"B","x":800,"y":266,"w":29,"h":22,"r":0,"b":1},{"n":20,"s":"B","x":800,"y":292,"w":29,"h":22,"r":0,"b":1},{"n":21,"s":"B","x":800,"y":318,"w":29,"h":22,"r":0,"b":1},{"n":22,"s":"B","x":800,"y":344,"w":29,"h":22,"r":0,"b":1},{"n":23,"s":"C","x":405,"y":250,"w":29,"h":22,"r":0,"b":1},{"n":24,"s":"C","x":438,"y":250,"w":29,"h":22,"r":0,"b":1},{"n":25,"s":"C","x":471,"y":250,"w":29,"h":22,"r":0,"b":1},{"n":26,"s":"C","x":504,"y":250,"w":29,"h":22,"r":0,"b":1},{"n":27,"s":"C","x":537,"y":250,"w":29,"h":22,"r":0,"b":1},{"n":28,"s":"C","x":570,"y":250,"w":29,"h":22,"r":0,"b":1},{"n":29,"s":"C","x":603,"y":250,"w":29,"h":22,"r":0,"b":1},{"n":30,"s":"C","x":636,"y":250,"w":29,"h":22,"r":0,"b":1},{"n":31,"s":"C","x":669,"y":250,"w":29,"h":22,"r":0,"b":1},{"n":32,"s":"C","x":702,"y":250,"w":29,"h":22,"r":0,"b":1},{"n":33,"s":"C","x":240,"y":283,"w":29,"h":22,"r":0,"b":1},{"n":34,"s":"C","x":273,"y":283,"w":29,"h":22,"r":0,"b":1},{"n":35,"s":"C","x":306,"y":283,"w":29,"h":22,"r":0,"b":1},{"n":36,"s":"C","x":339,"y":283,"w":29,"h":22,"r":0,"b":1},{"n":37,"s":"C","x":372,"y":283,"w":29,"h":22,"r":0,"b":1},{"n":38,"s":"C","x":405,"y":283,"w":29,"h":22,"r":0,"b":1},{"n":39,"s":"C","x":438,"y":283,"w":29,"h":22,"r":0,"b":1},{"n":40,"s":"C","x":471,"y":283,"w":29,"h":22,"r":0,"b":1},{"n":41,"s":"C","x":504,"y":283,"w":29,"h":22,"r":0,"b":1},{"n":42,"s":"C","x":537,"y":283,"w":29,"h":22,"r":0,"b":1},{"n":43,"s":"C","x":570,"y":283,"w":29,"h":22,"r":0,"b":1},{"n":44,"s":"C","x":603,"y":283,"w":29,"h":22,"r":0,"b":1},{"n":45,"s":"C","x":636,"y":283,"w":29,"h":22,"r":0,"b":1},{"n":46,"s":"C","x":669,"y":283,"w":29,"h":22,"r":0,"b":1},{"n":47,"s":"C","x":702,"y":283,"w":29,"h":22,"r":0,"b":1},{"n":48,"s":"B","x":185,"y":320,"w":29,"h":22,"r":0,"b":1},{"n":49,"s":"B","x":185,"y":346,"w":29,"h":22,"r":0,"b":1},{"n":50,"s":"B","x":185,"y":372,"w":29,"h":22,"r":0,"b":1},{"n":51,"s":"B","x":185,"y":398,"w":29,"h":22,"r":0,"b":1},{"n":52,"s":"B","x":185,"y":424,"w":29,"h":22,"r":0,"b":1},{"n":53,"s":"B","x":185,"y":450,"w":29,"h":22,"r":0,"b":1},{"n":54,"s":"C","x":265,"y":345,"w":29,"h":22,"r":0,"b":1},{"n":55,"s":"C","x":298,"y":345,"w":29,"h":22,"r":0,"b":1},{"n":56,"s":"C","x":331,"y":345,"w":29,"h":22,"r":0,"b":1},{"n":57,"s":"C","x":364,"y":345,"w":29,"h":22,"r":0,"b":1},{"n":58,"s":"C","x":397,"y":345,"w":29,"h":22,"r":0,"b":1},{"n":59,"s":"C","x":430,"y":345,"w":29,"h":22,"r":0,"b":1},{"n":60,"s":"C","x":463,"y":345,"w":29,"h":22,"r":0,"b":1},{"n":61,"s":"C","x":496,"y":345,"w":29,"h":22,"r":0,"b":1},{"n":62,"s":"C","x":529,"y":345,"w":29,"h":22,"r":0,"b":1},{"n":63,"s":"C","x":562,"y":345,"w":29,"h":22,"r":0,"b":1},{"n":64,"s":"C","x":595,"y":345,"w":29,"h":22,"r":0,"b":1},{"n":65,"s":"C","x":628,"y":345,"w":29,"h":22,"r":0,"b":1},{"n":66,"s":"C","x":661,"y":345,"w":29,"h":22,"r":0,"b":1},{"n":67,"s":"C","x":694,"y":345,"w":29,"h":22,"r":0,"b":1},{"n":68,"s":"C","x":727,"y":345,"w":29,"h":22,"r":0,"b":1},{"n":69,"s":"C","x":265,"y":378,"w":29,"h":22,"r":0,"b":1},{"n":70,"s":"C","x":298,"y":378,"w":29,"h":22,"r":0,"b":1},{"n":71,"s":"C","x":331,"y":378,"w":29,"h":22,"r":0,"b":1},{"n":72,"s":"C","x":364,"y":378,"w":29,"h":22,"r":0,"b":1},{"n":73,"s":"C","x":397,"y":378,"w":29,"h":22,"r":0,"b":1},{"n":74,"s":"C","x":430,"y":378,"w":29,"h":22,"r":0,"b":1},{"n":75,"s":"C","x":463,"y":378,"w":29,"h":22,"r":0,"b":1},{"n":76,"s":"C","x":496,"y":378,"w":29,"h":22,"r":0,"b":1},{"n":77,"s":"C","x":529,"y":378,"w":29,"h":22,"r":0,"b":1},{"n":78,"s":"A","x":562,"y":378,"w":29,"h":22,"r":0,"b":1},{"n":79,"s":"A","x":595,"y":378,"w":29,"h":22,"r":0,"b":1},{"n":80,"s":"A","x":628,"y":378,"w":29,"h":22,"r":0,"b":1},{"n":81,"s":"A","x":661,"y":378,"w":29,"h":22,"r":0,"b":1},{"n":82,"s":"A","x":694,"y":378,"w":29,"h":22,"r":0,"b":1},{"n":83,"s":"A","x":727,"y":378,"w":29,"h":22,"r":0,"b":1},{"n":84,"s":"B","x":232,"y":445,"w":29,"h":22,"r":0,"b":1},{"n":85,"s":"B","x":265,"y":445,"w":29,"h":22,"r":0,"b":1},{"n":86,"s":"A","x":298,"y":445,"w":29,"h":22,"r":0,"b":1},{"n":87,"s":"A","x":331,"y":445,"w":29,"h":22,"r":0,"b":1},{"n":88,"s":"A","x":364,"y":445,"w":29,"h":22,"r":0,"b":1},{"n":89,"s":"A","x":397,"y":445,"w":29,"h":22,"r":0,"b":1},{"n":90,"s":"C","x":430,"y":445,"w":29,"h":22,"r":0,"b":1},{"n":91,"s":"C","x":463,"y":445,"w":29,"h":22,"r":0,"b":1},{"n":92,"s":"C","x":496,"y":445,"w":29,"h":22,"r":0,"b":1},{"n":93,"s":"C","x":529,"y":445,"w":29,"h":22,"r":0,"b":1},{"n":94,"s":"C","x":562,"y":445,"w":29,"h":22,"r":0,"b":1},{"n":95,"s":"C","x":595,"y":445,"w":29,"h":22,"r":0,"b":1},{"n":96,"s":"C","x":628,"y":445,"w":29,"h":22,"r":0,"b":1},{"n":97,"s":"A","x":700,"y":520,"w":29,"h":22,"r":-45,"b":1},{"n":98,"s":"A","x":718,"y":502,"w":29,"h":22,"r":-45,"b":1},{"n":99,"s":"A","x":736,"y":484,"w":29,"h":22,"r":-45,"b":1},{"n":100,"s":"A","x":754,"y":466,"w":29,"h":22,"r":-45,"b":1}];
+
+  var FILL = { A: "var(--sec-a)", B: "var(--sec-b)", C: "var(--sec-c)", D: "var(--sec-d)", R: "var(--sec-r)" };
+  var SEED_BOOKED = [24, 37, 55, 58, 71, 80, 87, 93, 99];   /* fixed, so the picture is the same every time */
+  var NS = "http://www.w3.org/2000/svg";
+
+  var group = document.getElementById("tables");
+  var freeEl = document.getElementById("freeCount");
+  var bookedEl = document.getElementById("bookedCount");
+  var booked = {};
+  var nodes = {};
+
+  function bookableTotal() {
+    var n = 0;
+    for (var i = 0; i < TABLES.length; i++) { if (TABLES[i].b) n++; }
+    return n;
+  }
+  var TOTAL = bookableTotal();
+
+  function paint(t) {
+    var g = nodes[t.n];
+    if (!g) return;
+    var isBooked = !!booked[t.n];
+    g.setAttribute("class", "tbl" + (!t.b ? " rest" : isBooked ? " booked" : " free"));
+    g.querySelector("rect").setAttribute("fill", (!t.b || !isBooked) ? FILL[t.s] : "var(--taken)");
+    if (t.b) {
+      g.setAttribute("tabindex", isBooked ? "-1" : "0");
+      g.setAttribute("role", "button");
+      g.setAttribute("aria-label", "Table " + t.n + (isBooked ? ", already booked" : ", available — tap to book"));
+      g.setAttribute("aria-disabled", isBooked ? "true" : "false");
+    } else {
+      g.setAttribute("aria-label", "Restaurant unit " + t.n + ", not for rent");
+    }
+  }
+
+  function tally() {
+    var n = 0;
+    for (var k in booked) { if (Object.prototype.hasOwnProperty.call(booked, k)) n++; }
+    freeEl.textContent = String(TOTAL - n);
+    bookedEl.textContent = String(n);
+  }
+
+  function take(t) {
+    if (!t.b || booked[t.n]) return;
+    booked[t.n] = true;
+    paint(t);
+    var g = nodes[t.n];
+    if (!reduced) {
+      g.classList.add("justbooked");
+      setTimeout(function () { g.classList.remove("justbooked"); }, 480);
+    }
+    tally();
+  }
+
+  TABLES.forEach(function (t, i) {
+    var g = document.createElementNS(NS, "g");
+    var cx = t.x + t.w / 2, cy = t.y + t.h / 2;
+    if (t.r) { g.setAttribute("transform", "rotate(" + t.r + " " + cx + " " + cy + ")"); }
+
+    var r = document.createElementNS(NS, "rect");
+    r.setAttribute("x", t.x); r.setAttribute("y", t.y);
+    r.setAttribute("width", t.w); r.setAttribute("height", t.h);
+    r.setAttribute("rx", "2.5");
+    r.setAttribute("stroke", "var(--plan-bg)"); r.setAttribute("stroke-width", "1");
+    g.appendChild(r);
+
+    var tx = document.createElementNS(NS, "text");
+    tx.setAttribute("x", cx); tx.setAttribute("y", cy + 3.2);
+    tx.setAttribute("text-anchor", "middle");
+    tx.textContent = t.n;
+    g.appendChild(tx);
+
+    group.appendChild(g);
+    nodes[t.n] = g;
+
+    g.addEventListener("click", function () { take(t); });
+    g.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); take(t); }
+    });
+
+    if (reduced) { g.classList.add("drawn"); }
+    else { setTimeout(function () { g.classList.add("drawn"); }, 6 * i); }
+  });
+
+  function seed() {
+    booked = {};
+    SEED_BOOKED.forEach(function (n) { booked[n] = true; });
+    TABLES.forEach(paint);
+    tally();
+  }
+  seed();
+
+  document.getElementById("resetPlan").addEventListener("click", seed);
+
+  /* ---- scroll reveals ------------------------------------------- */
+  var reveals = [].slice.call(document.querySelectorAll(".reveal"));
+  if (reduced || !("IntersectionObserver" in window)) {
+    reveals.forEach(function (el) { el.classList.add("in"); });
+  } else {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+      });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.05 });
+    reveals.forEach(function (el) { io.observe(el); });
+  }
+
+  /* ---- count-up on the fact strip -------------------------------- */
+  var counters = [].slice.call(document.querySelectorAll("[data-count]"));
+  function runCount(el) {
+    var target = parseInt(el.getAttribute("data-count"), 10);
+    var t0 = null, dur = 900;
+    function frame(ts) {
+      if (t0 === null) t0 = ts;
+      var p = Math.min((ts - t0) / dur, 1);
+      el.textContent = String(Math.round(target * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+  if (!reduced && "IntersectionObserver" in window) {
+    var io2 = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { runCount(e.target); io2.unobserve(e.target); }
+      });
+    }, { threshold: 0.6 });
+    counters.forEach(function (el) { io2.observe(el); });
+  }
+
+  /* ---- the race ---------------------------------------------------- */
+  var race = document.getElementById("race");
+  var cap = document.getElementById("raceCap");
+  var timers = [];
+  function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+
+  function playRace() {
+    clearTimers();
+    race.classList.remove("run", "sent", "settled");
+    cap.textContent = "Both vendors press submit at the same moment.";
+    if (reduced) {
+      race.classList.add("run", "sent", "settled");
+      cap.textContent = "Both arrive together. The database can only hold one, so Vendor A's booking is written and Vendor B's is refused — and B is told to pick another table.";
+      return;
+    }
+    /* force a reflow so replay restarts the transitions */
+    void race.offsetWidth;
+    timers.push(setTimeout(function () { race.classList.add("run"); }, 60));
+    timers.push(setTimeout(function () {
+      race.classList.add("sent");
+      cap.textContent = "Both requests reach the database together — neither one waited for the other.";
+    }, 500));
+    timers.push(setTimeout(function () {
+      race.classList.add("settled");
+      cap.textContent = "Only one row can exist for that table on that night. Vendor A's is written; Vendor B's is refused by the database itself, and B is asked to pick another table.";
+    }, 1500));
+  }
+
+  if (reduced || !("IntersectionObserver" in window)) {
+    playRace();
+  } else {
+    var io3 = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { playRace(); io3.unobserve(e.target); }
+      });
+    }, { threshold: 0.4 });
+    io3.observe(race);
+  }
+  document.getElementById("replayRace").addEventListener("click", playRace);
+})();
+</script>
+
+</body>
+</html>

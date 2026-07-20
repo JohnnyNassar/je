@@ -742,6 +742,44 @@ Season seeding vs the legend, Thursday/Friday-only, the double-booking rejection
 
 ---
 
+## Day 22 — 2026-07-20 (bazaar re-priced by the weekend; leasing contract read)
+
+The owner supplied `docs/JorEptionLeasingContract.docx` — a 72-article, 8-appendix Arabic lease — and corrected the price: **30 JOD covers Thursday *and* Friday together**, not one night. Reading the contract changed more than the number.
+
+### What the contract revealed
+- **Friday opens at 18:00, not 16:00.** Article 21 says both nights run 18:00 → midnight. The instruction on Day 21 had been 16:00. The contract also **contradicts itself**: Appendix 3's weekly table says Friday `4:00 صباحًا` — 4:00 **AM** — plainly a typo, and Article 21's line is itself damaged (`من السا6:00 مساءا`). Article 8 puts the main contract above the appendices, so 18:00 governs. Owner confirmed 6 PM; **the contract still needs both places corrected before ~100 vendors sign it.**
+- **The contract never says "table".** خيمة (tent) appears **53 times**, طاولة **zero**; Article 9 leases a numbered tent/space with an area in m². Owner's call: **stay with tables, no tents for now.**
+- **The contract contains no price at all** — Article 18's rent field is blank, as are the deposit, notice periods and every penalty in Appendix 6. The commercial terms live outside the document.
+- **Security deposit** (Art. 19) exists as a concept but is unfilled. Owner set it: **10 JOD, refunded if nothing is damaged.**
+- **Article 31** requires health clearance for anything eaten, drunk or applied to the body — the basis for the certificate rules below.
+- The signature block pre-fills the first party as **شركة ميسينيا للتطوير العقاري**; flagged, since Art. 50 forbids subletting without written consent and it matters who the landlord actually is.
+
+### The booking unit moved from night to weekend
+- New **`bazaar_periods`** groups the 30 nights into **15 bookable weekends**. Bookings hang off a *period*; the double-booking unique index moved to `(bazaar_period_id, bazaar_table_id, active_slot)`.
+- **Nights were deliberately kept.** They still carry the trading hours and belong to a period, so selling single days later (the owner said the model "may change to days or more fees later") is a data change, not a rewrite. The model says *period*, not *weekend*, for the same reason.
+- Season capacity is therefore **88 × 15 × 30 ≈ 39,600 JOD**, half the per-night figure quoted on Day 21.
+
+### Deposit, categories, certificates
+- **10 JOD deposit** per booking: an editable `bazaar_deposit` setting, snapshotted onto each booking, shown on the page and confirmation as *fee + deposit = due on the night*, with a **"Deposit returned"** action and a `deposit_returned_at` stamp in the admin.
+- **13 vendor categories** seeded bilingually. Four (**Food, Drinks, Sweets, Beauty & personal care**) carry `requires_health_certificate`; a vendor **cannot book those categories without uploading one**. A work/trade licence is offered to everyone.
+- **Uploads are stored on the private `local` disk** under `storage/app/bazaar-documents`, never under `public/`, and are only released through an authenticated admin route that streams the file. Executable uploads are rejected by mime allow-list, files are deleted with their booking, and uploads are written *before* the transaction so a storage failure can't leave a booking without its paperwork — with the files discarded if the insert then fails.
+
+### Admin
+New **Weekends** and **Vendor categories** resources; nav is now Bookings → Weekends → Nights & hours → Vendor categories → Tables. Bookings gained a category column, a **paperwork indicator**, a *"Missing health certificate"* filter, deposit display, and a confirm dialog that **warns when a food vendor has no certificate**. "Nights" lost its occupancy columns — availability belongs to weekends now.
+
+### Verification
+40 feature tests (up from 25): weekend structure, both nights at 18:00, one fee covering two nights, price read from the table and deposit from settings rather than the request, the certificate gate, upload privacy and mime rejection, file cleanup, Arabic, and every admin page. Deployed with a pre-deploy snapshot; a rolled-back transaction on production confirmed fee 30 + deposit 10 = 40 due, availability 88 → 87, and the double-booking rejection.
+
+### Notes worth remembering
+- **A migration that swaps a unique index must drop the foreign key first.** MariaDB uses the unique index to satisfy the FK on the old column and refuses `DROP INDEX` while the constraint needs it — the first run failed halfway with *"needed in a foreign key constraint"*. Correct order: drop FK → drop index → drop column → create the new index, each step guarded (`information_schema` lookups for index/constraint existence) so a partly-applied run can be re-run.
+- **DDL isn't transactional in MariaDB.** When that migration failed midway, the tables it had already created stayed. Idempotent guards aren't optional in a multi-statement schema change; they're what makes the retry possible.
+- **Name the concept after the business rule, not today's value.** Calling it `bazaar_periods` rather than `bazaar_weekends` cost nothing and means the "maybe single days later" change is a seeder edit.
+- **Take money and rules from the server, never the form.** Price comes from the table record, deposit from settings — both are covered by tests that post absurd values and assert they're ignored.
+- **A supplied contract is evidence, not instruction.** It disagreed with the brief on Friday's hours, disagreed with *itself* between article and appendix, and its central commercial terms were blank. Reading it end-to-end surfaced three decisions that would otherwise have been discovered by a vendor.
+- **`Carbon::diffInDays()` returns a float**, so `assertSame(1, ...)` fails where `assertSame(1, (int) ...)` passes.
+
+---
+
 ## Lessons learned (worth remembering)
 
 - **OPcache vs deploys.** PHP-FPM had `opcache.validate_timestamps=0` somewhere in its config, so simply replacing PHP files left old bytecode in memory and made my fixes look like they had no effect. **All deploys now `systemctl reload php8.3-fpm`** as the last step.

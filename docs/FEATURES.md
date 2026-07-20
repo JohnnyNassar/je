@@ -130,12 +130,14 @@ A per-customer rewards program: **every customer has their own points balance an
 
 ## JorEption Bazar — table booking (`/bazar`, public)
 
-The physical garage-sale bazaar at **5th Circle, Amman**: **Thursdays 18:00–00:00** and **Fridays 16:00–00:00**, from **23 Jul to 30 Oct 2026** — **30 trading nights**. Vendors rent a table for **30 JD per night**, paid in cash on the night (no payment gateway, matching the COD model).
+The physical garage-sale bazaar at **5th Circle, Amman**: **Thursdays and Fridays, both 18:00–00:00**, from **23 Jul to 30 Oct 2026**. The 30 trading nights are grouped into **15 bookable weekends** — a vendor rents a table for **30 JD per weekend, covering both nights together**, plus a **10 JD refundable deposit**, paid in cash on the night (no payment gateway, matching the COD model).
+
+> **Why "period", not "weekend", in the code.** `bazaar_periods` groups the nights into what is currently a Thu+Fri pair. Nights are kept as their own records, so selling single days — or longer runs — later is a seeder change rather than a rewrite.
 
 ### Event page
-- Bilingual EN/AR hero: location, both time windows, price per table
-- **Night picker** across all 30 nights, each showing how many tables are still free
-- Full season schedule as a clickable grid, with `Full` / `N free` per night
+- Bilingual EN/AR hero: location, hours, fee per weekend and the deposit
+- **Weekend picker** across all 15 weekends, each showing how many tables are still free
+- Full season schedule as a clickable grid, with `Full` / `N free` per weekend
 - Reachable at `/bazar`; `/bazaar` redirects to it (people type both spellings)
 - Linked from the storefront header and footer
 
@@ -147,16 +149,29 @@ The physical garage-sale bazaar at **5th Circle, Amman**: **Thursdays 18:00–00
 - Legend, and horizontal scroll on narrow screens
 
 ### Booking flow
-- Pick night → tap table → name, phone, optional shop name and what they sell
+- Pick weekend → tap table → name, phone, **what they sell**, optional shop name and product detail
 - Creates a **pending** booking; the admin confirms it
-- Price is taken from the table record, never from the submitted form
+- **Money comes from the server, never the form** — the fee is read from the table record and the deposit from settings, both covered by tests that post absurd values and assert they're ignored
 - Vendors are linked to the existing `customers` table **by phone**, so a vendor who also shops isn't duplicated
-- Private confirmation page (own session, or any logged-in staff member)
-- Bookings are written to the **activity log** explicitly (event `placed`-style `booked`), since no admin is behind the write
-- **Double-booking is impossible at the database level** — a unique index over `(night, table, active_slot)` where `active_slot` is `1` while held and `NULL` once cancelled. MariaDB treats NULLs as distinct, so only one live booking per table-night can exist while cancelled bookings stay on record. Holds under simultaneous submissions; the app catches the constraint violation and asks the vendor to pick another table
+- Private confirmation page (own session, or any logged-in staff member) showing fee + deposit = due on the night, the two nights included, and any missing paperwork
+- Bookings are written to the **activity log** explicitly, since no admin is behind the write
+- **Double-booking is impossible at the database level** — a unique index over `(period, table, active_slot)` where `active_slot` is `1` while held and `NULL` once cancelled. MariaDB treats NULLs as distinct, so only one live booking per table-weekend can exist while cancelled bookings stay on record. Holds under simultaneous submissions; the app catches the constraint violation and asks the vendor to pick another table
+
+### Vendor categories and certificates
+- **13 bilingual categories** (Food, Drinks, Sweets & bakery, Beauty & personal care, Clothing, Accessories, Home & kitchen, Toys, Electronics, Handmade, Plants, Second-hand, Other), reorderable in the admin
+- Four are flagged **`requires_health_certificate`** — anything eaten, drunk or applied to the body (leasing contract, Art. 31). A vendor **cannot book those categories without uploading one**; the field appears the moment such a category is picked
+- A **work / trade licence** upload is offered to every vendor
+- Accepted: PDF, JPG, PNG, WebP, up to 5 MB. Executables are rejected by mime allow-list
+- **Files are stored on the private `local` disk** (`storage/app/bazaar-documents`), **never under `public/`**, and are only released through an authenticated admin route that streams them. Deleting a booking deletes its files
+- Uploads are written *before* the booking transaction, so a storage failure can't leave a booking without its paperwork — and are discarded if the insert then fails
+
+### Deposit
+- **10 JOD per booking**, refundable if nothing is damaged (leasing contract, Art. 19)
+- Held in the editable `bazaar_deposit` setting and **snapshotted onto each booking**, so changing the rate never rewrites history
+- A **"Deposit returned"** action stamps `deposit_returned_at`; weekends show deposits still held
 
 ### Restaurants
-The 12 restaurant units are drawn on the plan for orientation but are **not rentable** (`is_bookable = false`), so vendor capacity is **88 tables per night**, not 100 — about **79,200 JD** of season capacity at full occupancy.
+The 12 restaurant units are drawn on the plan for orientation but are **not rentable** (`is_bookable = false`), so vendor capacity is **88 tables per weekend**, not 100 — about **39,600 JD** of season capacity at full occupancy (88 × 15 weekends × 30 JD).
 
 ---
 
@@ -274,9 +289,11 @@ The 12 restaurant units are drawn on the plan for orientation but are **not rent
 - Per-customer **points** column + manual **"Adjust points"** action on Customers (records a ledger entry); points-earned / redeemed columns on Orders
 
 ### Bazaar (dedicated nav group, admin-only)
-- **Bookings** — every table request, with a **pending-count badge** in the sidebar as the to-do list. Filter by night, status or section; search by vendor name or phone. Row actions: **Confirm**, **Cancel** (releases the table for someone else), **WhatsApp** (opens `wa.me` with the vendor's number normalised from any local format), and Edit. The table picker on the form **only lists tables still free on the chosen night**, so an admin can't collide with the double-booking constraint
-- **Nights** — the 30 trading nights: date, hours, **booked / free counts**, **confirmed takings** per night, and an "open for booking" toggle to close a night without deleting its bookings. A per-row shortcut jumps to that night's bookings
-- **Tables** — the 100 tables: number, section, price, bookable and active toggles, plus a **bulk "Set price"** action. Floor-plan coordinates live here too (collapsed; normally set by the seeder)
+- **Bookings** — every table request, with a **pending-count badge** in the sidebar as the to-do list. Filter by weekend, status, category, section, or **"Missing health certificate"**; search by vendor name or phone. A **paperwork indicator** flags any booking whose category needs a health certificate and hasn't got one, and the Confirm dialog **warns before you approve such a vendor**. Row actions: **Confirm**, **Cancel** (releases the table), **WhatsApp** (opens `wa.me` with the number normalised from any local format), **Deposit returned**, and Edit. The table picker **only lists tables still free that weekend**, so an admin can't collide with the double-booking constraint. Uploaded certificates are listed on the edit page as authenticated download links
+- **Weekends** — the 15 bookable weekends: dates, nights, **booked / free counts**, **confirmed takings**, **deposits still held**, and an "open for booking" toggle to close a weekend without deleting its bookings. A per-row shortcut jumps to that weekend's bookings
+- **Nights & hours** — the 30 trading nights: which weekend each belongs to and what time the gates open. Availability lives on Weekends, not here
+- **Vendor categories** — bilingual names, drag-to-reorder, and the **"Needs a health certificate"** toggle that drives what vendors must upload
+- **Tables** — the 100 tables: number, section, price per weekend, bookable and active toggles, plus a **bulk "Set price"** action. Floor-plan coordinates live here too (collapsed; normally set by the seeder)
 
 ### Settings
 - Currency (code / symbol / position)
@@ -405,9 +422,12 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 - `order_items` — order + product + **variant** (id + name snapshot) + product_name + unit_price + quantity + line_total
 - `loyalty_transactions` — customer + order + points (±) + type (earn | redeem | adjust) + description (the points ledger)
 - `loyalty_promotions` — name + type (multiplier | bonus) + multiplier / bonus_points + min_order_total + starts_at / ends_at + active (time-boxed point boosts)
-- `bazaar_nights` — event_date (unique) + starts_at / ends_at (**datetimes**, since the night runs past midnight into the next day) + is_active
-- `bazaar_tables` — number (unique) + section (A/B/C/D/RESTAURANT) + price + floor-plan geometry (pos_x, pos_y, width, height, rotation) + is_active + **is_bookable** (drawn vs rentable)
-- `bazaar_bookings` — night + table + optional customer + vendor name/phone/business/goods + price + status (pending | confirmed | cancelled) + notes + **`active_slot`** (1 while held, NULL once cancelled — backs the unique index that makes double-booking impossible)
+- `bazaar_periods` — **what a vendor actually books**: starts_on / ends_on (currently a Thu+Fri pair) + position + is_active
+- `bazaar_nights` — period + event_date (unique) + starts_at / ends_at (**datetimes**, since the night runs past midnight into the next day) + is_active
+- `bazaar_tables` — number (unique) + section (A/B/C/D/RESTAURANT) + price **per period** + floor-plan geometry (pos_x, pos_y, width, height, rotation) + is_active + **is_bookable** (drawn vs rentable)
+- `bazaar_vendor_categories` — bilingual name + slug + **requires_health_certificate** + position + is_active
+- `bazaar_bookings` — period + table + optional customer + **vendor category** + vendor name/phone/business/goods + price + **deposit** + **deposit_returned_at** + status (pending | confirmed | cancelled) + notes + **`active_slot`** (1 while held, NULL once cancelled — backs the unique index that makes double-booking impossible)
+- `bazaar_booking_documents` — booking + kind (work | health) + path **on the private disk** + original_name + mime + size
 - `settings` — key/value, cached (includes `hero_image_path`, `hero_product_id`, `coming_soon_*`, currency, `google_analytics_id`)
 - `activity_logs` — audit trail: log_name + event + description + subject (morph) + causer (morph) + properties (old/new) + **ip_address** + **user_agent** + timestamp
 - `password_reset_tokens` — used by both `users` and `customers` brokers
@@ -428,7 +448,8 @@ Artisan command `php artisan whatsapp:import {path}` parses a WhatsApp chat expo
 | `/orders/{order}/confirmation` | guest | Order confirmation |
 | `/track` | guest | Track-my-order lookup |
 | `/bazar` | guest | Bazaar event page + interactive floor plan (**exempt from Coming Soon**) |
-| `/bazar/book` | guest (POST) | Create a pending table booking |
+| `/bazar/book` | guest (POST) | Create a pending table booking (multipart — carries certificates) |
+| `/admin/bazaar-document/{document}` | web (staff) | Streams a vendor certificate off the private disk |
 | `/bazar/booking/{booking}` | own session / staff | Booking confirmation |
 | `/bazaar` | guest | Redirects to `/bazar` |
 | `/login` `/register` `/forgot-password` `/reset-password/{token}` | guest | Customer auth |

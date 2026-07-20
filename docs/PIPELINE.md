@@ -87,11 +87,34 @@ These are **not new proposals** but the outstanding items to clear before/around
 
 The booking system is live; these are the loose ends.
 
+### 🔴 Blocking — the leasing contract contradicts itself on trading hours
+`docs/JorEptionLeasingContract.docx` gives Friday's hours **two different ways**, and neither matches the original brief:
+
+| Source | Friday |
+|---|---|
+| Brief on 2026-07-18 | 4:00 **PM** – midnight |
+| **Article 21** (main contract) | 6:00 **PM** – midnight — *and the line itself is damaged:* `من السا6:00 مساءا` |
+| **Appendix 3**, weekly schedule | `4:00 صباحًا` — 4:00 **AM** – midnight |
+
+Article 8 puts the main contract above the appendices, so **18:00 governs**, and the owner has confirmed 6 PM — the system now matches. **The document still needs fixing in both places before it is signed by ~100 vendors**, along with repairing the broken Arabic fragment in Art. 21.
+
+Two further gaps in the template, both blank where they matter: **Article 18's rent field is empty** (the 30 JOD appears nowhere in the contract), and so are **Article 19's deposit**, every notice period, and every penalty in Appendix 6.
+
+Also worth settling: the signature block pre-fills the first party as **شركة ميسينيا للتطوير العقاري**. If Messenia is the venue owner and JorEption the organiser, be clear which of you is the landlord in the vendor contract — **Article 50 forbids subletting without written consent**.
+
 ### Decisions needed from the client
-- **Are the 12 restaurant units rentable?** Currently **not** (`is_bookable = false`) — they're drawn on the plan for orientation only. That sets capacity at **88 tables/night, not 100** (≈79,200 JD per season at full occupancy vs 90,000). If food vendors do pay for them, they likely pay a different rate — say the number and it's a one-line change.
+- **Are the 12 restaurant units rentable?** Currently **not** (`is_bookable = false`) — they're drawn on the plan for orientation only. That sets capacity at **88 tables/weekend, not 100** (≈39,600 JD per season at full occupancy). If food vendors do pay for them, they likely pay a different rate — say the number and it's a one-line change.
 - **Venue address + Google Maps link.** The page says only "Amman — 5th Circle" because nothing more precise was known; no address or map link was invented. Supply both and they go on the page.
-- **Marketing copy.** The page states only verifiable facts (location, both time windows, 30 JD, cash on the night). Nothing about parking, facilities, what may be sold, or rules. Worth the client's own words before it circulates widely.
+- **Marketing copy.** The page states only verifiable facts (location, hours, fee, deposit, cash on the night). Nothing about parking, facilities, what may be sold, or rules. Worth the client's own words before it circulates widely.
 - **Visual check of the floor plan.** The seeded data is verified against the architect's legend (A 14 · B 12 · C 56 · D 6 · R 12 = 100, zero overlapping rectangles), but the *rendered look* has never been compared to `docs/JorEptionBazar.jpeg` by eye.
+- **Contract data the booking form still doesn't collect.** The lease needs a national ID or commercial registration, address, email, authorised representative, a product list (App. 5), **employee names with national IDs**, licence numbers with expiry dates, and the **night guard's name and phone** (Art. 46). Booking currently captures name, phone, category, shop, goods and certificates — so every confirmed vendor still needs one offline round before signing. Say the word and the rest moves onto the form.
+
+### ✅ Settled on 2026-07-20
+- **Weekend, not night.** 30 JOD buys Thursday + Friday together. Built as `bazaar_periods` so a later switch to single days is a seeder change.
+- **Friday opens at 18:00** (contract Art. 21).
+- **Tables, not tents** — the contract says خيمة 53 times and طاولة never, but the owner's call is to stay with tables for now.
+- **10 JOD refundable deposit**, returned if nothing is damaged.
+- **Vendor categories with certificate rules** — food, drink, sweets and personal care cannot book without a health certificate.
 
 ### Not built (candidates, roughly by value)
 - **Booking lookup by phone** — a vendor who loses the confirmation page has no way back to it (mirrors the existing `/track` for orders). ~2 h.
