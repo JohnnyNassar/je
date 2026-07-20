@@ -15,6 +15,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     Route::get('image-cover/{product}', [ImageCoverController::class, 'show'])->name('image-cover');
     Route::post('image-cover/{product}', [ImageCoverController::class, 'save'])->name('image-cover.save');
+
+    // Vendor certificates live on the private disk; this is the only way out.
+    Route::get('bazaar-document/{document}', [\App\Http\Controllers\BazaarController::class, 'document'])
+        ->name('bazaar.document');
 });
 
 Route::get('/', [CatalogController::class, 'index'])->name('catalog.index');

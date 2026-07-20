@@ -22,7 +22,7 @@ class BazaarTableResource extends Resource
 
     protected static ?string $navigationLabel = 'Tables';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 5;
 
     public static function form(Form $form): Form
     {
@@ -45,7 +45,7 @@ class BazaarTableResource extends Resource
                         ->minValue(0)
                         ->required()
                         ->prefix(\App\Models\Setting::get('currency_symbol'))
-                        ->helperText('What a vendor pays for this table, per night.'),
+                        ->helperText('What a vendor pays for this table for a whole weekend (Thursday + Friday).'),
 
                     Forms\Components\Toggle::make('is_bookable')
                         ->label('Vendors can book it')

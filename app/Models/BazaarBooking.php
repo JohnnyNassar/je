@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BazaarBooking extends Model
 {
@@ -23,14 +24,17 @@ class BazaarBooking extends Model
     ];
 
     protected $fillable = [
-        'bazaar_night_id',
+        'bazaar_period_id',
         'bazaar_table_id',
         'customer_id',
+        'bazaar_vendor_category_id',
         'vendor_name',
         'vendor_phone',
         'vendor_business',
         'goods_description',
         'price',
+        'deposit',
+        'deposit_returned_at',
         'status',
         'notes',
     ];
@@ -43,6 +47,8 @@ class BazaarBooking extends Model
     {
         return [
             'price' => 'decimal:2',
+            'deposit' => 'decimal:2',
+            'deposit_returned_at' => 'datetime',
         ];
     }
 
@@ -52,15 +58,15 @@ class BazaarBooking extends Model
         // impossible at the database level. It holds 1 while the booking
         // occupies the table and NULL once cancelled -- MariaDB treats NULLs as
         // distinct, so cancelled bookings stay on record without blocking a
-        // rebooking of the same table on the same night.
+        // rebooking of the same table for the same period.
         static::saving(function (self $booking): void {
             $booking->active_slot = $booking->status === self::STATUS_CANCELLED ? null : 1;
         });
     }
 
-    public function night(): BelongsTo
+    public function period(): BelongsTo
     {
-        return $this->belongsTo(BazaarNight::class, 'bazaar_night_id');
+        return $this->belongsTo(BazaarPeriod::class, 'bazaar_period_id');
     }
 
     public function table(): BelongsTo
@@ -71,6 +77,16 @@ class BazaarBooking extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(BazaarVendorCategory::class, 'bazaar_vendor_category_id');
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(BazaarBookingDocument::class);
     }
 
     /** Bookings still holding a table — pending and confirmed both count. */
@@ -92,6 +108,29 @@ class BazaarBooking extends Model
     public function isCancelled(): bool
     {
         return $this->status === self::STATUS_CANCELLED;
+    }
+
+    /** Fee plus the refundable deposit — what the vendor actually hands over. */
+    public function getTotalDueAttribute(): float
+    {
+        return (float) $this->price + (float) $this->deposit;
+    }
+
+    public function documentOf(string $kind): ?BazaarBookingDocument
+    {
+        return $this->documents->firstWhere('kind', $kind);
+    }
+
+    /** True when the category demands a health certificate and none is attached. */
+    public function isMissingHealthCertificate(): bool
+    {
+        if (! $this->category?->requires_health_certificate) {
+            return false;
+        }
+
+        return ! $this->documents()
+            ->where('kind', BazaarBookingDocument::KIND_HEALTH)
+            ->exists();
     }
 
     /**

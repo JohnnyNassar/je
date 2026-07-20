@@ -3,17 +3,19 @@
 namespace Database\Seeders;
 
 use App\Models\BazaarNight;
+use App\Models\BazaarPeriod;
 use App\Models\BazaarTable;
-use Carbon\Carbon;
+use App\Models\BazaarVendorCategory;
 use Carbon\CarbonPeriod;
 use Illuminate\Database\Seeder;
 
 /**
- * Seeds the 2026 season: 30 event nights (Thursdays + Fridays, 23 Jul – 30 Oct)
- * and the 100 tables from the venue floor plan.
+ * Seeds the 2026 season: 15 bookable weekends made of 30 trading nights
+ * (Thursdays + Fridays, 23 Jul – 30 Oct), the 100 tables from the venue floor
+ * plan, and the vendor categories.
  *
- * Idempotent — matches on event_date / table number, so re-running it updates
- * geometry without disturbing existing bookings.
+ * Idempotent — matches on dates / table number / slug, so re-running it
+ * corrects hours and geometry without disturbing existing bookings.
  */
 class BazaarSeeder extends Seeder
 {
@@ -21,12 +23,11 @@ class BazaarSeeder extends Seeder
 
     private const SEASON_END = '2026-10-30';
 
-    private const TABLE_PRICE = 30;
+    private const TABLE_PRICE = 30;   // JOD per weekend (Thursday + Friday together)
 
-    // Doors open earlier on Fridays.
-    private const THURSDAY_OPENS = 18;
-
-    private const FRIDAY_OPENS = 16;
+    // Both trading nights open at 18:00 and run to midnight
+    // (leasing contract, Art. 21).
+    private const OPENS_AT = 18;
 
     /**
      * Runs of tables as laid out on the plan.
@@ -52,38 +53,78 @@ class BazaarSeeder extends Seeder
         ['from' => 97, 'count' => 4,  'x' => 700, 'y' => 520, 'dx' => 18, 'dy' => -18, 'rotation' => -45],
     ];
 
+    /**
+     * Vendor categories. Anything eaten, drunk or applied to the body needs a
+     * health certificate before it may trade (leasing contract, Art. 31).
+     */
+    private const CATEGORIES = [
+        ['slug' => 'food',        'en' => 'Food',                    'ar' => 'مأكولات',            'health' => true],
+        ['slug' => 'drinks',      'en' => 'Drinks & beverages',      'ar' => 'مشروبات',            'health' => true],
+        ['slug' => 'sweets',      'en' => 'Sweets & bakery',         'ar' => 'حلويات ومخبوزات',    'health' => true],
+        ['slug' => 'cosmetics',   'en' => 'Beauty & personal care',  'ar' => 'تجميل وعناية شخصية', 'health' => true],
+        ['slug' => 'clothing',    'en' => 'Clothing',                'ar' => 'ملابس',              'health' => false],
+        ['slug' => 'accessories', 'en' => 'Accessories & jewellery', 'ar' => 'إكسسوارات ومجوهرات', 'health' => false],
+        ['slug' => 'home',        'en' => 'Home & kitchen',          'ar' => 'منزل ومطبخ',         'health' => false],
+        ['slug' => 'toys',        'en' => 'Toys & games',            'ar' => 'ألعاب',              'health' => false],
+        ['slug' => 'electronics', 'en' => 'Electronics',             'ar' => 'إلكترونيات',         'health' => false],
+        ['slug' => 'handmade',    'en' => 'Handmade & crafts',       'ar' => 'أشغال يدوية',        'health' => false],
+        ['slug' => 'plants',      'en' => 'Plants & garden',         'ar' => 'نباتات وحدائق',      'health' => false],
+        ['slug' => 'secondhand',  'en' => 'Second-hand & vintage',   'ar' => 'مستعمل وفينتاج',     'health' => false],
+        ['slug' => 'other',       'en' => 'Other',                   'ar' => 'أخرى',               'health' => false],
+    ];
+
     public function run(): void
     {
-        $this->seedNights();
+        $this->seedPeriodsAndNights();
         $this->seedTables();
+        $this->seedCategories();
     }
 
-    private function seedNights(): void
+    /**
+     * Walks the season and groups each Thursday with the Friday that follows
+     * it. The pair is one bookable period; both nights hang off it.
+     */
+    private function seedPeriodsAndNights(): void
     {
-        $period = CarbonPeriod::create(self::SEASON_START, self::SEASON_END);
-        $count = 0;
+        $periods = 0;
+        $nights = 0;
+        $position = 0;
 
-        foreach ($period as $date) {
-            if (! $date->isThursday() && ! $date->isFriday()) {
+        foreach (CarbonPeriod::create(self::SEASON_START, self::SEASON_END) as $date) {
+            if (! $date->isThursday()) {
                 continue;
             }
 
-            $opens = $date->isThursday() ? self::THURSDAY_OPENS : self::FRIDAY_OPENS;
+            $thursday = $date->copy();
+            $friday = $date->copy()->addDay();
 
-            BazaarNight::updateOrCreate(
-                ['event_date' => $date->toDateString()],
-                [
-                    'starts_at' => $date->copy()->setTime($opens, 0),
-                    // Runs until midnight, i.e. 00:00 the following day.
-                    'ends_at' => $date->copy()->addDay()->startOfDay(),
-                    'is_active' => true,
-                ]
+            // Don't create a half weekend if the season ends on a Thursday.
+            if ($friday->gt(CarbonPeriod::create(self::SEASON_START, self::SEASON_END)->getEndDate())) {
+                continue;
+            }
+
+            $period = BazaarPeriod::updateOrCreate(
+                ['starts_on' => $thursday->toDateString(), 'ends_on' => $friday->toDateString()],
+                ['position' => ++$position, 'is_active' => true]
             );
+            $periods++;
 
-            $count++;
+            foreach ([$thursday, $friday] as $night) {
+                BazaarNight::updateOrCreate(
+                    ['event_date' => $night->toDateString()],
+                    [
+                        'bazaar_period_id' => $period->id,
+                        'starts_at' => $night->copy()->setTime(self::OPENS_AT, 0),
+                        // Runs until midnight, i.e. 00:00 the following day.
+                        'ends_at' => $night->copy()->addDay()->startOfDay(),
+                        'is_active' => true,
+                    ]
+                );
+                $nights++;
+            }
         }
 
-        $this->command?->info("Bazaar nights seeded: {$count}");
+        $this->command?->info("Bazaar weekends seeded: {$periods} ({$nights} nights)");
     }
 
     private function seedTables(): void
@@ -115,6 +156,24 @@ class BazaarSeeder extends Seeder
         }
 
         $this->command?->info("Bazaar tables seeded: {$count}");
+    }
+
+    private function seedCategories(): void
+    {
+        foreach (self::CATEGORIES as $i => $c) {
+            BazaarVendorCategory::updateOrCreate(
+                ['slug' => $c['slug']],
+                [
+                    'name_en' => $c['en'],
+                    'name_ar' => $c['ar'],
+                    'requires_health_certificate' => $c['health'],
+                    'position' => $i + 1,
+                    'is_active' => true,
+                ]
+            );
+        }
+
+        $this->command?->info('Bazaar vendor categories seeded: '.count(self::CATEGORIES));
     }
 
     /**

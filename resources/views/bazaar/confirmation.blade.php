@@ -21,27 +21,66 @@
                     </dd>
                 </div>
                 <div class="rounded-lg bg-gray-50 px-4 py-3">
-                    <dt class="text-xs text-gray-500">{{ __('Night') }}</dt>
-                    <dd class="mt-0.5 font-semibold text-gray-900">{{ $booking->night->label }}</dd>
-                </div>
-                <div class="rounded-lg bg-gray-50 px-4 py-3">
-                    <dt class="text-xs text-gray-500">{{ __('Hours') }}</dt>
-                    <dd class="mt-0.5 font-semibold text-gray-900">{{ $booking->night->time_range }}</dd>
-                </div>
-                <div class="rounded-lg bg-gray-50 px-4 py-3">
-                    <dt class="text-xs text-gray-500">{{ __('To pay on the night') }}</dt>
-                    <dd class="mt-0.5 font-semibold text-gray-900">{{ money_format($booking->price) }}</dd>
+                    <dt class="text-xs text-gray-500">{{ __('Weekend') }}</dt>
+                    <dd class="mt-0.5 font-semibold text-gray-900">{{ $booking->period->label }}</dd>
                 </div>
                 <div class="rounded-lg bg-gray-50 px-4 py-3 sm:col-span-2">
+                    <dt class="text-xs text-gray-500">{{ __('Nights included') }}</dt>
+                    <dd class="mt-0.5 font-semibold text-gray-900">
+                        @foreach ($booking->period->nights as $night)
+                            {{ $night->label }} · {{ $night->time_range }}@if (! $loop->last)<br>@endif
+                        @endforeach
+                    </dd>
+                </div>
+                @if ($booking->category)
+                    <div class="rounded-lg bg-gray-50 px-4 py-3">
+                        <dt class="text-xs text-gray-500">{{ __('What you sell') }}</dt>
+                        <dd class="mt-0.5 font-semibold text-gray-900">{{ $booking->category->name }}</dd>
+                    </div>
+                @endif
+                <div class="rounded-lg bg-gray-50 px-4 py-3">
                     <dt class="text-xs text-gray-500">{{ __('Where') }}</dt>
                     <dd class="mt-0.5 font-semibold text-gray-900">{{ __('Amman — 5th Circle') }}</dd>
                 </div>
             </dl>
 
+            <div class="mt-5 rounded-lg border border-gray-200 p-4 text-start">
+                <dl class="space-y-1.5 text-sm">
+                    <div class="flex justify-between">
+                        <dt class="text-gray-600">{{ __('Table for the weekend') }}</dt>
+                        <dd class="font-medium text-gray-900">{{ money_format($booking->price) }}</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-gray-600">
+                            {{ __('Refundable deposit') }}
+                            <span class="text-gray-400">— {{ __('returned if there is no damage') }}</span>
+                        </dt>
+                        <dd class="font-medium text-gray-900">{{ money_format($booking->deposit) }}</dd>
+                    </div>
+                    <div class="flex justify-between border-t border-gray-200 pt-1.5 mt-1.5">
+                        <dt class="font-semibold text-gray-900">{{ __('Due on the night') }}</dt>
+                        <dd class="font-semibold text-gray-900">{{ money_format($booking->total_due) }}</dd>
+                    </div>
+                </dl>
+            </div>
+
+            @if ($booking->documents->isNotEmpty())
+                <p class="mt-4 text-sm text-gray-600">
+                    {{ __('Received:') }}
+                    {{ $booking->documents->map(fn ($d) => __($d->kind_label))->join('، ', ' · ') }}
+                </p>
+            @endif
+
+            @if ($booking->isMissingHealthCertificate())
+                <div role="alert" class="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 text-start">
+                    {{ __('We still need your health certificate before you can trade. Please send it to us on WhatsApp.') }}
+                </div>
+            @endif
+
             <div class="mt-8 flex flex-wrap justify-center gap-3">
                 <a href="{{ route('bazaar.index') }}"
                    class="inline-flex items-center px-5 py-2.5 rounded-lg text-sm font-semibold bg-brand-600 text-white hover:bg-brand-700">
-                    {{ __('Book another night') }}
+                    {{ __('Book another weekend') }}
                 </a>
                 <a href="{{ route('catalog.index') }}"
                    class="inline-flex items-center px-5 py-2.5 rounded-lg text-sm font-semibold border border-gray-300 text-gray-700 hover:bg-gray-50">
