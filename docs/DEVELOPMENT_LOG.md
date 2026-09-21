@@ -820,7 +820,15 @@ Removed from the navbar and the footer at the owner's request. **`/bazar` itself
 
 **65 passing, 0 failing** afterwards.
 
+### "No pagination bar on mobile"
+Reported right after the deploy, and it took reproducing before fixing: pagination was **correct** — walking all 16 pages on production served 233 distinct products out of 233 active, none twice, none missed. Rendering production's own HTML against production's own CSS below the `sm` breakpoint showed the bar *is* there, and that it is **two plain grey buttons reading «Previous / Next»** — Laravel's stock Tailwind pager renders two pagers and hides the numbered one under 640px. At the foot of fifteen product cards on a phone, that does not read as pagination, and across 16 pages it cannot be used.
+
+Replaced with a single numbered pager for every screen (`resources/views/vendor/pagination/tailwind.blade.php`), sized down rather than cut down: the count moves above the controls on a phone, the number window wraps instead of overflowing, and `->onEachSide(1)` keeps it to seven cells so it fits 360px. Arabic strings added for the new labels.
+
+While in there, **`id` was added as the last sort key**. Five active products share a `created_at` to the second from the May import, and ordering on a non-unique column alone lets the database hand one row to two pages and drop another — latent today, indistinguishable from broken pagination when it bites.
+
 ### Notes worth remembering
+- **"It is not working" deserves a reproduction before a fix.** The report said the bar was missing; the bar was present, minimal, and useless. Fixing the reported symptom (a missing element) would have found nothing to fix.
 - **A dead test suite hides the live one.** Thirty-one permanently-red tests meant nobody could tell whether a new failure mattered, so nobody looked. The bazaar breakage — real feature code failing its own fixtures — sat inside that noise for two months.
 - **Time-dependent fixtures rot silently.** Seeding a fixed 2026 season and reading "the first weekend" passes on the day it is written and fails forever after opening night. Freeze the clock in `setUp` when the feature is date-bounded.
 - **Check a test baseline before claiming a failure is pre-existing.** Stashing the change and re-running gave the exact same 31 — cheap, and the difference between "unrelated" and "probably unrelated".

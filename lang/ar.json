@@ -197,5 +197,10 @@
     "paid in cash on the night": "يُدفع نقداً في نفس الليلة",
     "points": "نقطة",
     "returned if there is no damage": "يُعاد إذا لم يقع أي ضرر",
-    "visible to staff only": "ظاهر للموظفين فقط"
+    "visible to staff only": "ظاهر للموظفين فقط",
+    "Showing :first–:last of :total": "عرض :first–:last من :total",
+    "Go to page :page": "الذهاب إلى الصفحة :page",
+    "Pagination Navigation": "تصفّح الصفحات",
+    "Previous": "السابق",
+    "Next": "التالي"
 }

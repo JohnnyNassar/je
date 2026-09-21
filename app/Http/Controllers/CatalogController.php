@@ -65,7 +65,11 @@ class CatalogController extends Controller
             $query->shopOrdered();
         }
 
-        $query->orderByDesc('created_at');
+        // id breaks ties last. Bulk-imported products share a created_at to the
+        // second, and ordering on a non-unique column alone lets the database
+        // hand the same row to two pages and drop another — which looks to a
+        // shopper exactly like pagination being broken.
+        $query->orderByDesc('created_at')->orderByDesc('id');
 
         $products = $query->paginate(self::PER_PAGE)->appends($request->only(['q', 'category']));
 

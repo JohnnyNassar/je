@@ -22,7 +22,7 @@ _Last updated: 2026-07-18_
 - Stock badges (`Out of Stock`, `X left`)
 - **"Save X%" red ribbon** on any product where `compare_at_price > price`, plus crossed-out original price on cards + detail
 - **Pinned products** — up to 5 products can be pinned to lead the grid (admin toggle per product, most recently pinned first). Pinned items sort to the top of the *plain* shop page only: inside a category or a set of search results the list stays newest-first. They are not a reserved block — they occupy slots in the normal grid
-- Pagination (15 per page — a multiple of the 5-wide desktop grid)
+- Pagination (15 per page — a multiple of the 5-wide desktop grid). **One numbered pager at every screen size** (`resources/views/vendor/pagination/tailwind.blade.php`): Laravel's stock Tailwind pager hides the numbers below `sm` and leaves a phone with only «Previous/Next», which over 16 pages reads as no pagination at all. The replacement wraps rather than overflows, keeps the result count on mobile, and is RTL-aware
 - Empty-state with "Clear filters"
 - **Image-save deterrent** — right-click "Save image as" and drag-to-save are disabled on images storefront-wide (product pages, grid, thumbnails). A casual deterrent only (DevTools / screenshots still work); watermarking would be the real protection
 

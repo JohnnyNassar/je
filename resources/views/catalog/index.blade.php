@@ -244,7 +244,8 @@
         </div>
 
         <div class="mt-6">
-            {{ $products->links() }}
+            {{-- onEachSide(1) keeps the window narrow enough to fit a phone. --}}
+            {{ $products->onEachSide(1)->links() }}
         </div>
     @endif
 </x-layouts.shop>

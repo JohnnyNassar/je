@@ -110,5 +110,7 @@
     "Redeem :n points": "Redeem :n points",
     "You have :n points.": "You have :n points.",
     "You will earn :n points on this order.": "You will earn :n points on this order.",
-    "Redeem them at checkout for a discount.": "Redeem them at checkout for a discount."
+    "Redeem them at checkout for a discount.": "Redeem them at checkout for a discount.",
+    "Showing :first–:last of :total": "Showing :first–:last of :total",
+    "Go to page :page": "Go to page :page"
 }
