@@ -38,7 +38,6 @@
 
                 <nav class="hidden md:flex items-center gap-1">
                     <a href="{{ route('catalog.index') }}" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">{{ __('Catalog') }}</a>
-                    <a href="{{ route('bazaar.index') }}" class="px-3 py-2 rounded-md text-sm font-medium text-brand-700 hover:bg-brand-50">{{ __('Bazar') }}</a>
                     @guest('customer')
                         <a href="{{ route('track.show') }}" class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">{{ __('Track Order') }}</a>
                     @endguest
@@ -145,7 +144,6 @@
                     <h3 class="text-xs font-semibold text-gray-900 mb-3 uppercase tracking-wider">{{ __('Catalog') }}</h3>
                     <ul class="space-y-2 text-sm text-gray-600">
                         <li><a href="{{ route('catalog.index') }}" class="hover:text-brand-600">{{ __('Catalog') }}</a></li>
-                        <li><a href="{{ route('bazaar.index') }}" class="hover:text-brand-600">{{ __('Bazar') }}</a></li>
                         <li><a href="{{ route('cart.index') }}" class="hover:text-brand-600">{{ __('Cart') }}</a></li>
                         <li><a href="{{ route('track.show') }}" class="hover:text-brand-600">{{ __('Track Order') }}</a></li>
                         <li><a href="{{ route('privacy') }}" class="hover:text-brand-600">{{ app()->getLocale() === 'ar' ? 'سياسة الخصوصية' : 'Privacy Policy' }}</a></li>
