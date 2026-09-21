@@ -8,6 +8,13 @@ use Illuminate\Http\Request;
 
 class CatalogController extends Controller
 {
+    /**
+     * Products per page on the shop grid. A multiple of five, because the grid
+     * is five across at its widest (xl:grid-cols-5) — 12 left a ragged two and
+     * a bit rows, which is what made the page look unfinished.
+     */
+    private const PER_PAGE = 15;
+
     public function index(Request $request)
     {
         $q = trim((string) $request->query('q', ''));
@@ -26,7 +33,7 @@ class CatalogController extends Controller
             ? ($activeCategory->isTopLevel() ? $activeCategory : $activeCategory->parent)
             : null;
 
-        $query = Product::active()->orderByDesc('created_at');
+        $query = Product::active();
 
         if ($activeCategory) {
             if ($activeCategory->isTopLevel()) {
@@ -49,10 +56,21 @@ class CatalogController extends Controller
             });
         }
 
-        $products = $query->paginate(12)->appends($request->only(['q', 'category']));
+        // Pinned products lead the plain shop page only. Inside a category or a
+        // set of search results the shopper has said what they want, so that
+        // list stays newest-first and nothing is pushed in front of it.
+        $isPlainShopPage = $q === '' && ! $activeCategory;
+
+        if ($isPlainShopPage) {
+            $query->shopOrdered();
+        }
+
+        $query->orderByDesc('created_at');
+
+        $products = $query->paginate(self::PER_PAGE)->appends($request->only(['q', 'category']));
 
         // Featured strip — only on the unfiltered home page
-        $featured = ($q === '' && ! $activeCategory)
+        $featured = $isPlainShopPage
             ? Product::active()->featured()->orderByDesc('created_at')->take(8)->get()
             : collect();
 

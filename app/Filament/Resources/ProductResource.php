@@ -30,6 +30,20 @@ class ProductResource extends Resource
         return 'Total products';
     }
 
+    /**
+     * The products pinned to the shop front other than the one being edited —
+     * what both the pin toggle's note and its cap rule need to say.
+     *
+     * @return \Illuminate\Support\Collection<int, string>
+     */
+    protected static function otherPinnedNames(?Product $record): \Illuminate\Support\Collection
+    {
+        return Product::pinned()
+            ->when($record, fn (Builder $query) => $query->whereKeyNot($record->getKey()))
+            ->orderByDesc('pinned_at')
+            ->pluck('name_en');
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -113,8 +127,33 @@ class ProductResource extends Resource
                     ->required(),
                 Forms\Components\Toggle::make('is_featured')
                     ->label('Featured on home page')
-                    ->helperText('Highlights this product at the top of the catalog.')
+                    ->helperText('Adds this product to the “Featured” strip above the product grid. To make it lead the grid itself, use “Pin to the top of the shop” below.')
                     ->default(false),
+                Forms\Components\Toggle::make('is_pinned')
+                    ->label('Pin to the top of the shop')
+                    ->helperText(static function (?Product $record): string {
+                        $note = 'Shows this product first in the product grid on the main shop page — not inside a category and not in search results. '
+                            . 'Maximum ' . Product::MAX_PINNED . ' pinned at a time; the most recently pinned goes first. '
+                            . 'Note: a pinned product that is switched off will not appear at all, and one that is out of stock still leads the page with an “Out of Stock” badge.';
+
+                        $others = static::otherPinnedNames($record);
+
+                        return $others->isEmpty()
+                            ? $note
+                            : $note . ' Currently pinned: ' . $others->implode(', ') . '.';
+                    })
+                    ->default(false)
+                    ->rule(static fn (?Product $record) => static function (string $attribute, $value, \Closure $fail) use ($record) {
+                        if (! $value) {
+                            return;
+                        }
+
+                        $others = static::otherPinnedNames($record);
+
+                        if ($others->count() >= Product::MAX_PINNED) {
+                            $fail('Only ' . Product::MAX_PINNED . ' products can be pinned at a time. Unpin one of these first: ' . $others->implode(', ') . '.');
+                        }
+                    }),
                 Forms\Components\Section::make('Options (Colour / Size / Dimension)')
                     ->description('Optional. Define up to 3 attributes shoppers choose from, each with its values (English + Arabic). Then use “Build combinations” in the Variations section below.')
                     ->collapsible()
@@ -320,6 +359,29 @@ class ProductResource extends Resource
                     ->falseIcon('heroicon-o-star')
                     ->trueColor('warning')
                     ->toggleable(),
+                Tables\Columns\IconColumn::make('is_pinned')
+                    ->label('Pinned')
+                    ->boolean()
+                    ->trueIcon('heroicon-s-bookmark')
+                    ->falseIcon('heroicon-o-bookmark')
+                    // Red when it is pinned but the shopper can't actually buy
+                    // it — the slot is being spent on a dead product.
+                    ->trueColor(fn (Product $record) => $record->isPinnedButUnavailable() ? 'danger' : 'success')
+                    ->tooltip(function (Product $record): ?string {
+                        if (! $record->is_pinned) {
+                            return null;
+                        }
+                        if (! $record->is_active) {
+                            return 'Pinned but switched off — it does not appear on the shop page at all.';
+                        }
+                        if ($record->stock <= 0) {
+                            return 'Pinned but out of stock — it leads the shop page with an “Out of Stock” badge.';
+                        }
+
+                        return 'Leads the product grid on the main shop page.';
+                    })
+                    ->sortable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -331,7 +393,10 @@ class ProductResource extends Resource
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
-                //
+                Tables\Filters\Filter::make('is_pinned')
+                    ->label('Pinned to the top of the shop')
+                    ->query(fn (Builder $query) => $query->pinned())
+                    ->toggle(),
             ])
             ->actions([
                 Tables\Actions\Action::make('viewOnSite')

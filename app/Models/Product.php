@@ -4,11 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\ValidationException;
 
 class Product extends Model
 {
     use HasFactory;
     use \App\Concerns\LogsActivity;
+
+    /**
+     * How many products may lead the shop page at once. The small cap is the
+     * point — a shop front where everything is pinned is just the shop.
+     */
+    public const MAX_PINNED = 5;
 
     protected $fillable = [
         'category_id',
@@ -24,6 +31,7 @@ class Product extends Model
         'gallery',
         'is_active',
         'is_featured',
+        'is_pinned',
     ];
 
     protected $casts = [
@@ -33,6 +41,8 @@ class Product extends Model
         'stock' => 'integer',
         'is_active' => 'boolean',
         'is_featured' => 'boolean',
+        'is_pinned' => 'boolean',
+        'pinned_at' => 'datetime',
         'gallery' => 'array',
     ];
 
@@ -188,8 +198,64 @@ class Product extends Model
         return $query->where('stock', '>', 0);
     }
 
+    public function scopePinned($query)
+    {
+        return $query->where('is_pinned', true);
+    }
+
+    /**
+     * The order the plain shop page uses: pinned products first (most recently
+     * pinned leading), then whatever ordering the caller adds after it. Pinned
+     * products are not a reserved block — they sort to the front of the normal
+     * paginated grid and count towards the page size like anything else.
+     *
+     * Deliberately NOT applied to category or search results: once a shopper
+     * has narrowed the list, their filter decides the order, not us.
+     */
+    public function scopeShopOrdered($query)
+    {
+        return $query->orderByDesc('is_pinned')->orderByDesc('pinned_at');
+    }
+
+    /**
+     * Pinned, but the shopper won't see it where you meant them to: switched
+     * off hides it completely, out of stock leads the page with a dead badge.
+     */
+    public function isPinnedButUnavailable(): bool
+    {
+        return $this->is_pinned && (! $this->is_active || $this->stock <= 0);
+    }
+
     protected static function booted(): void
     {
+        static::saving(function (self $product) {
+            if (! $product->isDirty('is_pinned')) {
+                return;
+            }
+
+            if (! $product->is_pinned) {
+                $product->pinned_at = null;
+
+                return;
+            }
+
+            // Backstop for the admin form's own rule, so nothing else — Quick
+            // Add, an import, tinker — can push the shop front past the cap.
+            $alreadyPinned = static::pinned()
+                ->when($product->exists, fn ($q) => $q->whereKeyNot($product->getKey()))
+                ->count();
+
+            if ($alreadyPinned >= self::MAX_PINNED) {
+                throw ValidationException::withMessages([
+                    'is_pinned' => __('Only :max products can be pinned at a time. Unpin another product first.', [
+                        'max' => self::MAX_PINNED,
+                    ]),
+                ]);
+            }
+
+            $product->pinned_at = now();
+        });
+
         static::saved(function (self $product) {
             if ($product->wasChanged('image_path') && $product->image_path) {
                 $abs = storage_path('app/public/' . ltrim($product->image_path, '/'));
