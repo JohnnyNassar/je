@@ -13,6 +13,7 @@ use Database\Seeders\BazaarSeeder;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -23,6 +24,14 @@ class BazaarTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // The seeded season is fixed at 23 Jul – 30 Oct 2026 and a booking is
+        // only accepted for a weekend still to come, so as the real date moved
+        // through the season these tests failed one weekend at a time — twelve
+        // of them were red by September. Freeze the clock just before opening
+        // night, where every seeded weekend is bookable, and they test the
+        // booking rules instead of the calendar.
+        $this->travelTo(Carbon::parse('2026-07-20 10:00:00'));
 
         // The season layout is fixed data the whole feature is built on, so
         // every test starts from the real seeded floor plan.
