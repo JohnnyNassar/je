@@ -13,7 +13,7 @@ _Last updated: 2026-07-18_
 ## Customer site (public)
 
 ### Catalog & browsing
-- Product grid: responsive 2 / 3 / 4 columns
+- Product grid: responsive 2 / 3 / 4 / 5 columns
 - Hero banner (locked 21:9 on desktop) with brand color, "Deals" pill, "Browse Catalog" CTA
 - Hero background: admin can upload a custom image (with in-browser cropper) OR feature one of the products' images — pick from a server-side searchable dropdown
 - Search box (matches `name_en`, `name_ar`, `description_en`, `description_ar`)
@@ -21,7 +21,8 @@ _Last updated: 2026-07-18_
 - **"Featured" strip** below the hero — shows up to 8 products marked as featured (horizontal scroll, snap-aligned)
 - Stock badges (`Out of Stock`, `X left`)
 - **"Save X%" red ribbon** on any product where `compare_at_price > price`, plus crossed-out original price on cards + detail
-- Pagination (12 per page)
+- **Pinned products** — up to 5 products can be pinned to lead the grid (admin toggle per product, most recently pinned first). Pinned items sort to the top of the *plain* shop page only: inside a category or a set of search results the list stays newest-first. They are not a reserved block — they occupy slots in the normal grid
+- Pagination (15 per page — a multiple of the 5-wide desktop grid)
 - Empty-state with "Clear filters"
 - **Image-save deterrent** — right-click "Save image as" and drag-to-save are disabled on images storefront-wide (product pages, grid, thumbnails). A casual deterrent only (DevTools / screenshots still work); watermarking would be the real protection
 
@@ -95,6 +96,7 @@ A per-customer rewards program: **every customer has their own points balance an
 ### Header / navigation
 - Sticky navbar with logo + brand name
 - Guest sees: Catalog · Track Order · **Sign in** + **Register**
+- The **Bazar link was removed** from the navbar and the footer on 2026-09-21 at the owner's request. `/bazar` itself is untouched and still public — booking-confirmation links keep working; the storefront simply no longer points at it
 - Authenticated customer sees: Catalog · My Orders · avatar dropdown (My Orders / Track Order / Logout)
 - Logged-in admin sees: Dashboard link
 
@@ -239,6 +241,7 @@ The 12 restaurant units are drawn on the plan for orientation but are **not rent
 - Price + stock + active toggle
 - **Sale price** (`compare_at_price`) — when higher than current price, triggers Save% badge on public site
 - **Featured toggle** — surfaces the product in the Featured strip on the catalog home
+- **Pin toggle (“Pin to the top of the shop”)** — leads the product grid on the plain shop page. **Maximum 5**; the form refuses a 6th and names the products to unpin, and a model hook backstops anything that bypasses the form. Ordered most-recently-pinned first, so re-pinning moves a product back to the front. The products list has a **Pinned** column (red when the product is switched off or out of stock — the pin is being spent on something nobody can buy) and a **Pinned** filter
 - **Cost price + profit** (gated) — record what you paid per unit; toggleable **Cost** and **Profit** columns show the margin (`amount (margin %)`, green for profit / red for loss). **Never shown to customers**; visible to admins and any staff granted cost access
 - Category selector (server-side searchable, no preload)
 - **Structured options + variations** (multi-axis):

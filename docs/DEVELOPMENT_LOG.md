@@ -794,6 +794,43 @@ Answering "where do the uploads go?" turned up that `/usr/local/bin/joreption-ba
 
 ---
 
+## Day 23 — 2026-09-21 (pin products to the shop front; Bazar link pulled; the test suite rescued)
+
+Two months of silence in the repo, but not in the shop: the catalogue went from 8 active products to **226**, every one of them with images, Arabic names, descriptions, a category and a gallery, the most recent added the day before this session. The launch blocker was never the catalogue.
+
+### Pinning — "these five first", which Featured never did
+The owner wanted to lead the shop with a chosen handful. `is_featured` already existed but renders a *separate strip above* the grid; the ask was to reorder the grid itself. Its helper text even read *"Highlights this product at the top of the catalog"* — indistinguishable from pinning, and reworded here so staff can tell the two apart. It is worth noting `is_featured` is set on **0 of 226 products**, so nothing on the site uses it.
+
+- **`is_pinned` + `pinned_at`.** The boolean matches the `is_active`/`is_featured` house style; the timestamp orders the five among themselves without a second field to fill in. Most recently pinned leads, so **re-pinning is how you move one to the front** — considered an explicit 1–5 number instead and rejected it as one more thing to get wrong per product.
+- **The cap is enforced, not auto-evicted.** Pinning a 6th product fails with an error naming the five in the way. Silently dropping the oldest would unpin something the owner deliberately chose, and they would only find out by noticing it missing. Enforced twice: a Filament rule for the good message, a `saving` hook so Quick Add, an import or tinker cannot get past it either.
+- **Only the plain shop page.** Inside a category or a search the shopper has said what they want; pushing a product in front of that is more likely to annoy than help. One line in `CatalogController` if that ever changes.
+- **Not a reserved block.** Pinned products sort to the top of the normal paginated grid and occupy slots like anything else — explicitly what the owner asked for over a separate pinned row.
+- **12 → 15 per page.** The grid is five across at its widest (`xl:grid-cols-5`), so twelve always ended in a ragged part-row. The owner and the client looked at it together and said it read badly.
+
+The pin only changes ordering, so a pinned product that is **switched off vanishes** and one that is **out of stock still leads the page with an "Out of Stock" badge** — six products are live at zero stock today, so this will happen. The form says so under the toggle, and the Pinned column in the admin turns red when it does.
+
+### The Bazar link is gone from the storefront
+Removed from the navbar and the footer at the owner's request. **`/bazar` itself is untouched and still public** — vendors holding a confirmation link keep working, and anyone sent the URL can still book. Only the storefront's own signposting is gone.
+
+### The test suite had been red for months
+`php artisan test` was **31 failing / 37 passing** before this session, and a clean checkout of `main` reproduced exactly the same 31 — none of it new. Two unrelated rots:
+
+- **Twelve bazaar tests rotted with the calendar.** The fixtures book the *first* seeded weekend, 23 July. Bookings are only accepted for weekends still to come, so from opening night onwards the fixtures were booking the past, the controller correctly rejected them, and the assertions got `null`. They failed one weekend at a time as the season advanced. Fixed by freezing the clock just before opening night, so they test the booking rules rather than today's date.
+- **Nineteen were Laravel Breeze scaffolding** that had never passed: they assert the default `web` guard and routes this project never built (`/profile`, `/verify-email`, `/confirm-password`, a `dashboard`). Shoppers authenticate on the **`customer`** guard and staff go through Filament. Replaced with `CustomerAuthTest` covering what actually exists — including the **guest-row adoption** rule, where registering with the phone number of a passwordless guest customer claims that row so the shopper keeps their order history and points.
+
+**65 passing, 0 failing** afterwards.
+
+### Notes worth remembering
+- **A dead test suite hides the live one.** Thirty-one permanently-red tests meant nobody could tell whether a new failure mattered, so nobody looked. The bazaar breakage — real feature code failing its own fixtures — sat inside that noise for two months.
+- **Time-dependent fixtures rot silently.** Seeding a fixed 2026 season and reading "the first weekend" passes on the day it is written and fails forever after opening night. Freeze the clock in `setUp` when the feature is date-bounded.
+- **Check a test baseline before claiming a failure is pre-existing.** Stashing the change and re-running gave the exact same 31 — cheap, and the difference between "unrelated" and "probably unrelated".
+- **`created_at` is not fillable.** `Product::create(['created_at' => …])` silently drops it, every row shares one timestamp, and a newest-first assertion then passes or fails on insertion order. Force it after creation with `forceFill()->saveQuietly()`.
+- **Filament closures only run at render time.** `->helperText(fn …)` and `->rule(fn …)` survive `php -l` and every model test with a wrong signature. A smoke test that fetches `/admin/products/create` and `/edit` is what catches it.
+- **`whereKeyNot()` on an unsaved model excludes nothing.** `getKey()` is null, the SQL becomes `id != null`, and the "don't count myself" guard quietly counts nobody. Guard it with `$model->exists`.
+- **The settings table is empty under `RefreshDatabase`, and `Setting::DEFAULTS` turns coming-soon ON.** Every storefront request in a test gets the splash page instead, and the failure reads as a missing view variable rather than "you are not looking at the shop".
+
+---
+
 ## Lessons learned (worth remembering)
 
 - **OPcache vs deploys.** PHP-FPM had `opcache.validate_timestamps=0` somewhere in its config, so simply replacing PHP files left old bytecode in memory and made my fixes look like they had no effect. **All deploys now `systemctl reload php8.3-fpm`** as the last step.
