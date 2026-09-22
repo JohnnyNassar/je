@@ -1,6 +1,6 @@
 {
-  "name": "Joreption Admin",
-  "short_name": "Joreption",
+  "name": "JorEption Admin",
+  "short_name": "JorEption",
   "description": "Quick add products on the go",
   "start_url": "/admin/quick-add",
   "scope": "/",

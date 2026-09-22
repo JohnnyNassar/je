@@ -21,7 +21,7 @@
     <div class="space-y-6 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
         {{-- Intro + contents --}}
         <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
-            <h2 class="text-lg font-bold text-gray-950 dark:text-white">Welcome to your Joreption admin</h2>
+            <h2 class="text-lg font-bold text-gray-950 dark:text-white">Welcome to your JorEption admin</h2>
             <p class="mt-2">This guide explains how to run the store day to day. Jump to a section:</p>
             <div class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                 @foreach ($sections as $id => $label)
