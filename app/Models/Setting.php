@@ -21,6 +21,18 @@ class Setting extends Model
         'hero_image_path' => '',
         'hero_product_id' => '',
         'google_analytics_id' => '',
+        // Storefront wording, editable in /admin/settings. The defaults are
+        // the words the shop shipped with, so nothing moves until someone
+        // edits them. Keep the EN value non-empty for the two that must never
+        // render blank — the brand and the hero headline.
+        'brand_name_en' => 'JorEption',
+        'brand_name_ar' => 'جوربشن',
+        'hero_headline_en' => 'JorEption',
+        'hero_headline_ar' => 'جوربشن',
+        'hero_tagline_en' => 'Quality finds at garage-sale prices.',
+        'hero_tagline_ar' => 'منتجات بجودة عالية بأسعار مميزة.',
+        'hero_cta_label_en' => 'Browse Catalog',
+        'hero_cta_label_ar' => 'تصفح المنتجات',
         // Customer-tier perks (see App\Services\CustomerTierService).
         'tier_wholesale_discount_percent' => '10',
         'tier_vip_points_multiplier' => '2',
@@ -33,6 +45,40 @@ class Setting extends Model
         });
 
         return $all[$key] ?? $default ?? self::DEFAULTS[$key] ?? null;
+    }
+
+    /**
+     * A setting kept in both languages, as `<base>_en` / `<base>_ar`.
+     *
+     * Under an Arabic locale the Arabic value wins when it has been filled in,
+     * and English is the fallback so clearing the Arabic box never leaves a
+     * blank on the page. Returns '' when both are empty — callers decide
+     * whether that means "hide it" (a tagline) or "use something else" (the
+     * brand, which must never render blank).
+     */
+    public static function localized(string $base): string
+    {
+        $keys = app()->getLocale() === 'ar'
+            ? [$base . '_ar', $base . '_en']
+            : [$base . '_en'];
+
+        foreach ($keys as $key) {
+            $value = trim((string) static::get($key));
+            if ($value !== '') {
+                return $value;
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * The shop's name, as shown in the header, the footer, the browser tab and
+     * the Coming Soon page. Falls back to APP_NAME so it is never blank.
+     */
+    public static function brandName(): string
+    {
+        return static::localized('brand_name') ?: (string) config('app.name');
     }
 
     public static function set(string $key, ?string $value): void

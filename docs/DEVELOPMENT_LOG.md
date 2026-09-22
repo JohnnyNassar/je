@@ -839,6 +839,25 @@ While in there, **`id` was added as the last sort key**. Five active products sh
 
 ---
 
+## Day 24 — 2026-09-22 (the brand gets its capital E, and the banner becomes editable)
+
+### JorEption, not Joreption
+The owner asked to fix the banner headline. The storefront rendered every instance of the name through one translation key, `__('Joreption')`, so the hero, the header beside the logo, the footer and the copyright line all changed with one value in `lang/en.json`. The browser tab and the Coming Soon page did **not** — those read `config('app.name')`, i.e. `APP_NAME` in each server's `.env`, which is not in the repo and had to be changed on the box as well as locally. Also caught by the same sweep: the PWA manifest, two `apple-mobile-web-app-title` tags and the admin Help heading, each carrying the name as a literal. Arabic (جوربشن) is untouched; it has no capitals.
+
+### Then: why did that need a developer at all?
+The follow-up question was where to change it, and the honest answer was nowhere — `/admin/settings` had a **Landing page hero** section that controlled only the *image*. Every word on the biggest element of the shop was a code change and a deploy.
+
+So the wording moved into settings: **shop name**, **hero headline**, **hero tagline** and **hero button label**, each EN + AR, with today's words as the defaults in `Setting::DEFAULTS` so nothing moved until someone edited them. `Setting::localized('hero_tagline')` resolves Arabic-then-English, and `Setting::brandName()` adds a final fallback to `APP_NAME` so the shop name can never render blank. Clearing the tagline or the button label **hides** that element, which is a deliberate way to strip the banner back; clearing the headline falls through to the shop name.
+
+The brand setting now also drives the browser tab, the Coming Soon page and the privacy policy, so the name is changeable in one box rather than in a `.env` on two machines.
+
+### Notes worth remembering
+- **One translation key can be a feature.** Because the name was `__('Joreption')` everywhere rather than typed out, a one-word brand fix was one line — and the places that had it as a literal (manifest, meta tags, Help heading) were exactly the places that got missed for months.
+- **`config('app.name')` hides in `.env`.** Anything driven by it cannot be fixed by a deploy, needs doing per environment, and silently reverts on a fresh server. Prefer a setting for anything the owner might want to change.
+- **"Where do I change this?" is a feature request.** The answer being "ask a developer" for the headline of the shop front is the actual bug; fixing the capital E without fixing that would have guaranteed a repeat.
+- **An empty value needs a decided meaning.** For a tagline, empty should hide the line; for the shop name, empty must fall back rather than render nothing. Same field type, opposite rule, so both are spelled out in the helper text and pinned by a test.
+---
+
 ## Lessons learned (worth remembering)
 
 - **OPcache vs deploys.** PHP-FPM had `opcache.validate_timestamps=0` somewhere in its config, so simply replacing PHP files left old bytecode in memory and made my fixes look like they had no effect. **All deploys now `systemctl reload php8.3-fpm`** as the last step.

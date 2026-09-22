@@ -14,7 +14,7 @@ _Last updated: 2026-07-18_
 
 ### Catalog & browsing
 - Product grid: responsive 2 / 3 / 4 / 5 columns
-- Hero banner (locked 21:9 on desktop) with brand color, "Deals" pill, "Browse Catalog" CTA
+- Hero banner (locked 21:9 on desktop) with brand color, "Deals" pill and a CTA button. **Every word on it is editable in `/admin/settings` → Landing page hero — wording** (headline, tagline, button label, each EN + AR). Clearing the tagline or the button label hides that element; an empty headline falls back to the shop name; Arabic falls back to English when left blank
 - Hero background: admin can upload a custom image (with in-browser cropper) OR feature one of the products' images — pick from a server-side searchable dropdown
 - Search box (matches `name_en`, `name_ar`, `description_en`, `description_ar`)
 - **2-level category filter** — a row of top-level categories and, when one is active, a second row of its sub-categories (both horizontally scrollable on mobile). Picking a parent shows its own products **plus** all of its sub-categories'; picking a child narrows to that child
@@ -108,6 +108,7 @@ A per-customer rewards program: **every customer has their own points balance an
 - Header has visible language switcher
 
 ### Branding
+- **Shop name is a setting** (`brand_name_en` / `brand_name_ar`, edited in `/admin/settings` → Branding). One value drives the header beside the logo, the footer and its copyright line, the browser tab title, the Coming Soon page and the privacy policy. Falls back to `APP_NAME` if emptied. The name is spelled **JorEption** — capital E
 - Deep teal palette (`brand-{50…950}`) matching the logo background
 - Red accent (`accent-{50…900}`) for "Deals" and sale moments
 - Inter font (Figtree fallback)
@@ -301,6 +302,8 @@ The 12 restaurant units are drawn on the plan for orientation but are **not rent
 - **Tables** — the 100 tables: number, section, price per weekend, bookable and active toggles, plus a **bulk "Set price"** action. Floor-plan coordinates live here too (collapsed; normally set by the seeder)
 
 ### Settings
+- **Branding** — shop name EN/AR
+- **Landing page hero — wording** — headline, tagline and button label, EN/AR, with the fallbacks above
 - Currency (code / symbol / position)
 - Admin WhatsApp number
 - **Customer tiers** — *Wholesale discount %* (here, on Store settings) and *VIP points multiplier* (on Loyalty settings) drive the per-tier perks

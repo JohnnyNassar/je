@@ -37,17 +37,23 @@
                     {{ __('Cash on Delivery') }}
                 </span>
             </div>
+            {{-- Wording comes from /admin/settings → Landing page hero. An
+                 empty tagline or button label hides that element. --}}
             <h1 class="text-3xl sm:text-5xl font-extrabold leading-[1.1] mb-3">
-                {{ __('Joreption') }}
+                {{ \App\Models\Setting::localized('hero_headline') ?: \App\Models\Setting::brandName() }}
             </h1>
-            <p class="text-white/80 text-sm sm:text-lg max-w-xl leading-relaxed mb-6">
-                {{ __('Quality finds at garage-sale prices.') ?? 'Quality finds at garage-sale prices.' }}
-            </p>
-            <a href="#products"
-               class="inline-flex items-center gap-2 bg-white hover:bg-gray-100 text-brand-900 font-semibold px-5 py-2.5 rounded-md transition shadow-card">
-                {{ __('Browse Catalog') ?? 'Browse Catalog' }}
-                <svg class="w-4 h-4 rtl:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-            </a>
+            @if ($heroTagline = \App\Models\Setting::localized('hero_tagline'))
+                <p class="text-white/80 text-sm sm:text-lg max-w-xl leading-relaxed mb-6">
+                    {{ $heroTagline }}
+                </p>
+            @endif
+            @if ($heroCta = \App\Models\Setting::localized('hero_cta_label'))
+                <a href="#products"
+                   class="inline-flex items-center gap-2 bg-white hover:bg-gray-100 text-brand-900 font-semibold px-5 py-2.5 rounded-md transition shadow-card">
+                    {{ $heroCta }}
+                    <svg class="w-4 h-4 rtl:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </a>
+            @endif
         </div>
     </section>
 

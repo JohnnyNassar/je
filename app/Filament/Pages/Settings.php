@@ -45,6 +45,14 @@ class Settings extends Page implements HasForms
             'coming_soon_enabled' => filter_var(Setting::get('coming_soon_enabled'), FILTER_VALIDATE_BOOLEAN),
             'coming_soon_message_en' => Setting::get('coming_soon_message_en'),
             'coming_soon_message_ar' => Setting::get('coming_soon_message_ar'),
+            'brand_name_en' => Setting::get('brand_name_en'),
+            'brand_name_ar' => Setting::get('brand_name_ar'),
+            'hero_headline_en' => Setting::get('hero_headline_en'),
+            'hero_headline_ar' => Setting::get('hero_headline_ar'),
+            'hero_tagline_en' => Setting::get('hero_tagline_en'),
+            'hero_tagline_ar' => Setting::get('hero_tagline_ar'),
+            'hero_cta_label_en' => Setting::get('hero_cta_label_en'),
+            'hero_cta_label_ar' => Setting::get('hero_cta_label_ar'),
             'hero_image_path' => Setting::get('hero_image_path'),
             'hero_product_id' => Setting::get('hero_product_id'),
             'google_analytics_id' => Setting::get('google_analytics_id'),
@@ -69,7 +77,47 @@ class Settings extends Page implements HasForms
                             ->label('Headline (Arabic)')
                             ->maxLength(120),
                     ]),
-                Section::make('Landing page hero')
+                Section::make('Branding')
+                    ->description('The shop name, shown beside the logo, in the footer, on the browser tab and on the Coming Soon page. Leave Arabic blank to use the English name in both languages.')
+                    ->schema([
+                        TextInput::make('brand_name_en')
+                            ->label('Shop name (English)')
+                            ->maxLength(60)
+                            ->helperText('Falls back to APP_NAME if left empty.'),
+                        TextInput::make('brand_name_ar')
+                            ->label('Shop name (Arabic)')
+                            ->maxLength(60),
+                    ])
+                    ->columns(2)
+                    ->collapsible(),
+                Section::make('Landing page hero — wording')
+                    ->description('The words on the big banner at the top of the shop. Clear the tagline or the button label to hide that element entirely. Arabic falls back to English when left blank.')
+                    ->schema([
+                        TextInput::make('hero_headline_en')
+                            ->label('Headline (English)')
+                            ->maxLength(80)
+                            ->helperText('Falls back to the shop name if left empty.'),
+                        TextInput::make('hero_headline_ar')
+                            ->label('Headline (Arabic)')
+                            ->maxLength(80),
+                        Textarea::make('hero_tagline_en')
+                            ->label('Tagline (English)')
+                            ->rows(2)
+                            ->maxLength(180),
+                        Textarea::make('hero_tagline_ar')
+                            ->label('Tagline (Arabic)')
+                            ->rows(2)
+                            ->maxLength(180),
+                        TextInput::make('hero_cta_label_en')
+                            ->label('Button label (English)')
+                            ->maxLength(40),
+                        TextInput::make('hero_cta_label_ar')
+                            ->label('Button label (Arabic)')
+                            ->maxLength(40),
+                    ])
+                    ->columns(2)
+                    ->collapsible(),
+                Section::make('Landing page hero — image')
                     ->description('The background of the catalog hero banner. Either upload a custom image OR pick one of your products to feature its image. Custom upload wins if both are set.')
                     ->schema([
                         Placeholder::make('current_hero_preview')

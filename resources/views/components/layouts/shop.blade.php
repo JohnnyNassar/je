@@ -1,17 +1,19 @@
 @php($cart = app(\App\Services\Cart::class))
 @php($cartCount = $cart->itemCount())
+{{-- Shop name, editable in /admin/settings → Branding. --}}
+@php($brand = \App\Models\Setting::brandName())
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name') }}</title>
+    <title>{{ $brand }}</title>
     <link rel="icon" href="{{ asset('images/logo.jpg') }}" type="image/jpeg">
     <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
     <meta name="theme-color" content="#0f4248">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="JorEption">
+    <meta name="apple-mobile-web-app-title" content="{{ $brand }}">
     <link rel="apple-touch-icon" href="{{ asset('images/logo.jpg') }}">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
@@ -32,8 +34,8 @@
         <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex h-16 items-center justify-between gap-4">
                 <a href="{{ route('catalog.index') }}" class="flex items-center gap-2.5 shrink-0">
-                    <img src="{{ asset('images/logo.jpg') }}" alt="{{ config('app.name') }}" class="w-9 h-9 rounded-md object-cover ring-1 ring-gray-200">
-                    <span class="text-lg font-semibold text-gray-900 hidden sm:inline">{{ __('Joreption') }}</span>
+                    <img src="{{ asset('images/logo.jpg') }}" alt="{{ $brand }}" class="w-9 h-9 rounded-md object-cover ring-1 ring-gray-200">
+                    <span class="text-lg font-semibold text-gray-900 hidden sm:inline">{{ $brand }}</span>
                 </a>
 
                 <nav class="hidden md:flex items-center gap-1">
@@ -133,8 +135,8 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div>
                     <div class="flex items-center gap-2 mb-3">
-                        <img src="{{ asset('images/logo.jpg') }}" alt="{{ config('app.name') }}" class="w-8 h-8 rounded object-cover ring-1 ring-gray-200">
-                        <span class="text-base font-semibold text-gray-900">{{ __('Joreption') }}</span>
+                        <img src="{{ asset('images/logo.jpg') }}" alt="{{ $brand }}" class="w-8 h-8 rounded object-cover ring-1 ring-gray-200">
+                        <span class="text-base font-semibold text-gray-900">{{ $brand }}</span>
                     </div>
                     <p class="text-sm text-gray-600 leading-relaxed">
                         {{ __('Cash on Delivery') }}
@@ -157,7 +159,7 @@
                 </div>
             </div>
             <div class="mt-6 pt-5 border-t border-gray-100 text-center text-xs text-gray-500">
-                &copy; {{ date('Y') }} {{ __('Joreption') }}
+                &copy; {{ date('Y') }} {{ $brand }}
             </div>
         </div>
     </footer>

@@ -6,7 +6,7 @@
         <p class="text-sm text-gray-500 mb-6">{{ ($isAr ? 'آخر تحديث: ' : 'Last updated: ') . date('F Y') }}</p>
 
         @if ($isAr)
-            <p class="mb-4">تشرح هذه السياسة كيف نجمع معلوماتك ونستخدمها ونحميها عند استخدامك متجر {{ config('app.name') }} (الدفع عند الاستلام).</p>
+            <p class="mb-4">تشرح هذه السياسة كيف نجمع معلوماتك ونستخدمها ونحميها عند استخدامك متجر {{ \App\Models\Setting::brandName() }} (الدفع عند الاستلام).</p>
 
             <h2 class="text-lg font-semibold text-gray-900 mt-6 mb-2">المعلومات التي نجمعها</h2>
             <ul class="list-disc ps-6 space-y-1">
@@ -42,7 +42,7 @@
                 @endif
             </p>
         @else
-            <p class="mb-4">This policy explains how we collect, use and protect your information when you use {{ config('app.name') }} (Cash on Delivery).</p>
+            <p class="mb-4">This policy explains how we collect, use and protect your information when you use {{ \App\Models\Setting::brandName() }} (Cash on Delivery).</p>
 
             <h2 class="text-lg font-semibold text-gray-900 mt-6 mb-2">Information we collect</h2>
             <ul class="list-disc ps-6 space-y-1">

@@ -10,7 +10,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ config('app.name') }} &mdash; {{ $isAr ? 'قريباً' : 'Coming Soon' }}</title>
+    <title>{{ \App\Models\Setting::brandName() }} &mdash; {{ $isAr ? 'قريباً' : 'Coming Soon' }}</title>
     <link rel="icon" href="{{ asset('images/logo.jpg') }}" type="image/jpeg">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
@@ -29,7 +29,7 @@
     <main class="flex-1 flex items-center justify-center px-6 py-12">
         <div class="max-w-2xl w-full text-center">
             <img src="{{ asset('images/logo.jpg') }}"
-                 alt="{{ config('app.name') }}"
+                 alt="{{ \App\Models\Setting::brandName() }}"
                  class="mx-auto w-48 h-48 sm:w-64 sm:h-64 rounded-2xl shadow-2xl ring-4 ring-white/10 mb-8 object-cover">
 
             <div class="inline-flex items-center gap-2 rounded-full bg-red-600/90 px-4 py-1.5 text-xs sm:text-sm font-semibold uppercase tracking-widest mb-6 shadow-lg">
@@ -66,7 +66,7 @@
     </main>
 
     <footer class="text-center text-xs text-white/40 pb-6">
-        &copy; {{ date('Y') }} {{ config('app.name') }}
+        &copy; {{ date('Y') }} {{ \App\Models\Setting::brandName() }}
     </footer>
 
     @include('partials.cookie-notice')
