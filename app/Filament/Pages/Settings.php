@@ -18,6 +18,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 
@@ -45,6 +46,12 @@ class Settings extends Page implements HasForms
             'coming_soon_enabled' => filter_var(Setting::get('coming_soon_enabled'), FILTER_VALIDATE_BOOLEAN),
             'coming_soon_message_en' => Setting::get('coming_soon_message_en'),
             'coming_soon_message_ar' => Setting::get('coming_soon_message_ar'),
+            'hero_enabled' => Setting::enabled('hero_enabled'),
+            'hero_headline_enabled' => Setting::enabled('hero_headline_enabled'),
+            'hero_tagline_enabled' => Setting::enabled('hero_tagline_enabled'),
+            'hero_cta_enabled' => Setting::enabled('hero_cta_enabled'),
+            'hero_pill_deals_enabled' => Setting::enabled('hero_pill_deals_enabled'),
+            'hero_pill_cod_enabled' => Setting::enabled('hero_pill_cod_enabled'),
             'brand_name_en' => Setting::get('brand_name_en'),
             'brand_name_ar' => Setting::get('brand_name_ar'),
             'hero_headline_en' => Setting::get('hero_headline_en'),
@@ -90,9 +97,19 @@ class Settings extends Page implements HasForms
                     ])
                     ->columns(2)
                     ->collapsible(),
-                Section::make('Landing page hero — wording')
-                    ->description('The words on the big banner at the top of the shop. Clear the tagline or the button label to hide that element entirely. Arabic falls back to English when left blank.')
+                Section::make('Landing page hero — content')
+                    ->description('The big banner at the top of the shop. Each part has its own switch, and Arabic falls back to English when left blank.')
                     ->schema([
+                        Toggle::make('hero_enabled')
+                            ->label('Show the hero banner')
+                            ->helperText('Off hides the whole banner — the product grid moves up to the top of the page.')
+                            ->live()
+                            ->columnSpanFull(),
+
+                        Toggle::make('hero_headline_enabled')
+                            ->label('Show the headline')
+                            ->disabled(fn (Get $get) => ! $get('hero_enabled'))
+                            ->columnSpanFull(),
                         TextInput::make('hero_headline_en')
                             ->label('Headline (English)')
                             ->maxLength(80)
@@ -100,6 +117,11 @@ class Settings extends Page implements HasForms
                         TextInput::make('hero_headline_ar')
                             ->label('Headline (Arabic)')
                             ->maxLength(80),
+
+                        Toggle::make('hero_tagline_enabled')
+                            ->label('Show the tagline')
+                            ->disabled(fn (Get $get) => ! $get('hero_enabled'))
+                            ->columnSpanFull(),
                         Textarea::make('hero_tagline_en')
                             ->label('Tagline (English)')
                             ->rows(2)
@@ -108,12 +130,24 @@ class Settings extends Page implements HasForms
                             ->label('Tagline (Arabic)')
                             ->rows(2)
                             ->maxLength(180),
+
+                        Toggle::make('hero_cta_enabled')
+                            ->label('Show the button')
+                            ->disabled(fn (Get $get) => ! $get('hero_enabled'))
+                            ->columnSpanFull(),
                         TextInput::make('hero_cta_label_en')
                             ->label('Button label (English)')
                             ->maxLength(40),
                         TextInput::make('hero_cta_label_ar')
                             ->label('Button label (Arabic)')
                             ->maxLength(40),
+
+                        Toggle::make('hero_pill_deals_enabled')
+                            ->label('Show the red “Deals” pill')
+                            ->disabled(fn (Get $get) => ! $get('hero_enabled')),
+                        Toggle::make('hero_pill_cod_enabled')
+                            ->label('Show the “Cash on Delivery” pill')
+                            ->disabled(fn (Get $get) => ! $get('hero_enabled')),
                     ])
                     ->columns(2)
                     ->collapsible(),

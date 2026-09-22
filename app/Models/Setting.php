@@ -33,6 +33,14 @@ class Setting extends Model
         'hero_tagline_ar' => 'منتجات بجودة عالية بأسعار مميزة.',
         'hero_cta_label_en' => 'Browse Catalog',
         'hero_cta_label_ar' => 'تصفح المنتجات',
+        // Which parts of the hero banner to show. All on, so the banner looks
+        // the same until someone turns something off in /admin/settings.
+        'hero_enabled' => 'true',
+        'hero_headline_enabled' => 'true',
+        'hero_tagline_enabled' => 'true',
+        'hero_cta_enabled' => 'true',
+        'hero_pill_deals_enabled' => 'true',
+        'hero_pill_cod_enabled' => 'true',
         // Customer-tier perks (see App\Services\CustomerTierService).
         'tier_wholesale_discount_percent' => '10',
         'tier_vip_points_multiplier' => '2',
@@ -70,6 +78,14 @@ class Setting extends Model
         }
 
         return '';
+    }
+
+    /**
+     * An on/off setting. Values are stored as the strings 'true' / 'false'.
+     */
+    public static function enabled(string $key): bool
+    {
+        return filter_var(static::get($key), FILTER_VALIDATE_BOOLEAN);
     }
 
     /**

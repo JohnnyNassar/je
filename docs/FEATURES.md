@@ -14,7 +14,7 @@ _Last updated: 2026-07-18_
 
 ### Catalog & browsing
 - Product grid: responsive 2 / 3 / 4 / 5 columns
-- Hero banner (locked 21:9 on desktop) with brand color, "Deals" pill and a CTA button. **Every word on it is editable in `/admin/settings` → Landing page hero — wording** (headline, tagline, button label, each EN + AR). Clearing the tagline or the button label hides that element; an empty headline falls back to the shop name; Arabic falls back to English when left blank
+- Hero banner (locked 21:9 on desktop) with brand color, "Deals" pill and a CTA button. **Every part has its own on/off switch and every word is editable in `/admin/settings` → Landing page hero — content** — the whole banner, the headline, the tagline, the button and each of the two pills. Switching a part off leaves its wording stored, so it comes back unchanged (headline, tagline, button label, each EN + AR). Clearing the tagline or the button label hides that element; an empty headline falls back to the shop name; Arabic falls back to English when left blank
 - Hero background: admin can upload a custom image (with in-browser cropper) OR feature one of the products' images — pick from a server-side searchable dropdown
 - Search box (matches `name_en`, `name_ar`, `description_en`, `description_ar`)
 - **2-level category filter** — a row of top-level categories and, when one is active, a second row of its sub-categories (both horizontally scrollable on mobile). Picking a parent shows its own products **plus** all of its sub-categories'; picking a child narrows to that child
@@ -303,7 +303,7 @@ The 12 restaurant units are drawn on the plan for orientation but are **not rent
 
 ### Settings
 - **Branding** — shop name EN/AR
-- **Landing page hero — wording** — headline, tagline and button label, EN/AR, with the fallbacks above
+- **Landing page hero — content** — a switch for the banner and for each part inside it (headline, tagline, button, "Deals" pill, "Cash on Delivery" pill), plus the headline, tagline and button label in EN/AR. The per-part switches grey out while the banner itself is off
 - Currency (code / symbol / position)
 - Admin WhatsApp number
 - **Customer tiers** — *Wholesale discount %* (here, on Store settings) and *VIP points multiplier* (on Loyalty settings) drive the per-tier perks

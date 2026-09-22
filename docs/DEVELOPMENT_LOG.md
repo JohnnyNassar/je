@@ -851,10 +851,17 @@ So the wording moved into settings: **shop name**, **hero headline**, **hero tag
 
 The brand setting now also drives the browser tab, the Coming Soon page and the privacy policy, so the name is changeable in one box rather than in a `.env` on two machines.
 
+### And a switch for each part of the banner
+The follow-up to the follow-up: hiding an element by clearing its text worked, but it meant deleting wording you might want back next month. Each part of the hero now has its own toggle — the banner as a whole, the headline, the tagline, the button, and each of the two pills ("Deals" and "Cash on Delivery", which had no editable text and so had no other way to be removed).
+
+A part renders when its switch is on **and** it has something to show, so the two mechanisms compose rather than fight: turning the tagline off keeps `hero_tagline_en` in the database untouched, and turning it back on restores the words exactly. The per-part switches grey out while the banner itself is off, and the pill row disappears entirely when both pills are off rather than leaving an empty flex row above the headline.
+
 ### Notes worth remembering
 - **One translation key can be a feature.** Because the name was `__('Joreption')` everywhere rather than typed out, a one-word brand fix was one line — and the places that had it as a literal (manifest, meta tags, Help heading) were exactly the places that got missed for months.
 - **`config('app.name')` hides in `.env`.** Anything driven by it cannot be fixed by a deploy, needs doing per environment, and silently reverts on a fresh server. Prefer a setting for anything the owner might want to change.
+- **A disabled Filament field is not dehydrated.** Greying the sub-switches out while the master is off means they drop out of the saved form state entirely — which is the behaviour you want (they keep their values) but only by luck unless you check. A Livewire test that drives the real page and reads the table back is the only way to know the save path does what the form appears to do.
 - **"Where do I change this?" is a feature request.** The answer being "ask a developer" for the headline of the shop front is the actual bug; fixing the capital E without fixing that would have guaranteed a repeat.
+- **A toggle and "clear the text" are not the same affordance.** Both hide the element, but only the toggle is reversible without retyping. Where an element can be hidden, prefer a switch and let empty text be the incidental case.
 - **An empty value needs a decided meaning.** For a tagline, empty should hide the line; for the shop name, empty must fall back rather than render nothing. Same field type, opposite rule, so both are spelled out in the helper text and pinned by a test.
 ---
 

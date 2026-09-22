@@ -1,5 +1,9 @@
 <x-layouts.shop>
-    {{-- Hero / search banner --}}
+    {{-- Hero / search banner.
+
+         Every part of it is switchable in /admin/settings → Landing page hero.
+         A part shows when its toggle is on AND it has something to render, so
+         clearing a label hides it just as turning it off does. --}}
     @php
         $heroImage = \App\Models\Setting::get('hero_image_path');
         if (! $heroImage) {
@@ -11,7 +15,19 @@
                 }
             }
         }
+        $heroHeadline = \App\Models\Setting::enabled('hero_headline_enabled')
+            ? (\App\Models\Setting::localized('hero_headline') ?: \App\Models\Setting::brandName())
+            : '';
+        $heroTagline = \App\Models\Setting::enabled('hero_tagline_enabled')
+            ? \App\Models\Setting::localized('hero_tagline')
+            : '';
+        $heroCta = \App\Models\Setting::enabled('hero_cta_enabled')
+            ? \App\Models\Setting::localized('hero_cta_label')
+            : '';
+        $heroPillDeals = \App\Models\Setting::enabled('hero_pill_deals_enabled');
+        $heroPillCod = \App\Models\Setting::enabled('hero_pill_cod_enabled');
     @endphp
+    @if (\App\Models\Setting::enabled('hero_enabled'))
     <section class="relative overflow-hidden rounded-2xl mb-5 bg-brand-900 text-white shadow-card-hover
                     min-h-[10rem] sm:min-h-[12rem] lg:min-h-[14rem] flex">
         @if ($heroImage)
@@ -28,26 +44,32 @@
         <div class="absolute -top-24 -end-24 w-80 h-80 rounded-full bg-accent-600/20 blur-3xl pointer-events-none"></div>
 
         <div class="relative px-6 sm:px-10 lg:px-14 py-6 sm:py-7 lg:py-8 max-w-3xl flex flex-col justify-center">
-            <div class="flex items-center gap-2 mb-5">
-                <span class="inline-flex items-center gap-1.5 rounded-full bg-accent-600 text-white px-3 py-1 text-xs font-bold uppercase tracking-wider">
-                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
-                    {{ __('Deals') ?? 'Deals' }}
-                </span>
-                <span class="inline-flex items-center rounded-full bg-white/10 text-white/90 px-3 py-1 text-xs font-medium ring-1 ring-white/20">
-                    {{ __('Cash on Delivery') }}
-                </span>
-            </div>
-            {{-- Wording comes from /admin/settings → Landing page hero. An
-                 empty tagline or button label hides that element. --}}
-            <h1 class="text-3xl sm:text-5xl font-extrabold leading-[1.1] mb-3">
-                {{ \App\Models\Setting::localized('hero_headline') ?: \App\Models\Setting::brandName() }}
-            </h1>
-            @if ($heroTagline = \App\Models\Setting::localized('hero_tagline'))
+            @if ($heroPillDeals || $heroPillCod)
+                <div class="flex items-center gap-2 mb-5">
+                    @if ($heroPillDeals)
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-accent-600 text-white px-3 py-1 text-xs font-bold uppercase tracking-wider">
+                            <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                            {{ __('Deals') }}
+                        </span>
+                    @endif
+                    @if ($heroPillCod)
+                        <span class="inline-flex items-center rounded-full bg-white/10 text-white/90 px-3 py-1 text-xs font-medium ring-1 ring-white/20">
+                            {{ __('Cash on Delivery') }}
+                        </span>
+                    @endif
+                </div>
+            @endif
+            @if ($heroHeadline)
+                <h1 class="text-3xl sm:text-5xl font-extrabold leading-[1.1] mb-3">
+                    {{ $heroHeadline }}
+                </h1>
+            @endif
+            @if ($heroTagline)
                 <p class="text-white/80 text-sm sm:text-lg max-w-xl leading-relaxed mb-6">
                     {{ $heroTagline }}
                 </p>
             @endif
-            @if ($heroCta = \App\Models\Setting::localized('hero_cta_label'))
+            @if ($heroCta)
                 <a href="#products"
                    class="inline-flex items-center gap-2 bg-white hover:bg-gray-100 text-brand-900 font-semibold px-5 py-2.5 rounded-md transition shadow-card">
                     {{ $heroCta }}
@@ -56,6 +78,7 @@
             @endif
         </div>
     </section>
+    @endif
 
     {{-- Featured strip --}}
     @if (($featured ?? collect())->isNotEmpty())
