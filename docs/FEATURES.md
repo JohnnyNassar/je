@@ -217,6 +217,7 @@ The 12 restaurant units are drawn on the plan for orientation but are **not rent
 ## Admin dashboard (`/admin` — Filament 3)
 
 ### Dashboard (home, admin-only)
+- **Google Analytics widgets** (admin-only, hidden unless configured) — GA4 property 538833054 read through the **Data API**, not an embed: GA cannot be iframed. A stats row (visitors / sessions / page views over 28 days, each with a trend against the previous 28 and a sparkline), then top pages, traffic sources and countries as ranked bars, plus a link out to the full GA report. Every report is **cached 15 minutes** to stay inside the API quota, and any failure renders "Unavailable" on that widget instead of breaking the dashboard. Configured by GOOGLE_ANALYTICS_PROPERTY_ID and GOOGLE_ANALYTICS_CREDENTIALS in .env, the latter pointing at a service-account key at /etc/joreption/ga-service-account.json (root:www-data 640) — **never in the repo**
 - Stats row: orders (+ pending count), revenue from delivered orders, customers, low-stock alert
 - 14-day orders line chart (brand teal)
 - "Latest orders" table (click through to the order)

@@ -863,6 +863,32 @@ A part renders when its switch is on **and** it has something to show, so the tw
 - **"Where do I change this?" is a feature request.** The answer being "ask a developer" for the headline of the shop front is the actual bug; fixing the capital E without fixing that would have guaranteed a repeat.
 - **A toggle and "clear the text" are not the same affordance.** Both hide the element, but only the toggle is reversible without retyping. Where an element can be hidden, prefer a switch and let empty text be the incidental case.
 - **An empty value needs a decided meaning.** For a tagline, empty should hide the line; for the shop name, empty must fall back rather than render nothing. Same field type, opposite rule, so both are spelled out in the helper text and pinned by a test.
+
+---
+
+## Day 25 — 2026-09-22 (Google Analytics on the admin dashboard)
+
+### Not an embed — GA refuses to be framed
+`analytics.google.com` sets frame-ancestors, so the obvious "drop it in an iframe" answer does not exist. The options were a Looker Studio embed (fast, foreign-looking, awkward on a phone) or the **GA4 Data API** with native Filament widgets. Took the second.
+
+The property ID came straight out of the URL the owner pasted — `#/a395668753p538833054/…` is account `395668753`, property `538833054` — which is the number the API wants, not the `G-` measurement ID the site tags pages with. Checking the property first was worth it: one web stream, `JorEption → joreption.com`, *receiving traffic in past 48 hours*, confirming the tag feeds **this** property. A dashboard pointed at the wrong property fails silently.
+
+### The key nearly went into a public repo
+Asked where to put the downloaded service-account JSON, the answer came back as `D:\xampp\htdocs\joreption\docs` — inside the repo, in a **public** GitHub project. It was still untracked, so nothing had leaked. It moved to `/etc/joreption/ga-service-account.json` (root:www-data 640, directory 750 so www-data can traverse — 640 alone was not enough, the directory blocked it), with a local backup outside the repo. `.gitignore` now refuses `*service-account*.json`, `*credentials*.json` and `docs/joreption-*.json` outright, verified by dropping a decoy in `docs/` and watching git ignore it. Google does not let you re-download a key, so those two copies are the only ones.
+
+### What the service does and does not do
+Every report is **cached 15 minutes**, because a dashboard that calls Google on each page load burns the daily token quota for numbers that are hours old anyway. Every failure returns **null**, not an exception: a missing key, a revoked grant or a Google outage puts "Unavailable" on one widget rather than 500-ing the admin over a reporting panel. Both widgets are `canView()` false unless configured, so a server without credentials simply has no analytics section.
+
+First real numbers: **45 visitors, 108 sessions, 394 page views** over 28 days, up 32/59/129% on the previous month. Top pages are `/` (the splash), `/login`, two product pages and `/privacy` — **`/bazar` is not in the top five**, which is worth the owner knowing while the season is still running.
+
+### Notes worth remembering
+- **The GA4 property ID is in the URL.** `#/a<account>p<property>/` — no need to hunt through Admin, and it is not the `G-` measurement ID the site's tag uses.
+- **`google/analytics-data` v0.27 moved the client.** It is `…\V1beta\Client\BetaAnalyticsDataClient` with request objects (`RunReportRequest`), not the flat `…\V1beta\BetaAnalyticsDataClient` taking arrays that every tutorial still shows.
+- **Filament widgets are lazy.** They are not in the first HTML response, so grepping the dashboard for a widget's text proves nothing — the existing Latest-orders widget is equally absent. Mount the component to actually check it.
+- **A Filament widget blade needs its component context.** Rendering `filament.widgets.*` through `view()` alone dies with *Using $this when not in object context*, because `<x-filament-widgets::widget>` reaches for the Livewire instance.
+- **Composer lives on the server, not this machine.** `composer require` ran over SSH in `/var/www/joreption`, then `composer.json` and `composer.lock` were copied back and committed — otherwise the next deploy's `git reset --hard` would have wiped the dependency straight back out.
+- **A key file with no grant is a silent no-op.** The credential opens nothing until the service account's email is added to the GA property as a Viewer. The only honest test is calling `runReport` and seeing rows come back.
+- **A file mode of 640 is not enough if the directory says no.** `/etc/joreption` as `root:root 750` blocked www-data from traversing into it, so the correctly-owned key inside was still unreadable. Check the path, not just the file.
 ---
 
 ## Lessons learned (worth remembering)
