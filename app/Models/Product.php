@@ -113,7 +113,22 @@ class Product extends Model
 
     public function hasVariants(): bool
     {
-        return $this->variants()->exists();
+        return $this->variantCount() > 0;
+    }
+
+    /**
+     * How many variations this product has, using an eager-loaded
+     * `withCount('variants')` when one is there and falling back to a query
+     * when it isn't.
+     *
+     * The admin list counts them once for the whole page, but anything that
+     * reads a Product without that count must still get the right answer —
+     * treating a variant product as a plain one would let its total be typed
+     * over, and the next variant save would silently undo it.
+     */
+    public function variantCount(): int
+    {
+        return (int) ($this->variants_count ?? $this->variants()->count());
     }
 
     /** Structured option axes (Colour, Size, …) that drive per-axis selectors. */

@@ -7,6 +7,7 @@ use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -305,6 +306,10 @@ class ProductResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            // variants_count drives the stock cell: a product with variations
+            // gets its total from them, so the cell must not be typed into.
+            // Counting here keeps it one query instead of one per row.
+            ->modifyQueryUsing(fn (Builder $query) => $query->withCount('variants'))
             ->columns([
                 Tables\Columns\TextColumn::make('name_en')
                     ->searchable()
@@ -345,9 +350,20 @@ class ProductResource extends Resource
                     ->copyMessage('Link copied — paste into WhatsApp')
                     ->copyMessageDuration(2000)
                     ->color('primary'),
-                Tables\Columns\TextColumn::make('stock')
-                    ->numeric()
-                    ->sortable(),
+                // Editable in place: type a number, press Enter or click away.
+                // Disabled for products with variations, whose total is the sum
+                // of their variants and would be overwritten the moment any
+                // variant saved — use the "Stock by variation" row action.
+                Tables\Columns\TextInputColumn::make('stock')
+                    ->label('Stock')
+                    ->type('number')
+                    ->rules(['required', 'integer', 'min:0'])
+                    ->sortable()
+                    ->disabled(fn (Product $record): bool => $record->variantCount() > 0)
+                    ->tooltip(fn (Product $record): ?string => $record->variantCount() > 0
+                        ? 'Total of ' . $record->variantCount() . ' variations — edit them with the “Stock by variation” action'
+                        : 'Type a new stock level and press Enter')
+                    ->extraAttributes(['class' => 'max-w-24']),
                 Tables\Columns\ImageColumn::make('image_path')
                     ->size(28),
                 Tables\Columns\IconColumn::make('is_active')
@@ -399,6 +415,61 @@ class ProductResource extends Resource
                     ->toggle(),
             ])
             ->actions([
+                // The other half of inline stock editing: products with
+                // variations own their total through their variants, so this
+                // edits the variants without leaving the list.
+                Tables\Actions\Action::make('variantStock')
+                    ->label('Stock by variation')
+                    ->icon('heroicon-m-squares-2x2')
+                    ->color('gray')
+                    ->visible(fn (Product $record): bool => $record->variantCount() > 0)
+                    ->modalHeading(fn (Product $record): string => 'Stock — ' . $record->name_en)
+                    ->modalDescription('The product total is the sum of these, and updates itself when you save.')
+                    ->modalSubmitActionLabel('Save stock')
+                    ->fillForm(fn (Product $record): array => [
+                        'variants' => $record->variants->map(fn (\App\Models\ProductVariant $variant): array => [
+                            'id' => $variant->id,
+                            'name' => $variant->name,
+                            'stock' => $variant->stock,
+                        ])->all(),
+                    ])
+                    ->form([
+                        Forms\Components\Repeater::make('variants')
+                            ->hiddenLabel()
+                            ->addable(false)
+                            ->deletable(false)
+                            ->reorderable(false)
+                            ->columns(3)
+                            ->schema([
+                                Forms\Components\Hidden::make('id'),
+                                Forms\Components\TextInput::make('name')
+                                    ->label('Variation')
+                                    ->disabled()
+                                    ->columnSpan(2),
+                                Forms\Components\TextInput::make('stock')
+                                    ->label('Stock')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->required(),
+                            ]),
+                    ])
+                    ->action(function (Product $record, array $data): void {
+                        foreach ($data['variants'] ?? [] as $row) {
+                            // Look the variant up through the relation so a
+                            // posted id from another product cannot be written.
+                            $record->variants()->find($row['id'])?->update([
+                                'stock' => (int) $row['stock'],
+                            ]);
+                        }
+
+                        // ProductVariant's saved event rolls the total back up
+                        // into products.stock, so nothing is set here.
+                        Notification::make()
+                            ->title('Stock updated')
+                            ->body('New total: ' . $record->fresh()->stock)
+                            ->success()
+                            ->send();
+                    }),
                 Tables\Actions\Action::make('viewOnSite')
                     ->label('View on website')
                     ->icon('heroicon-m-arrow-top-right-on-square')

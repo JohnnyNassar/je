@@ -234,6 +234,7 @@ The 12 restaurant units are drawn on the plan for orientation but are **not rent
 - **Getting Started** page (top of the sidebar, all admins): a bilingual **step-by-step onboarding guide** with an **English ⇄ العربية toggle** (choice remembered) — Arabic renders full RTL. Numbered cards cover sign-in/password, adding a product, variations, categories, media and tips. Tailored to catalog work, so it's the friendly first stop for a new staff member
 
 ### Products
+- **Stock is editable from the list** — the Stock cell is a number input: type, press Enter or click away, saved. Validated server-side (integer, 0 or more), so a negative or a word is refused and the old value stays. For a product **with variations** the cell is disabled (its total is the sum of its variants and would be overwritten on the next variant save) and a **"Stock by variation"** row action opens a modal listing each variation with its own stock — saving rolls the total back up automatically
 - Bilingual name + description (EN / AR)
 - **Main image** (cover) upload (stored in `storage/app/public/products/`) — auto-resized server-side to max 1600px, JPEG q85 via GD; this is the big photo shown on the product page, in grids, cart and orders. Has an **in-browser crop / rotate / zoom editor** (works on existing images too) for trimming supplier banners off
 - **More images (gallery)** — additional photos via a multiple, drag-reorderable upload (also auto-resized, same crop editor); shown after the main image as a thumbnail strip + arrow carousel on the storefront
