@@ -54,3 +54,11 @@ Thumbs.db
 
 ## Claude Code project config (local-only)
 /.mcp.json
+
+# Credential files must never be committed — this repo is public.
+# A Google service-account key downloads as <project>-<keyid>.json, and the
+# obvious place to drop it is next to the docs. Belt and braces.
+*service-account*.json
+*serviceaccount*.json
+*credentials*.json
+docs/joreption-*.json

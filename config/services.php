@@ -31,4 +31,13 @@ return [
         ],
     ],
 
+    // GA4 reporting for the admin dashboard. The property ID is the numeric
+    // one from the Analytics URL, not the G- measurement ID the site tags
+    // pages with. The credentials path points at a service-account key kept
+    // outside the repo — this repo is public.
+    'google_analytics' => [
+        'property_id' => env('GOOGLE_ANALYTICS_PROPERTY_ID'),
+        'credentials' => env('GOOGLE_ANALYTICS_CREDENTIALS'),
+    ],
+
 ];
