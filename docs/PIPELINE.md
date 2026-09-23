@@ -4,7 +4,7 @@ Proposed/explored work that is **not yet started** and is **awaiting client sign
 
 > A tabbed visual version of the overall status (delivered / inquiries / pipeline) lives at **`docs/project-status.html`**. It is tracked, but deliberately **outside `public/`** so it is *not* served on joreption.com — it spells out the security debt, and that must not be a page on the live site. Open it as a local file, or send the file itself to the client. **If you move it back into `public/`, it becomes a public URL.**
 
-_Last updated: 2026-07-18._
+_Last updated: 2026-09-23._
 
 **Status legend:** 🟡 proposed / awaiting decision · 🔵 scoped, ready to build · ⏸️ deferred (later) · ✅ shipped
 
@@ -76,7 +76,7 @@ No easy Jordan-local split-payment processor, so payouts stay a **manual ledger 
 
 These are **not new proposals** but the outstanding items to clear before/around go-live (full detail in `FEATURES.md` Roadmap §1 and the dev log):
 
-- **Launch readiness:** activate imported product drafts; fix mis-entered variants (e.g. product 91 has a single `green` variant → no colour chooser); set the live `admin_whatsapp` number; decide on loyalty; flip Coming Soon off. _(None of this blocks the bazaar, which is already live at `/bazar`.)_
+- **Launch readiness — re-checked 2026-09-23.** ✅ The catalogue is no longer the blocker: **236 products, all active**, every one with images, Arabic names, descriptions, a category and a gallery (it was 8 active in May). Still outstanding: **12 products carry both choices in one variant name** (#90 `white/blue`, #116 `white & green`, #134 `white & gray`, #91, #100, #222, #227, #277, #295, #313, #314, and #272 whose "variant" is a measurements sentence) so the storefront shows no chooser; **`admin_whatsapp` is still empty** on prod; **loyalty is still off**; **Coming Soon is still on**. _(None of this blocks the bazaar, which is already live at `/bazar`.)_
 - ⚪ **Security debt — owner decision, 2026-07-19: not rotating.** Raised repeatedly since Day 17 and declined; treated from here as an **accepted risk**, not an open task, and not to be re-raised unprompted. For the record, the position is: secrets remain live and remain in the **public** repo, and root SSH password login stays enabled, while `/bazar` is live and being shared. If the decision changes, the work is to rotate each secret at its provider, then `git rm --cached` + gitignore. The cheaper alternative is making the repo private — prod's pull would move from HTTPS to the deploy key already on the server (`/root/.ssh/joreption_deploy`).
 - **Infra:** webhook-triggered auto-deploy (replace the manual SSH git-pull).
 - ✅ **Dev environment — fixed 2026-07-19.** The old `D:\Git` install was broken (missing DLLs, every binary exited `0xC0000135`), so the 2026-07-18 bazaar deploy had to be pushed via the GitHub API. Git 2.55.0.3 is now installed at `C:\Program Files\Git`, on PATH, with `gh` wired in as the credential helper (`gh auth setup-git`) — push authenticates and the normal edit → commit → push → SSH-deploy flow works again. The dead `D:\Git` tree is still on disk (~68 MB, not on PATH); remove it with `D:\Git\unins000.exe` if you want it gone.
@@ -151,4 +151,5 @@ The database restores perfectly and **every image and document in it is a dangli
 
 ## 5. 🟡 Minor / quick decisions
 
-- **Cover-logo access for staff ("Yasmine").** The "Cover logo" tool is admin-only (`isAdmin()`). To let a Staff member use it: either **promote her to Administrator** (broad — grants all back-office powers), or add a scoped **`can_cover_logo`** flag mirroring the existing `can_view_cost` pattern (a migration + a `Toggle` in the user form + swapping the controller's two guards to `canCoverLogo()`). **Owner to decide.**
+- ✅ **Cover-logo access for staff ("Yasmine") — settled 2026-09-23.** She was made an **Administrator**, so the tool is already hers; the scoped-flag alternative was not needed for this. The pattern it described was built anyway for a different reason (see below), so a `can_cover_logo` flag is now a ten-minute change if a future catalogue person should get the tool without the admin tier.
+- ✅ **Per-capability access — built 2026-09-23.** An Administrator can now be refused **orders & revenue** (`can_view_orders`) or **cost prices & profit** (`can_view_cost`) without being demoted to Staff, which would also have cost them customers, coupons, loyalty and the bazaar. Applied to Yasmine: full back office, no takings, no cost. The same shape extends to any other capability worth withholding — the work is a flag, a gate on the resource, and gates wherever that data surfaces sideways (for orders that was five places, not one).

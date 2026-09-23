@@ -921,6 +921,51 @@ Pre-existing since Day 13 — it needed a table with more than one page to show 
 - **`requestAnimationFrame` does not fire in a hidden tab.** Driving a browser over CDP leaves `document.visibilityState === 'hidden'`, so anything deferred to a frame never runs and looks broken. Check `visibilityState` before believing a negative result — an hour nearly went into "I broke the scrollbar" when the tab simply was not being painted.
 - **Verify the failing path, not a path.** The first round of checks passed only because no scrollbar had attached in the hidden tab, so there was nothing to corrupt. Planting the bar by hand and re-clicking was the test that actually meant something.
 - **`callTableColumnAction` is not how an editable column saves.** Filament's `TextInputColumn` calls `updateTableColumnState($column, $recordKey, $input)` on blur; a test that calls that method exercises the same path a typed value does, including the disabled check and the validation rules.
+
+---
+
+## Day 27 — 2026-09-23, later the same day (an administrator who cannot see the takings)
+
+### The ask, and what already existed
+*"I need a user role that can't see the orders and can't see the cost prices."*
+
+That role already existed — **Staff** — and the first useful thing was proving it rather than saying so: `/admin/orders`, `/customers`, `/coupons`, `/loyalty-transactions`, `/settings` and `/users` all refuse a staff user at the **URL**, not merely in the navigation, and cost never reaches the page. Fourteen tests now pin that boundary, which had none: a resource added without the `AdminOnly` trait would have opened the back office silently.
+
+But Staff was the wrong fit. The person in question — the one who has loaded 236 products — is an **Administrator**, and demoting her would also have taken customers, coupons, loyalty and the bazaar. The real requirement was *"only NOT the orders and the cost"*.
+
+### Capabilities, not tiers
+Two flags on the account, the shape `can_view_cost` already had:
+
+- **`can_view_cost`** stopped being short-circuited by `isAdmin()`. That short-circuit was precisely why "an administrator who cannot see cost" was impossible before. The migration grants the flag to every existing admin and super_admin, so nobody lost access they had that morning — the kind of backfill that has to ship *with* the semantic change, not after it.
+- **`can_view_orders`**, defaulting to true.
+
+The owner is exempt from both. Nobody should be able to lock the owner out of their own takings, and a flag that can do that is a footgun waiting for a bad afternoon.
+
+### Hiding /admin/orders was the easy half
+Order data reaches four other places, and each is a way to read the takings without ever opening the Orders page:
+
+| Where | What leaked |
+|---|---|
+| Dashboard | Orders count, pending count, **Revenue (delivered)** |
+| Dashboard | Orders-over-time chart, Latest orders table |
+| Customers list | Order count, **Total spent**, the "Has orders" filter |
+| Customer record | The **order history tab** — the orders screen by another route |
+| Loyalty ledger | The order reference on each points entry |
+
+The stats widget itself stays: Customers and Low stock still mean something to a catalogue manager, so only the two money stats are dropped. Quick Add needed nothing — it already routed cost through `canViewCost()`, including ignoring a cost value posted by someone without access.
+
+### The list was lying
+With the flags applied, two rows both read **Administrator** while meaning different things. The badge is now derived from what the account can actually reach: **Administrator · limited** in amber, with a tooltip naming what was withheld. `isRestricted()` is deliberately false for the **owner** (exempt, so nothing was taken away) and false for **Staff** (never had orders — that is the role, not a removal, and flagging it would put a warning on every staff row). Two icon columns show orders and cost access at a glance, rendering the effective answer rather than the raw column.
+
+Applied on production: Jasmine keeps Administrator, loses orders and cost. Verified signed in as her — `/admin/orders` 403, products/customers/coupons/dashboard 200, "Total spent" and "Cost price" absent from the HTML.
+
+### Notes worth remembering
+- **Check whether the feature already exists before building it.** The requested role shipped months ago; what was missing was a test proving it, and a way to apply *part* of it to someone senior.
+- **A role is a bundle; a requirement is rarely the whole bundle.** "Cannot see orders" did not mean "cannot see customers", and the only way to express that without capabilities was a demotion that took four unrelated things with it.
+- **Changing a permission check from a grant to a requirement needs a backfill in the same migration.** `can_view_cost` was `isAdmin() || flag`; making it `flag` alone would have silently stripped cost from every administrator, because none of them had ever needed the column set.
+- **Gate the data, not the page.** The Orders screen was one of five places order figures surfaced. Revenue on a dashboard and "total spent" on a customer are the same secret in different clothes.
+- **Exempt the owner from every restriction flag.** Otherwise a mis-click can lock the only account that can undo it out of the thing it needs to undo it.
+- **A derived label beats a stored one when the stored one can lie.** Both the role badge and the capability columns render `canViewOrders()`/`canViewCost()` rather than the database column, because the owner's exemption means the column and the truth disagree for exactly the account that matters most.
 ---
 
 ## Lessons learned (worth remembering)
