@@ -92,10 +92,19 @@
         });
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
+    function watch() {
         scan();
         new MutationObserver(scan).observe(document.body, { childList: true, subtree: true });
-    });
+    }
+
+    // Waiting only for DOMContentLoaded loses the race whenever the script is
+    // evaluated after the document has already been parsed — the listener is
+    // registered for an event that has been and gone, so nothing ever attaches.
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', watch);
+    } else {
+        watch();
+    }
 
     document.addEventListener('livewire:navigated', scan);
 
@@ -105,8 +114,13 @@
 
         window.Livewire.hook('commit', function (commit) {
             // Fires once the response is in but before the DOM is morphed.
+            // Re-scanning on the next frame is the safety net: if the hooks
+            // below never fire, the table must not be left without its bar.
             if (typeof commit.respond === 'function') {
-                commit.respond(detach);
+                commit.respond(function () {
+                    detach();
+                    requestAnimationFrame(scan);
+                });
             }
 
             // Fires after the morph, on both success and failure, so a failed
