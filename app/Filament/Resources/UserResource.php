@@ -50,7 +50,7 @@ class UserResource extends Resource
                             ])
                             ->default('staff')
                             ->required()
-                            ->helperText('Super Admin can manage staff, settings and the activity log. Administrator handles orders, customers, coupons and loyalty. Staff manage the catalog only.'),
+                            ->helperText('Super Admin can manage staff, settings and the activity log, and always sees orders and cost. Administrator runs the back office — customers, coupons, loyalty and the bazaar — and by default orders too, though the two switches below can take orders or cost away without changing the role. Staff manage the catalog only and never see orders.'),
                         Forms\Components\TextInput::make('password')
                             ->password()
                             ->revealable()
@@ -95,6 +95,22 @@ class UserResource extends Resource
                         'admin' => 'info',
                         default => 'gray',
                     }),
+                Tables\Columns\IconColumn::make('can_view_orders')
+                    ->label('Orders')
+                    ->boolean()
+                    ->tooltip(fn ($record) => $record->canViewOrders()
+                        ? 'Sees orders, revenue and customer spend'
+                        : 'Cannot see orders, revenue or customer spend')
+                    // The owner is exempt from the flag, so show what is true
+                    // rather than what the column happens to store.
+                    ->state(fn ($record) => $record->canViewOrders()),
+                Tables\Columns\IconColumn::make('can_view_cost')
+                    ->label('Cost')
+                    ->boolean()
+                    ->tooltip(fn ($record) => $record->canViewCost()
+                        ? 'Sees cost prices and profit'
+                        : 'Cannot see cost prices or profit')
+                    ->state(fn ($record) => $record->canViewCost()),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

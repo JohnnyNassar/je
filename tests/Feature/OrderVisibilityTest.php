@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Filament\Resources\CustomerResource;
 use App\Filament\Resources\CustomerResource\Pages\ListCustomers;
+use App\Filament\Resources\UserResource\Pages\ListUsers;
 use App\Filament\Widgets\LatestOrders;
 use App\Filament\Widgets\OrdersChart;
 use App\Filament\Widgets\StatsOverview;
@@ -171,5 +172,26 @@ class OrderVisibilityTest extends TestCase
 
         $owner = User::factory()->create(['role' => 'super_admin', 'can_view_cost' => false]);
         $this->assertTrue($owner->canViewCost(), 'the owner always sees cost');
+    }
+
+    public function test_the_staff_list_shows_each_capability_at_a_glance(): void
+    {
+        $owner = User::factory()->create(['role' => 'super_admin', 'can_view_orders' => false, 'can_view_cost' => false]);
+        $restricted = $this->restrictedAdmin();
+        $full = $this->admin();
+
+        $table = Livewire::actingAs($owner)->test(ListUsers::class);
+
+        // The owner is exempt from both flags, so the column has to report what
+        // is true rather than what the column stores — otherwise the one row
+        // guaranteed to see everything would read as seeing nothing.
+        $table->assertTableColumnStateSet('can_view_orders', true, $owner);
+        $table->assertTableColumnStateSet('can_view_cost', true, $owner);
+
+        $table->assertTableColumnStateSet('can_view_orders', false, $restricted);
+        $table->assertTableColumnStateSet('can_view_cost', false, $restricted);
+
+        $table->assertTableColumnStateSet('can_view_orders', true, $full);
+        $table->assertTableColumnStateSet('can_view_cost', true, $full);
     }
 }
