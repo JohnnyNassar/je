@@ -14,7 +14,9 @@ class OrdersChart extends ChartWidget
 
     public static function canView(): bool
     {
-        return auth()->user()?->isAdmin() ?? false;
+        $user = auth()->user();
+
+        return (bool) ($user?->isAdmin() && $user->canViewOrders());
     }
 
     protected function getData(): array

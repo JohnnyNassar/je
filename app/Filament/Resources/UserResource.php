@@ -60,8 +60,13 @@ class UserResource extends Resource
                             ->helperText('Leave blank to keep the current password.'),
                         Forms\Components\Toggle::make('can_view_cost')
                             ->label('Can view cost prices & profit')
-                            ->helperText('Lets a Staff member see cost price and profit margin. Administrators and the owner always see these, so this only matters for the Staff role.')
+                            ->helperText('Cost price and profit margin, on the product form, the products list and Quick Add. Applies to Administrators too — switch it off to give someone the back office without showing them what stock cost. The owner always sees them.')
                             ->default(false)
+                            ->columnSpanFull(),
+                        Forms\Components\Toggle::make('can_view_orders')
+                            ->label('Can view orders & revenue')
+                            ->helperText('The Orders screen, the dashboard order and revenue figures, and a customer’s order count, total spent and order history. Switch it off for someone who manages the catalogue but should not see takings. The owner always sees them; Staff never do.')
+                            ->default(true)
                             ->columnSpanFull(),
                     ]),
             ]);

@@ -283,6 +283,9 @@ The 12 restaurant units are drawn on the plan for orientation but are **not rent
 - Applied at checkout from the cart; discount + code recorded on the order
 
 ### Staff (admin accounts)
+- **Per-capability flags** on top of the role, so an Administrator can be refused one thing without being demoted to Staff (which would also cost them customers, coupons, loyalty and the bazaar):
+  - **Can view cost prices & profit** (`can_view_cost`) — the product form field, the Cost/Profit columns and the Quick Add cost box. Authoritative for Administrators too; the owner always sees them
+  - **Can view orders & revenue** (`can_view_orders`) — the Orders screen, the dashboard Orders/Revenue stats and the orders chart and latest-orders widgets, plus a customer's order count, total spent, the "Has orders" filter and their order-history tab. The owner always sees them; Staff never do
 - Three roles: **super admin** (owner — full access), **admin** (everyday ops), **staff** (catalog only — Products, Categories, Media)
 - **Super-admin-only** (hidden nav + 403 for everyone else): Staff/user management, Settings (Store / Notifications / Loyalty) and the Activity log
 - **Admin** can run Orders, Customers, Coupons and Loyalty, but not the super-admin-only areas above

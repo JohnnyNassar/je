@@ -53,6 +53,7 @@ class LoyaltyTransactionResource extends Resource
                     ->formatStateUsing(fn (int $state): string => ($state >= 0 ? '+' : '') . $state),
                 Tables\Columns\TextColumn::make('order_id')
                     ->label('Order')
+                    ->visible(fn () => auth()->user()?->canViewOrders())
                     ->formatStateUsing(fn ($state) => $state ? ('#' . $state) : '—'),
                 Tables\Columns\TextColumn::make('description')
                     ->wrap()

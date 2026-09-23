@@ -70,17 +70,21 @@ class CustomerResource extends Resource
                         default => 'gray',
                     })
                     ->sortable(),
+                // How much a customer has ordered and spent is order data
+                // wearing a customer label, so it follows order access.
                 Tables\Columns\TextColumn::make('orders_count')
                     ->label('Orders')
                     ->counts('orders')
                     ->badge()
                     ->color('primary')
-                    ->sortable(),
+                    ->sortable()
+                    ->visible(fn () => auth()->user()?->canViewOrders()),
                 Tables\Columns\TextColumn::make('orders_sum_total')
                     ->label('Total spent')
                     ->sum('orders', 'total')
                     ->formatStateUsing(fn ($state) => $state ? money_format($state) : '—')
-                    ->sortable(),
+                    ->sortable()
+                    ->visible(fn () => auth()->user()?->canViewOrders()),
                 Tables\Columns\TextColumn::make('points_balance')
                     ->label('Points')
                     ->badge()
@@ -98,7 +102,8 @@ class CustomerResource extends Resource
                 Tables\Filters\Filter::make('has_orders')
                     ->label('Has orders')
                     ->query(fn ($query) => $query->whereHas('orders'))
-                    ->toggle(),
+                    ->toggle()
+                    ->visible(fn () => auth()->user()?->canViewOrders()),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -145,6 +150,12 @@ class CustomerResource extends Resource
 
     public static function getRelations(): array
     {
+        // The order history tab on a customer is the orders screen by another
+        // route, so it disappears with the rest.
+        if (! auth()->user()?->canViewOrders()) {
+            return [];
+        }
+
         return [
             RelationManagers\OrdersRelationManager::class,
         ];

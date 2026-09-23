@@ -12,7 +12,7 @@ use Filament\Tables\Table;
 
 class OrderResource extends Resource
 {
-    use \App\Filament\Concerns\AdminOnly;
+    use \App\Filament\Concerns\OrdersOnly;
 
     protected static ?string $model = Order::class;
 

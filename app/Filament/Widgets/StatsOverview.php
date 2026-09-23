@@ -19,19 +19,29 @@ class StatsOverview extends BaseWidget
 
     protected function getStats(): array
     {
-        $pending = Order::where('status', 'pending')->count();
-        $revenue = (float) Order::where('status', 'delivered')->sum('total');
         $lowStock = Product::active()->where('stock', '>', 0)->where('stock', '<=', 3)->count();
 
-        return [
-            Stat::make('Orders', Order::count())
+        $stats = [];
+
+        // Order count and revenue are the money on this page, so they come and
+        // go with order access. The rest of the row still has something to say
+        // to a catalogue manager, which is why the widget itself stays.
+        if (auth()->user()?->canViewOrders()) {
+            $pending = Order::where('status', 'pending')->count();
+            $revenue = (float) Order::where('status', 'delivered')->sum('total');
+
+            $stats[] = Stat::make('Orders', Order::count())
                 ->description($pending . ' pending')
                 ->descriptionIcon('heroicon-m-clock')
-                ->color($pending > 0 ? 'warning' : 'success'),
-            Stat::make('Revenue (delivered)', money_format($revenue))
+                ->color($pending > 0 ? 'warning' : 'success');
+
+            $stats[] = Stat::make('Revenue (delivered)', money_format($revenue))
                 ->description('Collected from delivered orders')
                 ->descriptionIcon('heroicon-m-banknotes')
-                ->color('success'),
+                ->color('success');
+        }
+
+        return array_merge($stats, [
             Stat::make('Customers', Customer::count())
                 ->description('Registered + guest')
                 ->descriptionIcon('heroicon-m-users'),
@@ -39,6 +49,6 @@ class StatsOverview extends BaseWidget
                 ->description('Active products with 3 or fewer left')
                 ->descriptionIcon('heroicon-m-exclamation-triangle')
                 ->color($lowStock > 0 ? 'danger' : 'gray'),
-        ];
+        ]);
     }
 }

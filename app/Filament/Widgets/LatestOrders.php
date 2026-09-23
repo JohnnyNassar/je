@@ -16,7 +16,9 @@ class LatestOrders extends BaseWidget
 
     public static function canView(): bool
     {
-        return auth()->user()?->isAdmin() ?? false;
+        $user = auth()->user();
+
+        return (bool) ($user?->isAdmin() && $user->canViewOrders());
     }
 
     public function table(Table $table): Table

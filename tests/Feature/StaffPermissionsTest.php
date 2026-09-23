@@ -31,7 +31,14 @@ class StaffPermissionsTest extends TestCase
 
     private function admin(): User
     {
-        return User::factory()->create(['role' => 'admin']);
+        // can_view_cost and can_view_orders are now authoritative for everyone
+        // below the owner, and the migration backfills them for the real
+        // administrators, so a test admin has to carry them too.
+        return User::factory()->create([
+            'role' => 'admin',
+            'can_view_cost' => true,
+            'can_view_orders' => true,
+        ]);
     }
 
     private function product(): Product
@@ -128,10 +135,16 @@ class StaffPermissionsTest extends TestCase
         $this->actingAs($this->staff())->get('/admin')->assertOk();
     }
 
-    public function test_an_admin_sees_cost_without_the_flag(): void
+    public function test_cost_access_follows_the_flag_for_everyone_but_the_owner(): void
     {
-        $this->assertTrue($this->admin()->canViewCost());
+        $this->assertTrue($this->admin()->canViewCost(), 'an admin holding the flag');
         $this->assertFalse($this->staff()->canViewCost());
         $this->assertTrue($this->staff(canViewCost: true)->canViewCost());
+
+        $plainAdmin = User::factory()->create(['role' => 'admin', 'can_view_cost' => false]);
+        $this->assertFalse($plainAdmin->canViewCost(), 'an admin can now be refused cost');
+
+        $owner = User::factory()->create(['role' => 'super_admin', 'can_view_cost' => false]);
+        $this->assertTrue($owner->canViewCost(), 'the owner always sees cost');
     }
 }

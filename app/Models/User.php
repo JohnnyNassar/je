@@ -19,6 +19,7 @@ class User extends Authenticatable implements FilamentUser
         'password',
         'role',
         'can_view_cost',
+        'can_view_orders',
     ];
 
     protected $hidden = [
@@ -32,6 +33,7 @@ class User extends Authenticatable implements FilamentUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'can_view_cost' => 'boolean',
+            'can_view_orders' => 'boolean',
         ];
     }
 
@@ -60,13 +62,24 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
-     * Cost prices & profit margins are visible to back-office admins (admin /
-     * super_admin), plus any staff member explicitly granted the can_view_cost
-     * flag. Lets the owner expose cost to one catalog person without giving them
-     * the full admin tier.
+     * Cost prices and profit margins. The owner always sees them; everyone
+     * else, administrators included, needs the flag. It used to be a grant
+     * that only mattered for staff, which meant an administrator could not be
+     * refused cost without being demoted out of the whole back office.
      */
     public function canViewCost(): bool
     {
-        return $this->isAdmin() || (bool) $this->can_view_cost;
+        return $this->isSuperAdmin() || (bool) $this->can_view_cost;
+    }
+
+    /**
+     * Orders, revenue, and anything derived from them — the orders screen, the
+     * dashboard money, a customer's order history and spend. Same shape as
+     * canViewCost(): a capability an administrator can be refused while
+     * keeping the rest of their job.
+     */
+    public function canViewOrders(): bool
+    {
+        return $this->isSuperAdmin() || (bool) $this->can_view_orders;
     }
 }
