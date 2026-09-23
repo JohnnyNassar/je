@@ -889,6 +889,38 @@ First real numbers: **45 visitors, 108 sessions, 394 page views** over 28 days, 
 - **Composer lives on the server, not this machine.** `composer require` ran over SSH in `/var/www/joreption`, then `composer.json` and `composer.lock` were copied back and committed — otherwise the next deploy's `git reset --hard` would have wiped the dependency straight back out.
 - **A key file with no grant is a silent no-op.** The credential opens nothing until the service account's email is added to the GA property as a Viewer. The only honest test is calling `runReport` and seeing rows come back.
 - **A file mode of 640 is not enough if the directory says no.** `/etc/joreption` as `root:root 750` blocked www-data from traversing into it, so the correctly-owned key inside was still unreadable. Check the path, not just the file.
+
+---
+
+## Day 26 — 2026-09-23 (inline stock editing, and the table that went blank when you paged)
+
+### Stock, editable from the list
+The Stock column on `/admin/products` is a `TextInputColumn` — type a number, press Enter, saved, with `integer|min:0` enforced server-side so the cell is as safe as the edit form.
+
+Products **with variations** are the awkward half: their total is not their own. `ProductVariant`'s `saved` event sums the variants into `products.stock`, so a number typed into that cell would be quietly undone the next time any variant was touched. Those cells are `disabled()` with a tooltip saying why, and a **Stock by variation** row action opens each variation with its own box — saving writes the variants and lets the existing roll-up set the total. Variants are fetched through `$record->variants()`, so a variant id posted from another product is ignored rather than written.
+
+`hasVariants()` now goes through `variantCount()`, which prefers an eager `withCount('variants')` and falls back to a query. The list counts once for the page; any other caller holding a plain `Product` would otherwise have seen zero variants and treated a derived total as editable.
+
+**Found while verifying on production:** product #2 (CRIVIT ski goggles) advertised **20 in stock while its variants summed to 5** — the roll-up only fires on variant writes, so a direct edit to `products.stock` can leave the two disagreeing. One product out of 32 had drifted. Resynced on the owner's say-so; note `syncStockFromVariants()` uses `saveQuietly()`, so the correction does **not** appear in the activity log.
+
+### "When I click a page number the products disappear"
+Reported on the admin list, and worth the time it took to reproduce rather than guess. What it was **not**: every `POST /livewire/update` returned **200**, a Livewire test paged to page 2 and got its ten records, and the new storefront pagination view was nowhere in the admin (checked for its unique class marker — zero hits).
+
+In the browser the rows *were* in the DOM — ten of them, 295 KB of HTML — all with **zero height**, because `.fi-ta-content`, the wrapper around the table, carried an inline `display: none`.
+
+That display came from **this project's own `public/js/admin-table-scroll.js`**, the mirrored top scrollbar from Day 13. It injects its bar as a *sibling of `.fi-ta-content`, inside the Livewire-managed DOM*. Every morph compares the live DOM against server HTML that knows nothing about the bar, and reconciling that mismatch moved the bar's own `display: none` onto the table content. The giveaway was `.fi-ta-content` holding **both** `data-top-scroll="1"`, which the script sets on the content, **and** a display the script only ever sets on the bar.
+
+The bar is now torn down before each Livewire response is applied and rebuilt after, so at morph time the DOM matches what the server sent. Any leftover display from an earlier bad morph is cleared on the way through, and the rebuild also runs on failed commits.
+
+Pre-existing since Day 13 — it needed a table with more than one page to show itself, and it broke sorting and filtering the same way.
+
+### Notes worth remembering
+- **Never inject DOM as a sibling inside a Livewire-managed region.** Morphing diffs against server HTML; anything the server did not send is a mismatch it will try to resolve, and it can resolve it by moving *your* element's attributes onto *its* element. Remove injected nodes before the response lands and rebuild after.
+- **"Nothing renders" can mean "everything renders at zero height".** Counting rows found ten; only measuring `getBoundingClientRect()` and walking up the ancestors found the `display: none` four levels above.
+- **A 200 in the access log rules out the server, not the feature.** The rows were sent correctly every single time.
+- **`requestAnimationFrame` does not fire in a hidden tab.** Driving a browser over CDP leaves `document.visibilityState === 'hidden'`, so anything deferred to a frame never runs and looks broken. Check `visibilityState` before believing a negative result — an hour nearly went into "I broke the scrollbar" when the tab simply was not being painted.
+- **Verify the failing path, not a path.** The first round of checks passed only because no scrollbar had attached in the hidden tab, so there was nothing to corrupt. Planting the bar by hand and re-clicking was the test that actually meant something.
+- **`callTableColumnAction` is not how an editable column saves.** Filament's `TextInputColumn` calls `updateTableColumnState($column, $recordKey, $input)` on blur; a test that calls that method exercises the same path a typed value does, including the disabled check and the validation rules.
 ---
 
 ## Lessons learned (worth remembering)
