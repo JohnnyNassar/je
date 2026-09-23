@@ -83,18 +83,24 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('email')
                     ->searchable()
                     ->copyable(),
+                // Two administrators with different access must not read as the
+                // same thing. The badge carries the role plus whether anything
+                // has been taken away, so the list is honest at a glance.
                 Tables\Columns\TextColumn::make('role')
                     ->badge()
-                    ->formatStateUsing(fn (?string $state) => match ($state) {
+                    ->formatStateUsing(fn (?string $state, User $record) => match ($state) {
                         'super_admin' => 'Super Admin',
-                        'admin' => 'Administrator',
+                        'admin' => $record->isRestricted() ? 'Administrator · limited' : 'Administrator',
                         default => 'Staff',
                     })
-                    ->color(fn (?string $state) => match ($state) {
+                    ->color(fn (?string $state, User $record) => match ($state) {
                         'super_admin' => 'success',
-                        'admin' => 'info',
+                        'admin' => $record->isRestricted() ? 'warning' : 'info',
                         default => 'gray',
-                    }),
+                    })
+                    ->tooltip(fn (User $record) => $record->isRestricted()
+                        ? 'Cannot see: ' . implode(', ', $record->restrictions())
+                        : null),
                 Tables\Columns\IconColumn::make('can_view_orders')
                     ->label('Orders')
                     ->boolean()

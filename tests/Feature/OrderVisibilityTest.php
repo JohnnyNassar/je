@@ -194,4 +194,29 @@ class OrderVisibilityTest extends TestCase
         $table->assertTableColumnStateSet('can_view_orders', true, $full);
         $table->assertTableColumnStateSet('can_view_cost', true, $full);
     }
+    public function test_a_restricted_administrator_does_not_read_as_a_full_one(): void
+    {
+        $full = $this->admin();
+        $restricted = $this->restrictedAdmin();
+        $owner = User::factory()->create(['role' => 'super_admin', 'can_view_orders' => false]);
+        $staff = User::factory()->create(['role' => 'staff', 'can_view_orders' => false, 'can_view_cost' => false]);
+
+        $this->assertFalse($full->isRestricted());
+        $this->assertTrue($restricted->isRestricted());
+        $this->assertSame(['orders & revenue', 'cost prices & profit'], $restricted->restrictions());
+
+        // The owner is exempt from the flags, so nothing was taken away.
+        $this->assertFalse($owner->isRestricted());
+
+        // Staff never had orders in the first place: that is the role, not a
+        // removal, and labelling it as one would be noise on every staff row.
+        $this->assertFalse($staff->isRestricted());
+    }
+
+    public function test_only_one_capability_removed_is_named_on_its_own(): void
+    {
+        $noCost = User::factory()->create(['role' => 'admin', 'can_view_orders' => true, 'can_view_cost' => false]);
+
+        $this->assertSame(['cost prices & profit'], $noCost->restrictions());
+    }
 }

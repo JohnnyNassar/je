@@ -82,4 +82,32 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->isSuperAdmin() || (bool) $this->can_view_orders;
     }
+
+    /**
+     * Whether this account has had something taken away that its role would
+     * normally include. Two administrators can now differ, so the role name
+     * alone no longer describes what someone can reach.
+     */
+    public function isRestricted(): bool
+    {
+        return $this->restrictions() !== [];
+    }
+
+    /**
+     * What has been withheld, in words, for a badge tooltip or an audit.
+     *
+     * @return array<int, string>
+     */
+    public function restrictions(): array
+    {
+        // Staff never had orders, so its absence is the role, not a removal.
+        if (! $this->isAdmin()) {
+            return [];
+        }
+
+        return array_values(array_filter([
+            $this->canViewOrders() ? null : 'orders & revenue',
+            $this->canViewCost() ? null : 'cost prices & profit',
+        ]));
+    }
 }
